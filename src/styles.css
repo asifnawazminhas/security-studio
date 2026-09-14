@@ -624,3 +624,183 @@ input[type="file"]{display:none!important}
  .contextFields{grid-template-columns:1fr}
  .contextHeading{align-items:flex-start;flex-direction:column}
 }
+
+/* v2.2 - Light/Dark UI + Visualiser refinement + security polish */
+
+.topActions{display:flex;align-items:center;gap:10px}
+.themeToggle{
+ height:36px;display:inline-flex;align-items:center;gap:7px;
+ border:1px solid #294e60;background:#07131b;color:#a9bfca;
+ border-radius:18px;padding:0 11px;font-size:11px
+}
+.themeToggle:hover{border-color:#00bcd4;color:#00e5ff}
+.themeToggle span{line-height:1}
+
+.toggleField{justify-content:flex-end}
+.togglePill{
+ height:38px;border:1px solid #294e60;background:#07131b;color:#89a9b9;
+ border-radius:20px;padding:0 12px;display:flex;align-items:center;gap:7px
+}
+.togglePill>span{width:8px;height:8px;border-radius:50%;background:#6c8390}
+.togglePill.on{color:#00e5ff;border-color:#1a7186;background:#082630}
+.togglePill.on>span{background:#00e5ff;box-shadow:0 0 0 3px #00e5ff20}
+
+.exportcard.refined{
+ position:relative;overflow:hidden;
+ box-shadow:0 20px 60px #0007,0 1px 0 #ffffff0a inset;
+}
+.exportcard.refined::after{
+ content:'';
+ position:absolute;inset:0;
+ pointer-events:none;
+ background:radial-gradient(circle at 88% 10%,#00e5ff0d,transparent 32%);
+}
+.exportcard.refined .exportbody{position:relative;z-index:1}
+.windowDots{display:flex;gap:6px}
+.visualMeta{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:22px}
+.visualMeta span{
+ border:1px solid currentColor;border-radius:999px;
+ padding:4px 8px;font-size:9px;opacity:.7;text-transform:uppercase;
+ letter-spacing:.55px
+}
+.refinedCommand{
+ min-height:112px;display:flex;align-items:center;
+ gap:12px;font-weight:650
+}
+.refinedCommand code{
+ font-size:inherit;line-height:1.55;
+ text-shadow:0 0 18px currentColor;
+}
+.visualFooter{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:10px;margin-top:30px
+}
+.visualFooter small{opacity:.75}
+.visualFooter span{
+ border:1px solid currentColor;border-radius:999px;
+ padding:4px 8px;font-size:9px;opacity:.62
+}
+
+.layout-minimal{border-radius:12px!important}
+.layout-minimal .exportbody{min-height:230px!important}
+.layout-minimal .refinedCommand{justify-content:center;text-align:center}
+.layout-minimal .visualMeta{justify-content:center}
+.layout-minimal .visualFooter{justify-content:center}
+.layout-minimal .visualFooter span{display:none}
+
+.layout-card{
+ border-radius:18px!important;
+}
+.layout-card .exportbar{border-bottom:0!important;background:transparent!important}
+.layout-card .refinedCommand{
+ border:1px solid #ffffff14;border-radius:10px;
+ padding:24px;background:#00000016
+}
+
+.layout-poster .exportbody{min-height:390px!important}
+.layout-poster .refinedCommand{
+ min-height:240px;justify-content:center;text-align:center
+}
+.layout-poster .visualMeta{justify-content:center}
+.layout-poster .visualFooter{margin-top:auto}
+
+/* Light application theme */
+html[data-theme="light"] body{
+ background:#f4f7f9!important;color:#15212a!important
+}
+html[data-theme="light"] .app,
+html[data-theme="light"] main,
+html[data-theme="light"] .content{
+ background:#f4f7f9!important;color:#15212a!important
+}
+html[data-theme="light"] .topbar,
+html[data-theme="light"] aside{
+ background:#ffffff!important;border-color:#d4e0e6!important
+}
+html[data-theme="light"] aside .navgroup>span,
+html[data-theme="light"] .eyebrow{color:#007f91!important}
+html[data-theme="light"] .navgroup button{
+ color:#344b58!important
+}
+html[data-theme="light"] .navgroup button:hover:not(.active){
+ background:#edf5f7!important;color:#103641!important
+}
+html[data-theme="light"] .navgroup button.active{
+ background:#dff5f8!important;color:#007d90!important
+}
+html[data-theme="light"] h1,
+html[data-theme="light"] h2,
+html[data-theme="light"] h3,
+html[data-theme="light"] strong,
+html[data-theme="light"] b{color:#15212a}
+html[data-theme="light"] p{color:#527080}
+html[data-theme="light"] .panel,
+html[data-theme="light"] .commandcard,
+html[data-theme="light"] .featurecard,
+html[data-theme="light"] .librarytools,
+html[data-theme="light"] .workspaceItem,
+html[data-theme="light"] .workspaceStats>div,
+html[data-theme="light"] .commandbox,
+html[data-theme="light"] .contextBar,
+html[data-theme="light"] .workflowCanvas,
+html[data-theme="light"] .packMain,
+html[data-theme="light"] .packSidebar,
+html[data-theme="light"] .notesBuilder,
+html[data-theme="light"] .reportForm,
+html[data-theme="light"] .reportPreview{
+ background:#ffffff!important;border-color:#cadbe3!important;
+ box-shadow:0 1px 2px #15313c0d!important
+}
+html[data-theme="light"] input,
+html[data-theme="light"] select,
+html[data-theme="light"] textarea{
+ background:#fbfdfe!important;color:#18323e!important;border-color:#b9ced8!important
+}
+html[data-theme="light"] code{
+ color:#006f82
+}
+html[data-theme="light"] .secondarySmall,
+html[data-theme="light"] .themeToggle,
+html[data-theme="light"] .togglePill{
+ background:#ffffff!important;color:#345767!important;border-color:#b9ced8!important
+}
+html[data-theme="light"] .primarySmall{
+ background:#00cfe5!important;color:#002027!important;border-color:#00cfe5!important
+}
+html[data-theme="light"] .dangerOutline{
+ background:#fff4f5!important;color:#a33b4a!important;border-color:#d89ba4!important
+}
+html[data-theme="light"] .librarysearch,
+html[data-theme="light"] .palette,
+html[data-theme="light"] .commandSnippet{
+ background:#ffffff!important;border-color:#b9ced8!important
+}
+html[data-theme="light"] .heroStats span,
+html[data-theme="light"] .tags small,
+html[data-theme="light"] .badges span{
+ background:#eef6f8!important;border-color:#bfd5de!important;color:#315865!important
+}
+html[data-theme="light"] .notes{color:#315865!important}
+html[data-theme="light"] .connectionState{color:#5a7684!important}
+
+/* Ensure Visualiser export themes remain independent of app light/dark theme */
+html[data-theme="light"] .exportcard,
+html[data-theme="light"] .exportcard *{
+ color:inherit
+}
+html[data-theme="light"] .exportcard.theme-security{background:#07151e!important;color:#eef7fb!important}
+html[data-theme="light"] .exportcard.theme-midnight{background:#02060c!important;color:#eaf2ff!important}
+html[data-theme="light"] .exportcard.theme-light{background:#f6f8fa!important;color:#17212b!important}
+html[data-theme="light"] .exportcard.theme-matrix{background:#020802!important;color:#b6ffb6!important}
+html[data-theme="light"] .exportcard.theme-purple{background:#100b18!important;color:#f4ecff!important}
+html[data-theme="light"] .exportcard.theme-dracula{background:#282a36!important;color:#f8f8f2!important}
+html[data-theme="light"] .exportcard.theme-nord{background:#2e3440!important;color:#eceff4!important}
+html[data-theme="light"] .exportcard.theme-solarized{background:#002b36!important;color:#eee8d5!important}
+html[data-theme="light"] .exportcard.theme-amber{background:#110c02!important;color:#ffe7a0!important}
+html[data-theme="light"] .exportcard.theme-contrast{background:#000!important;color:#fff!important}
+
+@media(max-width:760px){
+ .themeToggle span{display:none}
+ .themeToggle{width:36px;padding:0;justify-content:center}
+ .topActions{gap:6px}
+}

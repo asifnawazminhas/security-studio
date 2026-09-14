@@ -4,7 +4,7 @@ import {toPng,toSvg} from 'html-to-image';
 import {
   Activity,ArrowLeft,BookOpen,CheckCircle2,ChevronDown,ChevronRight,Copy,Download,
   Clock3,ExternalLink,Filter,GitCompareArrows,Image,Layers3,LayoutDashboard,Library,Menu,
-  Check,FileJson,FileText,GripVertical,Link2,Network,Package,Plus,RadioTower,RotateCcw,Save,Search,ShieldCheck,Star,Tag,TerminalSquare,Trash2,Upload,Workflow,X
+  Check,FileJson,FileText,GripVertical,Link2,Moon,Network,Package,Plus,RadioTower,RotateCcw,Save,Search,ShieldCheck,Star,Sun,Tag,TerminalSquare,Trash2,Upload,Workflow,X
 } from 'lucide-react';
 import {commands} from './data/commands';
 import './styles.css';
@@ -56,6 +56,15 @@ const parseRoute=()=>{
 };
 
 function App(){
+ const [theme,setTheme]=useState(()=>{
+  const saved=localStorage.getItem('security-studio-theme');
+  if(saved==='light'||saved==='dark')return saved;
+  return matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';
+ });
+ useEffect(()=>{
+  document.documentElement.dataset.theme=theme;
+  localStorage.setItem('security-studio-theme',theme);
+ },[theme]);
  const [online,setOnline]=useState(navigator.onLine);
  useEffect(()=>{
   const on=()=>setOnline(true);
@@ -112,7 +121,14 @@ function App(){
   <header>
    <button className="brand" onClick={()=>go('dashboard')}><div className="mark">A</div><div><b>Asif's Security Studio</b><span>Interactive security knowledge workspace</span></div></button>
    <button className="topsearch" onClick={()=>setPalette(true)}><Search size={17}/><span>Search commands, tools, techniques...</span><kbd>Ctrl K</kbd></button>
-   <div className={`connectionState ${online?'online':'offline'}`}><span/> {online?'Online':'Offline'}</div><a className="notes" href="https://notes.asifnawazminhas.com/">Notes <ExternalLink size={14}/></a>
+   <div className="topActions">
+    <div className={`connectionState ${online?'online':'offline'}`}><span/> {online?'Online':'Offline'}</div>
+    <button className="themeToggle" onClick={()=>setTheme(theme==='dark'?'light':'dark')} title={`Switch to ${theme==='dark'?'light':'dark'} mode`} aria-label={`Switch to ${theme==='dark'?'light':'dark'} mode`}>
+     {theme==='dark'?<Sun size={16}/>:<Moon size={16}/>}
+     <span>{theme==='dark'?'Light':'Dark'}</span>
+    </button>
+    <a className="notes" href="https://notes.asifnawazminhas.com/">Notes <ExternalLink size={14}/></a>
+   </div>
    <button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button>
   </header>
   <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v2.0</div></aside>
@@ -167,7 +183,7 @@ function Dashboard({go,favorites,recent}){
    <div className="terminal">
     <div className="termbar"><i/><i/><i/><span>security-studio</span></div>
     <code>
-     <b>$</b> knowledge --interactive<br/>
+     <b>›</b> knowledge --interactive<br/>
      <span>✓ {commands.length} commands indexed</span><br/>
      <span>✓ Command packs ready</span><br/>
      <span>✓ Report Builder ready</span><br/>
@@ -463,16 +479,18 @@ function AttackPathExplorer({openCommand}){
 function VisualPreview({c}){
  const ref=useRef(null);
  const [theme,setTheme]=useState('Security Notes Dark');
- const [prompt,setPrompt]=useState(c.platform==='Windows'?'PS>':'$');
+ const [prompt,setPrompt]=useState(c.platform==='Windows'?'PS>':'');
  const [watermark,setWatermark]=useState(true);
  const [watermarkText,setWatermarkText]=useState('studio.asifnawazminhas.com');
  const [windowTitle,setWindowTitle]=useState(c.tool);
  const [fontSize,setFontSize]=useState(20);
  const [padding,setPadding]=useState(48);
  const [customCommand,setCustomCommand]=useState(c.command);
+ const [layout,setLayout]=useState('Terminal');
+ const [showMeta,setShowMeta]=useState(true);
 
  useEffect(()=>{
-   setPrompt(c.platform==='Windows'?'PS>':'$');
+   setPrompt(c.platform==='Windows'?'PS>':'');
    setWindowTitle(c.tool);
    setCustomCommand(c.command);
  },[c.id]);
@@ -490,6 +508,13 @@ function VisualPreview({c}){
    'High Contrast':'theme-contrast'
  }[theme]||'theme-security';
 
+ const layoutClass={
+  'Terminal':'layout-terminal',
+  'Minimal':'layout-minimal',
+  'Card':'layout-card',
+  'Poster':'layout-poster'
+ }[layout]||'layout-terminal';
+
  const download=async(type)=>{
    if(!ref.current)return;
    const fn=type==='png'?toPng:toSvg;
@@ -502,21 +527,24 @@ function VisualPreview({c}){
 
  const reset=()=>{
    setTheme('Security Notes Dark');
-   setPrompt(c.platform==='Windows'?'PS>':'$');
+   setPrompt(c.platform==='Windows'?'PS>':'');
    setWatermark(true);
    setWatermarkText('studio.asifnawazminhas.com');
    setWindowTitle(c.tool);
    setFontSize(20);
    setPadding(48);
    setCustomCommand(c.command);
+   setLayout('Terminal');
+   setShowMeta(true);
  };
 
- return <div className="visualPro">
+ return <div className="visualPro v22">
   <div className="visualSettings">
    <div className="visualField wide">
     <label>Command</label>
     <textarea value={customCommand} onChange={e=>setCustomCommand(e.target.value)}/>
    </div>
+
    <div className="visualField">
     <label>Theme</label>
     <select value={theme} onChange={e=>setTheme(e.target.value)}>
@@ -532,34 +560,50 @@ function VisualPreview({c}){
      <option>High Contrast</option>
     </select>
    </div>
+
+   <div className="visualField">
+    <label>Layout</label>
+    <select value={layout} onChange={e=>setLayout(e.target.value)}>
+     <option>Terminal</option>
+     <option>Minimal</option>
+     <option>Card</option>
+     <option>Poster</option>
+    </select>
+   </div>
+
    <div className="visualField">
     <label>Prompt</label>
-    <input value={prompt} onChange={e=>setPrompt(e.target.value)}/>
+    <input value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder="Optional"/>
    </div>
+
    <div className="visualField">
     <label>Window title</label>
     <input value={windowTitle} onChange={e=>setWindowTitle(e.target.value)}/>
    </div>
+
    <div className="visualField">
     <label>Font size</label>
     <select value={fontSize} onChange={e=>setFontSize(Number(e.target.value))}>
-     <option value="16">16 px</option>
-     <option value="18">18 px</option>
-     <option value="20">20 px</option>
-     <option value="22">22 px</option>
-     <option value="24">24 px</option>
-     <option value="28">28 px</option>
+     <option value="16">16 px</option><option value="18">18 px</option><option value="20">20 px</option>
+     <option value="22">22 px</option><option value="24">24 px</option><option value="28">28 px</option>
     </select>
    </div>
+
    <div className="visualField">
     <label>Card padding</label>
     <select value={padding} onChange={e=>setPadding(Number(e.target.value))}>
-     <option value="32">Compact</option>
-     <option value="48">Balanced</option>
-     <option value="64">Spacious</option>
-     <option value="80">Poster</option>
+     <option value="32">Compact</option><option value="48">Balanced</option>
+     <option value="64">Spacious</option><option value="80">Poster</option>
     </select>
    </div>
+
+   <div className="visualField toggleField">
+    <label>Details</label>
+    <button className={`togglePill ${showMeta?'on':''}`} onClick={()=>setShowMeta(!showMeta)} type="button">
+     <span/>{showMeta?'Shown':'Hidden'}
+    </button>
+   </div>
+
    <div className="visualField watermarkField">
     <label>Watermark</label>
     <div className="inlineControl">
@@ -569,14 +613,28 @@ function VisualPreview({c}){
    </div>
   </div>
 
-  <div ref={ref} className={`exportcard pro ${themeClass}`}>
-   <div className="exportbar"><i/><i/><i/><span>{windowTitle}</span></div>
+  <div ref={ref} className={`exportcard pro refined ${themeClass} ${layoutClass}`}>
+   {layout!=='Minimal'&&<div className="exportbar">
+    <div className="windowDots"><i/><i/><i/></div>
+    <span>{windowTitle}</span>
+   </div>}
+
    <div className="exportbody" style={{padding:`${padding}px`}}>
-    <div className="exportCommand" style={{fontSize:`${fontSize}px`}}>
-     <b>{prompt}</b>
+    {showMeta&&<div className="visualMeta">
+     <span>{c.platform}</span>
+     <span>{c.tool}</span>
+     <span>{c.category}</span>
+    </div>}
+
+    <div className="exportCommand refinedCommand" style={{fontSize:`${fontSize}px`}}>
+     {prompt&&<b>{prompt}</b>}
      <code>{customCommand}</code>
     </div>
-    {watermark&&<small>{watermarkText}</small>}
+
+    <div className="visualFooter">
+     {watermark&&<small>{watermarkText}</small>}
+     {showMeta&&<span>{c.risk}</span>}
+    </div>
    </div>
   </div>
 
@@ -584,7 +642,7 @@ function VisualPreview({c}){
    <div className="visualActionGroup">
     <button className="primarySmall" onClick={()=>download('png')}><Download size={15}/> Export PNG</button>
     <button className="secondarySmall" onClick={()=>download('svg')}><Download size={15}/> Export SVG</button>
-    <button className="secondarySmall" onClick={()=>navigator.clipboard?.writeText(customCommand)}><Copy size={15}/> Copy command</button>
+    <button className="secondarySmall" onClick={()=>{navigator.clipboard?.writeText(customCommand);studioToast('Command copied')}}><Copy size={15}/> Copy command</button>
    </div>
    <button className="secondarySmall" onClick={reset}><RotateCcw size={15}/> Reset</button>
   </div>
@@ -594,7 +652,7 @@ function VisualPreview({c}){
 function Visualiser({c}){
  const [chosen,setChosen]=useState(c||commands[0]);
  return <>
-  <PageTitle kicker="COMMANDS" title="Command Visualiser" text="Create polished Security Studio command cards with multiple terminal themes and export them as PNG or SVG."/>
+  <PageTitle kicker="COMMANDS" title="Command Visualiser" text="Create polished command cards for documentation, reports and knowledge sharing."/>
   <div className="visualselect">
    <label>Library command
     <select value={chosen.id} onChange={e=>setChosen(commands.find(c=>c.id===e.target.value))}>

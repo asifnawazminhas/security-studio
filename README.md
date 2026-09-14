@@ -2,57 +2,49 @@
 
 Interactive companion application for Asif's Security Notes.
 
-## v1.9 - Integrations + Reporting
+## v2.0 - Final Stable Release
 
-### Report Builder
-- Builds reports from Purple Team validation data
-- Executive summary
-- Scope and author fields
-- Technical mapping
-- Recommendations
-- Markdown export
-- HTML export
-- JSON export
-- Live report preview
+This release closes the current Security Studio roadmap and turns the project into a stable, portable, installable application.
 
-### Command Packs
-- Windows Baseline
-- Linux Baseline
-- Network Discovery
-- Web Assessment
-- Active Directory Context
-- Packet Analysis
-- Repository Review
-- Add an entire pack to Workflow Builder
-- Export packs as JSON
-- Build and save custom command packs
+### Production hardening
+- Command catalogue validation runs before every production build
+- Duplicate command IDs fail the build
+- Required command fields are validated
+- Placeholder/parameter inconsistencies are reported
+- Versioned workspace/export schema
+- Existing v1 workspace backups remain supported when no schema version is present
 
-### Notes Integration
-- Dedicated Notes Link Builder
-- Exact Studio command URL
-- Markdown link generation
-- MkDocs external-link syntax
-- Related Material block generation
-- One-click copy controls
+### PWA / offline support
+- Web app manifest
+- Installable app metadata
+- Service worker
+- Cached app shell
+- Offline fallback page
+- Online/offline status indicator
+- Branded 192px and 512px icons
 
-### Product polish
-- Toast notifications for important copy/export actions
-- Catalogue health indicators on the Dashboard
-- Duplicate-ID visibility
-- Explanation/telemetry/ATT&CK coverage indicators
-- Existing portable workspace backup/restore retained
+### Accessibility and branding
+- Skip link
+- Visible keyboard focus treatment
+- Final metadata and Open Graph information
+- Final branding pass
+- Consistent card and panel presentation
 
-### Existing platform
+### Complete platform retained
 - Mature command catalogue
-- Advanced Command Library filters and shareable URLs
-- Visualiser Pro
-- Saved Workspace
-- Workflow Builder
-- Purple Team Validation Workspace
-- ATT&CK Explorer
+- Command Library filters, favourites and shareable URLs
+- Command Studio
+- Visualiser Pro with multiple themes
+- Command Packs and custom packs
+- Saved Workspace with full backup/restore
+- Workflow Builder with templates, drag-and-drop, decisions and export
 - PrivEsc Explorer
+- ATT&CK Explorer
 - Attack Path Explorer
 - Detection & Telemetry
+- Purple Team Validation Workspace
+- Report Builder
+- Notes Link Builder
 
 ## Local development
 
@@ -61,8 +53,16 @@ npm install
 npm run dev
 ```
 
+## Validate catalogue
+
+```bash
+npm run validate
+```
+
 ## Production build
 
 ```bash
 npm run build
 ```
+
+The production build validates the command catalogue before Vite builds the application.

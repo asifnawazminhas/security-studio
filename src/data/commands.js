@@ -1,3 +1,4 @@
+export const commandSchemaVersion = '2.0';
 export const commands = [
   {
     "id": "applocker-effective",

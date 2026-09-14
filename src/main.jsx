@@ -56,6 +56,14 @@ const parseRoute=()=>{
 };
 
 function App(){
+ const [online,setOnline]=useState(navigator.onLine);
+ useEffect(()=>{
+  const on=()=>setOnline(true);
+  const off=()=>setOnline(false);
+  addEventListener('online',on);
+  addEventListener('offline',off);
+  return()=>{removeEventListener('online',on);removeEventListener('offline',off)};
+ },[]);
  const initial=parseRoute();
  const [page,setPage]=useState(initial.page);
  const initialParams=new URLSearchParams(location.search);
@@ -104,10 +112,10 @@ function App(){
   <header>
    <button className="brand" onClick={()=>go('dashboard')}><div className="mark">A</div><div><b>Asif's Security Studio</b><span>Interactive security knowledge workspace</span></div></button>
    <button className="topsearch" onClick={()=>setPalette(true)}><Search size={17}/><span>Search commands, tools, techniques...</span><kbd>Ctrl K</kbd></button>
-   <a className="notes" href="https://notes.asifnawazminhas.com/">Notes <ExternalLink size={14}/></a>
+   <div className={`connectionState ${online?'online':'offline'}`}><span/> {online?'Online':'Offline'}</div><a className="notes" href="https://notes.asifnawazminhas.com/">Notes <ExternalLink size={14}/></a>
    <button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button>
   </header>
-  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v1.9</div></aside>
+  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v2.0</div></aside>
   <main>
    {page==='dashboard'?<Dashboard go={go} favorites={favorites} recent={recent}/>:
     page==='library'?<LibraryPage query={query} setQuery={setQuery} platform={platform} setPlatform={setPlatform} tool={tool} setTool={setTool} openCommand={openCommand} favorites={favorites} toggleFavorite={toggleFavorite}/>:
@@ -859,7 +867,7 @@ function WorkspacePage({favorites,recent,toggleFavorite,openCommand,removeRecent
  const exportWorkspace=()=>{
   const payload={
    name:'Asif Security Studio Workspace',
-   version:'1.8',
+   schemaVersion:'2.0',version:'2.0',
    exportedAt:new Date().toISOString(),
    favorites,
    recent,
@@ -886,6 +894,7 @@ function WorkspacePage({favorites,recent,toggleFavorite,openCommand,removeRecent
    try{
     const p=JSON.parse(reader.result);
     if(!p||!Array.isArray(p.favorites)||!Array.isArray(p.recent))throw new Error('Invalid workspace');
+    if(p.schemaVersion && p.schemaVersion!=='2.0')throw new Error(`Unsupported workspace schema ${p.schemaVersion}`);
     localStorage.setItem('security-studio-favorites',JSON.stringify(p.favorites));
     localStorage.setItem('security-studio-recent',JSON.stringify(p.recent));
     if(Array.isArray(p.workflow))localStorage.setItem('security-studio-workflow',JSON.stringify(p.workflow));
@@ -1021,7 +1030,7 @@ function WorkflowBuilder(){
  const reset=()=>setNodes(createNodes(templates['Assessment']));
 
  const exportJson=()=>{
-   const blob=new Blob([JSON.stringify({name:'Security Studio Workflow',version:'1.7',steps:nodes},null,2)],{type:'application/json'});
+   const blob=new Blob([JSON.stringify({name:'Security Studio Workflow',schemaVersion:'2.0',version:'2.0',steps:nodes},null,2)],{type:'application/json'});
    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='security-studio-workflow.json';a.click();URL.revokeObjectURL(a.href);
  };
  const importJson=e=>{
@@ -1140,7 +1149,7 @@ function Purple(){
   setStatuses({telemetry:'Not tested',detection:'Not tested',response:'Not tested',overall:'Not tested'});
  };
  const payload=()=>({
-  name:exerciseName,version:'1.7',technique,
+  name:exerciseName,schemaVersion:'2.0',version:'2.0',technique,
   command:selectedCommand?{id:selectedCommand.id,title:selectedCommand.title,command:selectedCommand.command}:null,
   statuses,mapping:items
  });
@@ -1223,3 +1232,8 @@ function PageTitle({kicker,title,text}){return <div className="pagetitle"><span 
 function Panel({title,children}){return <div className="panel"><h3>{title}</h3>{children}</div>}
 
 createRoot(document.getElementById('root')).render(<App/>);
+
+if('serviceWorker' in navigator){
+ addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+}
+

@@ -514,3 +514,40 @@
  .reportActions{display:grid;grid-template-columns:1fr}
  .reportActions button{width:100%}
 }
+
+/* v2.0 final stable release */
+.skip-link{
+ position:fixed;left:12px;top:-60px;z-index:999;
+ background:#00dff2;color:#001014;padding:10px 14px;
+ border-radius:5px;font-weight:800;text-decoration:none
+}
+.skip-link:focus{top:12px}
+
+:focus-visible{outline:2px solid #00e5ff!important;outline-offset:2px!important}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+ box-shadow:0 0 0 3px #00e5ff22
+}
+
+.connectionState{
+ display:flex;align-items:center;gap:6px;
+ color:#7899ac;font-size:10px;white-space:nowrap
+}
+.connectionState>span{
+ width:7px;height:7px;border-radius:50%;background:#6e8794
+}
+.connectionState.online>span{
+ background:#27df83;box-shadow:0 0 0 3px #27df8320
+}
+.connectionState.offline{color:#ffb25e}
+.connectionState.offline>span{
+ background:#ff9d4d;box-shadow:0 0 0 3px #ff9d4d20
+}
+
+main>.pagetitle:first-child{max-width:1180px}
+.panel,.commandbox,.packMain,.packSidebar,.workflowCanvas,.notesBuilder,.reportForm,.reportPreview{
+ box-shadow:0 1px 0 #ffffff05 inset
+}
+
+@media(max-width:760px){
+ .connectionState{display:none}
+}

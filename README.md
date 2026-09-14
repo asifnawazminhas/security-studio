@@ -2,49 +2,61 @@
 
 Interactive companion application for Asif's Security Notes.
 
-## v2.0 - Final Stable Release
+## v2.1 - Context + Smart Search + No Uploads
 
-This release closes the current Security Studio roadmap and turns the project into a stable, portable, installable application.
+### Target Context
+- Named local engagement context
+- Target / hostname
+- Domain
+- Username
+- Interface
+- Port
+- Path
+- Context values automatically resolve matching command placeholders
+- Stored only in browser localStorage
+- No backend transmission
 
-### Production hardening
-- Command catalogue validation runs before every production build
-- Duplicate command IDs fail the build
-- Required command fields are validated
-- Placeholder/parameter inconsistencies are reported
-- Versioned workspace/export schema
-- Existing v1 workspace backups remain supported when no schema version is present
+### Search
+- Weighted search
+- Title matches strongest
+- Tool, platform and category weighting
+- Tags and ATT&CK IDs searchable
+- Description and command body included with lower weight
+- `/` opens search in addition to Ctrl+K
 
-### PWA / offline support
-- Web app manifest
-- Installable app metadata
-- Service worker
-- Cached app shell
-- Offline fallback page
-- Online/offline status indicator
-- Branded 192px and 512px icons
+### ATT&CK Explorer
+- Compact right-side technique detail
+- Removed redundant repeated technique-name heading
+- More room for mapped commands and telemetry
 
-### Accessibility and branding
-- Skip link
-- Visible keyboard focus treatment
-- Final metadata and Open Graph information
-- Final branding pass
-- Consistent card and panel presentation
+### No-upload policy
+- Workspace import removed
+- Workflow JSON import removed
+- No file-upload inputs remain in the application
+- Exports are still available:
+  - JSON
+  - Markdown
+  - HTML
+  - PNG
+  - SVG
 
-### Complete platform retained
+### Existing platform retained
 - Mature command catalogue
-- Command Library filters, favourites and shareable URLs
+- Command Library
 - Command Studio
-- Visualiser Pro with multiple themes
-- Command Packs and custom packs
-- Saved Workspace with full backup/restore
-- Workflow Builder with templates, drag-and-drop, decisions and export
-- PrivEsc Explorer
-- ATT&CK Explorer
-- Attack Path Explorer
-- Detection & Telemetry
+- Visualiser Pro
+- Command Packs
+- Saved Workspace
+- Workflow Builder
 - Purple Team Validation Workspace
 - Report Builder
 - Notes Link Builder
+- ATT&CK Explorer
+- PrivEsc Explorer
+- Attack Path Explorer
+- Detection & Telemetry
+- PWA/offline support
+- Catalogue validation before production builds
 
 ## Local development
 
@@ -53,16 +65,8 @@ npm install
 npm run dev
 ```
 
-## Validate catalogue
-
-```bash
-npm run validate
-```
-
 ## Production build
 
 ```bash
 npm run build
 ```
-
-The production build validates the command catalogue before Vite builds the application.

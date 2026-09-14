@@ -551,3 +551,76 @@ main>.pagetitle:first-child{max-width:1180px}
 @media(max-width:760px){
  .connectionState{display:none}
 }
+
+/* v2.1 - context, weighted search, relationships and no-upload policy */
+
+.contextBar{
+ border:1px solid #1c4355;background:#07151e;border-radius:8px;
+ padding:14px;margin-bottom:14px
+}
+.contextHeading{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;
+ margin-bottom:12px
+}
+.contextHeading b{display:block;margin-top:4px}
+.contextHeading select{
+ height:38px;background:#050d13;border:1px solid #315063;color:#dce8f2;
+ border-radius:5px;padding:0 10px
+}
+.contextFields{
+ display:grid;grid-template-columns:repeat(6,minmax(0,1fr)) auto;
+ gap:8px;align-items:end
+}
+.contextFields label{
+ display:flex;flex-direction:column;gap:5px;color:#7899ac;
+ font-size:9px;letter-spacing:.5px
+}
+.contextFields input{
+ min-width:0;background:#050d13;border:1px solid #294e60;color:#eaf2f7;
+ border-radius:5px;padding:8px
+}
+
+.attackCompactHead{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:12px;margin-bottom:18px
+}
+.attackTechniqueId{
+ font-size:24px;font-weight:800;color:#fff
+}
+.attackTactic{
+ border:1px solid #1d6074;background:#082b37;color:#00e5ff;
+ border-radius:999px;padding:5px 9px;font-size:10px
+}
+
+/* no-upload policy visual cleanup */
+input[type="file"]{display:none!important}
+
+/* Visualiser without shell prompt by default */
+.exportCommand:has(> b:empty) b{display:none}
+.exportCommand code{margin-left:0}
+
+/* Weighted search emphasis */
+.paletteresults button:hover{border-color:#1d6074;background:#08232d}
+
+/* Relationship-like related command presentation */
+.studio .miniCommands button{
+ position:relative
+}
+.studio .miniCommands button::before{
+ content:'';
+ position:absolute;left:-10px;top:50%;width:7px;height:1px;background:#1d6074
+}
+
+/* Final no-upload note */
+.noUploadNotice{
+ display:flex;align-items:center;gap:7px;color:#7899ac;font-size:10px;
+ margin-top:8px
+}
+
+@media(max-width:1150px){
+ .contextFields{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:760px){
+ .contextFields{grid-template-columns:1fr}
+ .contextHeading{align-items:flex-start;flex-direction:column}
+}

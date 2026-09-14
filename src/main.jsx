@@ -157,9 +157,80 @@ function AttackExplorer({openCommand}){
  const [selected,setSelected]=useState(null);
  const tactics=['All',...new Set(attackCatalog.map(x=>x[2]))];
  const rows=attackCatalog.filter(x=>tactic==='All'||x[2]===tactic);
- return <><PageTitle kicker="EXPLORERS" title="ATT&CK Explorer" text="Connect ATT&CK techniques to commands, telemetry and supporting notes."/><div className="filterrow attackFilters"><b>Tactic</b>{tactics.map(t=><button className={tactic===t?'selected':''} onClick={()=>setTactic(t)} key={t}>{t}</button>)}</div><div className="attacklayout"><div className="attackgrid">{rows.map(([id,name,tac])=>{const mapped=commands.filter(c=>c.attack.includes(id));return <button className={`attackcard ${selected===id?'selected':''}`} key={id} onClick={()=>setSelected(id)}><div><span>{tac}</span><b>{id}</b></div><h3>{name}</h3><p>{mapped.length} mapped command{mapped.length===1?'':'s'}</p></button>})}</div><div className="attackdetail">{selected?(()=>{
-   const item=attackCatalog.find(x=>x[0]===selected); const mapped=commands.filter(c=>c.attack.includes(selected)); const telemetry=[...new Set(mapped.flatMap(c=>c.telemetry))];
-   return <><span className="eyebrow">{item[2]}</span><h2>{item[0]} - {item[1]}</h2><h3>Mapped commands</h3><div className="miniCommands">{mapped.length?mapped.map(c=><button key={c.id} onClick={()=>openCommand(c)}><div><b>{c.title}</b><code>{c.command}</code></div><ChevronRight/></button>):<p>No commands mapped yet.</p>}</div><h3>Telemetry coverage</h3><div className="tags big">{telemetry.map(x=><small key={x}>{x}</small>)}</div></>:<div className="empty">Select a technique to inspect mapped commands and telemetry.</div>})()}</div></div></>
+
+ let detail=<div className="empty">Select a technique to inspect mapped commands and telemetry.</div>;
+
+ if(selected){
+   const item=attackCatalog.find(x=>x[0]===selected);
+   const mapped=commands.filter(c=>c.attack.includes(selected));
+   const telemetry=[...new Set(mapped.flatMap(c=>c.telemetry))];
+
+   detail=<>
+     <span className="eyebrow">{item[2]}</span>
+     <h2>{item[0]} - {item[1]}</h2>
+     <h3>Mapped commands</h3>
+     <div className="miniCommands">
+       {mapped.length
+         ? mapped.map(c=>
+             <button key={c.id} onClick={()=>openCommand(c)}>
+               <div>
+                 <b>{c.title}</b>
+                 <code>{c.command}</code>
+               </div>
+               <ChevronRight/>
+             </button>
+           )
+         : <p>No commands mapped yet.</p>
+       }
+     </div>
+     <h3>Telemetry coverage</h3>
+     <div className="tags big">
+       {telemetry.map(x=><small key={x}>{x}</small>)}
+     </div>
+   </>;
+ }
+
+ return <>
+   <PageTitle
+     kicker="EXPLORERS"
+     title="ATT&CK Explorer"
+     text="Connect ATT&CK techniques to commands, telemetry and supporting notes."
+   />
+   <div className="filterrow attackFilters">
+     <b>Tactic</b>
+     {tactics.map(t=>
+       <button
+         className={tactic===t?'selected':''}
+         onClick={()=>setTactic(t)}
+         key={t}
+       >
+         {t}
+       </button>
+     )}
+   </div>
+   <div className="attacklayout">
+     <div className="attackgrid">
+       {rows.map(([id,name,tac])=>{
+         const mapped=commands.filter(c=>c.attack.includes(id));
+         return (
+           <button
+             className={`attackcard ${selected===id?'selected':''}`}
+             key={id}
+             onClick={()=>setSelected(id)}
+           >
+             <div>
+               <span>{tac}</span>
+               <b>{id}</b>
+             </div>
+             <h3>{name}</h3>
+             <p>{mapped.length} mapped command{mapped.length===1?'':'s'}</p>
+           </button>
+         );
+       })}
+     </div>
+     <div className="attackdetail">{detail}</div>
+   </div>
+ </>;
 }
 
 function AttackPathExplorer({openCommand}){

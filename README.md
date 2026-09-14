@@ -2,7 +2,7 @@
 
 Interactive companion application for Asif's Security Notes.
 
-## v1.3
+## v1.3 - fixed build
 
 - Fixed Command Studio copy button layout
 - Functional PrivEsc Explorer
@@ -30,3 +30,5 @@ npm run build
 ```
 
 GitHub Actions publishes `dist/` to GitHub Pages.
+
+- Fixed ATT&CK Explorer JSX syntax error from the first v1.3 package.

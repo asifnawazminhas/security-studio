@@ -1,6 +1,12 @@
-import React,{useMemo,useState} from 'react';
+import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {createRoot} from 'react-dom/client';
-import {LayoutDashboard,Library,TerminalSquare,Image,ShieldCheck,Network,Workflow,RadioTower,GitCompareArrows,Search,Copy,ExternalLink,ChevronRight,Menu,X,BookOpen,Activity,Layers3,CheckCircle2,Filter,ArrowLeft,Download,Plus,Trash2} from 'lucide-react';
+import {toPng,toSvg} from 'html-to-image';
+import {
+  Activity,ArrowLeft,BookOpen,CheckCircle2,ChevronRight,Copy,Download,
+  ExternalLink,Filter,GitCompareArrows,Image,Layers3,LayoutDashboard,
+  Library,Menu,Network,Plus,RadioTower,Search,ShieldCheck,TerminalSquare,
+  Trash2,Workflow,X
+} from 'lucide-react';
 import {commands} from './data/commands';
 import './styles.css';
 
@@ -11,38 +17,164 @@ const sections=[
  {title:'BUILDERS',items:[['Workflow Builder','workflow',Workflow]]},
  {title:'DEFENCE',items:[['Detection & Telemetry','detection',RadioTower],['Purple Team Mapping','purple',Layers3]]}
 ];
+
+const attackCatalog=[
+ ['T1082','System Information Discovery','Discovery'],
+ ['T1016','System Network Configuration Discovery','Discovery'],
+ ['T1046','Network Service Discovery','Discovery'],
+ ['T1033','System Owner/User Discovery','Discovery'],
+ ['T1057','Process Discovery','Discovery'],
+ ['T1007','System Service Discovery','Discovery'],
+ ['T1018','Remote System Discovery','Discovery'],
+ ['T1049','System Network Connections Discovery','Discovery'],
+ ['T1518.001','Security Software Discovery','Discovery'],
+ ['T1069.001','Permission Groups Discovery: Local Groups','Discovery'],
+ ['T1595.002','Active Scanning: Vulnerability Scanning','Reconnaissance']
+];
+
 const featureData={
  privesc:{title:'PrivEsc Explorer',desc:'Decision-support for reviewing privilege boundaries and defensive controls.',icon:ShieldCheck,steps:['Choose Windows or Linux','Review current identity and privileges','Check services, tasks and writable locations','Review application-control boundaries','Open the relevant Security Notes guidance']},
- 'attack-path':{title:'Attack Path Explorer',desc:'Visualise identities, systems, permissions and security boundaries.',icon:GitCompareArrows,steps:['Identity','Group / role','Permission relationship','System','Control boundary']}
+ 'attack-path':{title:'Attack Path Explorer',desc:'Visualise identities, systems, permissions and security boundaries.',icon:GitCompareArrows,steps:['Identity','Group or role','Permission relationship','System','Control boundary']}
 };
-const attackCatalog=[
- {id:'T1082',name:'System Information Discovery',tactic:'Discovery'},
- {id:'T1016',name:'System Network Configuration Discovery',tactic:'Discovery'},
- {id:'T1046',name:'Network Service Discovery',tactic:'Discovery'},
- {id:'T1033',name:'System Owner/User Discovery',tactic:'Discovery'},
- {id:'T1049',name:'System Network Connections Discovery',tactic:'Discovery'},
- {id:'T1518.001',name:'Security Software Discovery',tactic:'Discovery'}
-];
+
+const routeFor=(page,c)=>page==='command-studio'&&c?`#/command/${c.id}`:`#/${page}`;
+const parseRoute=()=>{
+ const raw=location.hash.replace(/^#\/?/,'');
+ if(raw.startsWith('command/')){
+   const id=raw.slice(8);
+   return {page:'command-studio',command:commands.find(c=>c.id===id)||commands[0]};
+ }
+ return {page:raw||'dashboard',command:null};
+};
+
 function App(){
- const [page,setPage]=useState('dashboard'),[query,setQuery]=useState(''),[platform,setPlatform]=useState('All'),[selected,setSelected]=useState(commands[0]),[mobile,setMobile]=useState(false),[tab,setTab]=useState('Explain');
- const go=p=>{setPage(p);setMobile(false);window.scrollTo(0,0)};
- const openCommand=c=>{setSelected(c);setTab('Explain');go('command-studio')};
+ const initial=parseRoute();
+ const [page,setPage]=useState(initial.page);
+ const [query,setQuery]=useState('');
+ const [platform,setPlatform]=useState('All');
+ const [tool,setTool]=useState('All');
+ const [selected,setSelected]=useState(initial.command||commands[0]);
+ const [mobile,setMobile]=useState(false);
+ const [tab,setTab]=useState('Explain');
+ const [palette,setPalette]=useState(false);
+
+ useEffect(()=>{
+   const onHash=()=>{const r=parseRoute();setPage(r.page);if(r.command)setSelected(r.command)};
+   const onKey=e=>{
+     if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();setPalette(true)}
+     if(e.key==='Escape')setPalette(false);
+   };
+   addEventListener('hashchange',onHash);addEventListener('keydown',onKey);
+   return()=>{removeEventListener('hashchange',onHash);removeEventListener('keydown',onKey)}
+ },[]);
+
+ const go=(p,c=null)=>{
+   if(c)setSelected(c);
+   location.hash=routeFor(p,c||selected);
+   setPage(p);setMobile(false);window.scrollTo(0,0);
+ };
+ const openCommand=c=>{setSelected(c);setTab('Explain');go('command-studio',c)};
  return <div className="app">
-  <header><button className="brand" onClick={()=>go('dashboard')}><div className="mark">A</div><div><b>Asif's Security Studio</b><span>Interactive security knowledge workspace</span></div></button><div className="topsearch"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} onFocus={()=>page==='dashboard'&&go('library')} placeholder="Search commands, tools, techniques..."/><kbd>Ctrl K</kbd></div><a className="notes" href="https://notes.asifnawazminhas.com/">Notes <ExternalLink size={14}/></a><button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button></header>
-  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v1.1</div></aside>
-  <main>{page==='dashboard'?<Dashboard go={go}/>:page==='library'?<LibraryPage query={query} setQuery={setQuery} platform={platform} setPlatform={setPlatform} openCommand={openCommand}/>:page==='command-studio'?<CommandStudio c={selected} tab={tab} setTab={setTab} go={go}/>:page==='visualiser'?<Visualiser c={selected}/>:page==='attack'?<AttackExplorer openCommand={openCommand}/>:page==='workflow'?<WorkflowBuilder/>:page==='detection'?<Detection/>:page==='purple'?<Purple/>:<Feature data={featureData[page]}/>}</main>
+  <header>
+   <button className="brand" onClick={()=>go('dashboard')}><div className="mark">A</div><div><b>Asif's Security Studio</b><span>Interactive security knowledge workspace</span></div></button>
+   <button className="topsearch" onClick={()=>setPalette(true)}><Search size={17}/><span>Search commands, tools, techniques...</span><kbd>Ctrl K</kbd></button>
+   <a className="notes" href="https://notes.asifnawazminhas.com/">Notes <ExternalLink size={14}/></a>
+   <button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button>
+  </header>
+  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v1.2</div></aside>
+  <main>
+   {page==='dashboard'?<Dashboard go={go}/>:
+    page==='library'?<LibraryPage query={query} setQuery={setQuery} platform={platform} setPlatform={setPlatform} tool={tool} setTool={setTool} openCommand={openCommand}/>:
+    page==='command-studio'?<CommandStudio c={selected} tab={tab} setTab={setTab} go={go}/>:
+    page==='visualiser'?<Visualiser c={selected}/>:
+    page==='attack'?<AttackExplorer openCommand={openCommand}/>:
+    page==='workflow'?<WorkflowBuilder/>:
+    page==='detection'?<Detection/>:
+    page==='purple'?<Purple/>:<Feature data={featureData[page]}/>}
+  </main>
+  {palette&&<CommandPalette close={()=>setPalette(false)} openCommand={c=>{setPalette(false);openCommand(c)}} go={p=>{setPalette(false);go(p)}}/>}
  </div>
 }
-function Dashboard({go}){const quick=[['Command Library','library',Library,'Search structured security commands'],['Command Studio','command-studio',TerminalSquare,'Explain, modify and contextualise commands'],['PrivEsc Explorer','privesc',ShieldCheck,'Explore privilege-boundary checks'],['ATT&CK Explorer','attack',Network,'Map techniques to commands and telemetry'],['Workflow Builder','workflow',Workflow,'Build reusable assessment flows'],['Purple Team Mapping','purple',Layers3,'Connect validation to defence']];return <><div className="hero"><div><span className="eyebrow">ASIF'S SECURITY STUDIO</span><h1>Security knowledge,<br/><em>made interactive.</em></h1><p>Explore commands, understand context, map telemetry and turn security notes into practical workflows.</p><div className="heroactions"><button onClick={()=>go('library')}>Explore Commands <ChevronRight size={16}/></button><a href="https://notes.asifnawazminhas.com/"><BookOpen size={16}/> Open Security Notes</a></div></div><div className="terminal"><div className="termbar"><i/><i/><i/><span>security-studio</span></div><code><b>$</b> knowledge --interactive<br/><span>✓ {commands.length} commands indexed</span><br/><span>✓ ATT&CK mappings loaded</span><br/><span>✓ Detection context ready</span><br/><br/><b>$</b> explore <u>security</u><br/><strong>Ready.</strong></code></div></div><section><div className="sectionhead"><div><span className="eyebrow">WORKSPACE</span><h2>Choose where to start</h2></div></div><div className="grid">{quick.map(([n,id,I,d])=><button className="featurecard" onClick={()=>go(id)} key={id}><I/><div><h3>{n}</h3><p>{d}</p></div><ChevronRight className="arrow"/></button>)}</div></section><section><div className="banner"><Activity/><div><b>Built to connect Notes and Studio</b><span>Read methodology in Security Notes, then explore structured interactive material here.</span></div></div></section></>}
-function LibraryPage({query,setQuery,platform,setPlatform,openCommand}){const platforms=['All',...new Set(commands.map(c=>c.platform))];const filtered=useMemo(()=>commands.filter(c=>(platform==='All'||c.platform===platform)&&`${c.title} ${c.platform} ${c.tool} ${c.category} ${c.tags.join(' ')} ${c.command}`.toLowerCase().includes(query.toLowerCase())),[query,platform]);return <><PageTitle kicker="COMMANDS" title="Command Library" text="Search reusable security commands by platform, tool and security context."/><div className="librarytools"><div className="librarysearch"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search commands, tools, categories..."/></div><div className="filters"><Filter size={16}/>{platforms.map(p=><button className={platform===p?'selected':''} onClick={()=>setPlatform(p)} key={p}>{p}</button>)}</div></div><div className="resultline"><b>{filtered.length}</b> commands</div><div className="commandgrid">{filtered.map(c=><button className="commandcard" key={c.id} onClick={()=>openCommand(c)}><div className="badges"><span>{c.platform}</span><span>{c.tool}</span><small>{c.risk}</small></div><h3>{c.title}</h3><p>{c.description}</p><code>{c.command}</code><div className="tags">{c.tags.map(t=><small key={t}>{t}</small>)}</div><div className="openstudio">Open in Studio <ChevronRight size={15}/></div></button>)}</div>{!filtered.length&&<div className="empty">No commands match the current search and filters.</div>}</>}
-function CommandStudio({c,tab,setTab,go}){const [values,setValues]=useState(Object.fromEntries(c.parameters.map(p=>[p.name,''])));const generated=c.parameters.reduce((s,p)=>s.replaceAll(`<${p.name}>`,values[p.name]||`<${p.name}>`),c.command);const copy=()=>navigator.clipboard?.writeText(generated);return <><button className="back" onClick={()=>go('library')}><ArrowLeft size={15}/> Command Library</button><PageTitle kicker={`${c.platform} / ${c.category}`} title={c.title} text={c.description}/><div className="studio"><div className="commandbox"><div><TerminalSquare size={18}/>{c.tool}<span>{c.risk}</span></div><code>{generated}</code><button onClick={copy}><Copy size={15}/> Copy</button></div><div className="tabs">{['Explain','Modify','Detect','Visualise','Related'].map(t=><button className={tab===t?'active':''} onClick={()=>setTab(t)} key={t}>{t}</button>)}</div>{tab==='Explain'&&<div className="twocol"><Panel title="Command Breakdown"><dl>{c.explanation.map(([a,b])=><React.Fragment key={a}><dt>{a}</dt><dd>{b}</dd></React.Fragment>)}</dl></Panel><Panel title="Context"><dl><dt>Platform</dt><dd>{c.platform}</dd><dt>Tool</dt><dd>{c.tool}</dd><dt>Category</dt><dd>{c.category}</dd><dt>Changes system</dt><dd>{c.changesSystem?'Yes':'No'}</dd></dl></Panel></div>}{tab==='Modify'&&<Panel title="Command Parameters">{c.parameters.length? <>{c.parameters.map(p=><label className="field" key={p.name}>{p.label}<input placeholder={p.placeholder} value={values[p.name]} onChange={e=>setValues({...values,[p.name]:e.target.value})}/></label>)}<div className="generated"><small>GENERATED COMMAND</small><code>{generated}</code><button onClick={copy}><Copy size={15}/> Copy</button></div></>:<p>This command has no editable placeholders.</p>}</Panel>}{tab==='Detect'&&<div className="twocol"><Panel title="Defender View"><p>Use the telemetry below as assessment context. A command alone is not automatically suspicious; correlation and intent matter.</p>{c.telemetry.map(x=><div className="check" key={x}><CheckCircle2 size={16}/>{x}</div>)}</Panel><Panel title="ATT&CK Context">{c.attack.length?c.attack.map(x=><div className="attackpill" key={x}>{x}</div>):<p>No ATT&CK mapping assigned to this reference entry.</p>}</Panel></div>}{tab==='Visualise'&&<VisualPreview c={{...c,command:generated}}/>}{tab==='Related'&&<div className="twocol"><Panel title="Security Notes"><p>Continue with the full methodology and supporting documentation.</p><a className="textlink" href={c.notes}>Open related Security Notes <ExternalLink size={14}/></a></Panel><Panel title="Tags"><div className="tags big">{c.tags.map(x=><small key={x}>{x}</small>)}</div></Panel></div>}</div></>}
-function VisualPreview({c}){return <div className="preview large"><div className="termbar"><i/><i/><i/><span>{c.tool}</span></div><code><b>{c.tool==='PowerShell'?'PS>':'$'}</b> {c.command}</code><small>studio.asifnawazminhas.com</small></div>}
-function Visualiser({c}){const [text,setText]=useState(c.command),[prompt,setPrompt]=useState(c.tool==='PowerShell'?'PS>':'$');return <><PageTitle kicker="COMMANDS" title="Command Visualiser" text="Create a clean Security Studio command card for documentation and sharing."/><div className="visualwrap"><div><VisualPreview c={{...c,command:text}}/></div><Panel title="Visual settings"><label className="field">Command<textarea value={text} onChange={e=>setText(e.target.value)}/></label><label className="field">Prompt<input value={prompt} onChange={e=>setPrompt(e.target.value)}/></label><p className="muted">PNG/SVG export is reserved for the next release; the live preview is functional now.</p><button className="primary" onClick={()=>navigator.clipboard?.writeText(text)}><Copy size={15}/> Copy command</button></Panel></div></>}
-function AttackExplorer({openCommand}){return <><PageTitle kicker="EXPLORERS" title="ATT&CK Explorer" text="Connect ATT&CK techniques to commands, defensive telemetry and Security Notes."/><div className="attackgrid">{attackCatalog.map(a=>{const mapped=commands.filter(c=>c.attack.includes(a.id));return <div className="attackcard" key={a.id}><div><span>{a.tactic}</span><b>{a.id}</b></div><h3>{a.name}</h3><p>{mapped.length} mapped command{mapped.length===1?'':'s'}</p>{mapped.map(c=><button key={c.id} onClick={()=>openCommand(c)}>{c.title}<ChevronRight size={14}/></button>)}</div>})}</div></>}
-function WorkflowBuilder(){const [nodes,setNodes]=useState([{id:1,title:'Define scope'},{id:2,title:'Run validation'},{id:3,title:'Review telemetry'}]);return <><PageTitle kicker="BUILDERS" title="Workflow Builder" text="Arrange safe assessment and validation steps into a reusable visual workflow."/><div className="workflow"><div className="workflowbar"><button onClick={()=>setNodes([...nodes,{id:Date.now(),title:'New step'}])}><Plus size={15}/> Add step</button></div>{nodes.map((n,i)=><React.Fragment key={n.id}><div className="worknode"><span>{i+1}</span><input value={n.title} onChange={e=>setNodes(nodes.map(x=>x.id===n.id?{...x,title:e.target.value}:x))}/><button onClick={()=>setNodes(nodes.filter(x=>x.id!==n.id))}><Trash2 size={15}/></button></div>{i<nodes.length-1&&<div className="connector">↓</div>}</React.Fragment>)}</div></>}
-function Detection(){const sources=['Process creation','PowerShell telemetry','Windows Event Logs','DNS telemetry','Web / proxy logs','Firewall / IDS','EDR telemetry'];return <><PageTitle kicker="DEFENCE" title="Detection & Telemetry" text="Explore which data sources provide visibility across the command catalogue."/><div className="metricgrid">{sources.map(s=>{const count=commands.filter(c=>c.telemetry.some(t=>t.toLowerCase().includes(s.split(' ')[0].toLowerCase()))).length;return <div className="metric" key={s}><RadioTower/><b>{count}</b><span>{s}</span></div>})}</div><Panel title="Telemetry coverage"><p>Open a command in Command Studio and select <b>Detect</b> to see its individual defensive context.</p></Panel></>}
-function Purple(){return <><PageTitle kicker="DEFENCE" title="Purple Team Mapping" text="Connect validation actions to expected telemetry, detection and learning outcomes."/><div className="purpleflow">{['Validation action','Expected signal','Telemetry source','Detection','Response','Learning outcome'].map((x,i)=><React.Fragment key={x}><div><span>{i+1}</span><b>{x}</b><small>{['Authorised assessment step','What should become observable','Where the signal should appear','How the activity is identified','Expected defensive action','What should improve next'][i]}</small></div>{i<5&&<ChevronRight/>}</React.Fragment>)}</div><Panel title="How to use this mapping"><p>Start with an authorised validation objective, define the expected observable signal, identify the telemetry source, document detection behaviour and capture the resulting learning outcome.</p></Panel></>}
-function Feature({data}){if(!data)return null;const I=data.icon;return <><PageTitle kicker="EXPLORERS" title={data.title} text={data.desc}/><div className="coming"><I/><span>INTERACTIVE FOUNDATION</span><h2>{data.title}</h2><p>This first release provides the structure for a decision-support explorer. The next dataset can connect each step directly to Security Notes.</p><div>{data.steps.map(x=><span key={x}>✓ {x}</span>)}</div></div></>}
+
+function Dashboard({go}){
+ const quick=[['Command Library','library',Library,'Search structured security commands'],['Command Studio','command-studio',TerminalSquare,'Explain, modify and contextualise commands'],['PrivEsc Explorer','privesc',ShieldCheck,'Explore privilege-boundary checks'],['ATT&CK Explorer','attack',Network,'Map techniques to commands and telemetry'],['Workflow Builder','workflow',Workflow,'Build reusable assessment flows'],['Purple Team Mapping','purple',Layers3,'Connect validation to defence']];
+ return <><div className="hero"><div><span className="eyebrow">ASIF'S SECURITY STUDIO</span><h1>Security knowledge,<br/><em>made interactive.</em></h1><p>Explore commands, understand context, map telemetry and turn security notes into practical workflows.</p><div className="heroactions"><button onClick={()=>go('library')}>Explore Commands <ChevronRight size={16}/></button><a href="https://notes.asifnawazminhas.com/"><BookOpen size={16}/> Open Security Notes</a></div></div><div className="terminal"><div className="termbar"><i/><i/><i/><span>security-studio</span></div><code><b>$</b> knowledge --interactive<br/><span>✓ {commands.length} commands indexed</span><br/><span>✓ ATT&CK mappings loaded</span><br/><span>✓ Detection context ready</span><br/><span>✓ URL-addressable commands</span><br/><br/><b>$</b> explore <u>security</u><br/><strong>Ready.</strong></code></div></div><section><div className="sectionhead"><div><span className="eyebrow">WORKSPACE</span><h2>Choose where to start</h2></div></div><div className="grid">{quick.map(([n,id,I,d])=><button className="featurecard" onClick={()=>go(id)} key={id}><I/><div><h3>{n}</h3><p>{d}</p></div><ChevronRight className="arrow"/></button>)}</div></section><section><div className="banner"><Activity/><div><b>Built to connect Notes and Studio</b><span>Read methodology in Security Notes, then explore structured interactive material here.</span></div></div></section></>
+}
+
+function CommandPalette({close,openCommand,go}){
+ const [q,setQ]=useState('');
+ const input=useRef(null);
+ useEffect(()=>input.current?.focus(),[]);
+ const results=commands.filter(c=>`${c.title} ${c.tool} ${c.platform} ${c.category} ${c.tags.join(' ')}`.toLowerCase().includes(q.toLowerCase())).slice(0,8);
+ return <div className="paletteback" onMouseDown={e=>e.target===e.currentTarget&&close()}><div className="palette"><div className="paletteinput"><Search/><input ref={input} value={q} onChange={e=>setQ(e.target.value)} placeholder="Search commands, tools, techniques..."/><kbd>Esc</kbd></div><div className="paletteresults">{results.map(c=><button key={c.id} onClick={()=>openCommand(c)}><TerminalSquare/><div><b>{c.title}</b><span>{c.platform} · {c.tool} · {c.category}</span></div><ChevronRight/></button>)}{!results.length&&<div className="empty">No matching commands.</div>}</div><div className="palettefoot"><button onClick={()=>go('library')}>Open Command Library</button><span>{commands.length} indexed commands</span></div></div></div>
+}
+
+function LibraryPage({query,setQuery,platform,setPlatform,tool,setTool,openCommand}){
+ const platforms=['All',...new Set(commands.map(c=>c.platform))];
+ const tools=['All',...new Set(commands.map(c=>c.tool))];
+ const filtered=useMemo(()=>commands.filter(c=>(platform==='All'||c.platform===platform)&&(tool==='All'||c.tool===tool)&&`${c.title} ${c.platform} ${c.tool} ${c.category} ${c.tags.join(' ')} ${c.command}`.toLowerCase().includes(query.toLowerCase())),[query,platform,tool]);
+ return <><PageTitle kicker="COMMANDS" title="Command Library" text="Search reusable security commands by platform, tool and security context."/><div className="librarytools"><div className="librarysearch"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search commands, tools, categories..."/></div><div className="filterrow"><Filter size={16}/><b>Platform</b>{platforms.map(p=><button className={platform===p?'selected':''} onClick={()=>setPlatform(p)} key={p}>{p}</button>)}</div><div className="filterrow"><Filter size={16}/><b>Tool</b>{tools.map(p=><button className={tool===p?'selected':''} onClick={()=>setTool(p)} key={p}>{p}</button>)}</div></div><div className="resultline"><b>{filtered.length}</b> commands</div><div className="commandgrid">{filtered.map(c=><button className="commandcard" key={c.id} onClick={()=>openCommand(c)}><div className="badges"><span>{c.platform}</span><span>{c.tool}</span><small>{c.risk}</small></div><h3>{c.title}</h3><p>{c.description}</p><code>{c.command}</code><div className="tags">{c.tags.map(t=><small key={t}>{t}</small>)}</div><div className="openstudio">Open in Studio <ChevronRight size={15}/></div></button>)}</div>{!filtered.length&&<div className="empty">No commands match the current search and filters.</div>}</>
+}
+
+function CommandStudio({c,tab,setTab,go}){
+ const [values,setValues]=useState({});
+ useEffect(()=>setValues(Object.fromEntries(c.parameters.map(p=>[p.name,'']))),[c.id]);
+ const generated=c.parameters.reduce((s,p)=>s.replaceAll(`<${p.name}>`,values[p.name]||`<${p.name}>`),c.command);
+ const copy=()=>navigator.clipboard?.writeText(generated);
+ return <><button className="back" onClick={()=>go('library')}><ArrowLeft size={15}/> Command Library</button><PageTitle kicker={`${c.platform} / ${c.category}`} title={c.title} text={c.description}/><div className="studio"><div className="commandbox"><div><TerminalSquare size={18}/>{c.tool}<span>{c.risk}</span></div><code>{generated}</code><button onClick={copy}><Copy size={15}/> Copy</button></div><div className="tabs">{['Explain','Modify','Detect','Visualise','Related'].map(t=><button className={tab===t?'active':''} onClick={()=>setTab(t)} key={t}>{t}</button>)}</div>
+ {tab==='Explain'&&<div className="twocol"><Panel title="Command Breakdown"><dl>{c.explanation.map(([a,b])=><React.Fragment key={a}><dt>{a}</dt><dd>{b}</dd></React.Fragment>)}</dl></Panel><Panel title="Context"><dl><dt>Platform</dt><dd>{c.platform}</dd><dt>Tool</dt><dd>{c.tool}</dd><dt>Category</dt><dd>{c.category}</dd><dt>Changes system</dt><dd>{c.changesSystem?'Yes':'No'}</dd><dt>Risk</dt><dd>{c.risk}</dd></dl></Panel></div>}
+ {tab==='Modify'&&<Panel title="Command Parameters">{c.parameters.length?<>{c.parameters.map(p=><label className="field" key={p.name}>{p.label}<input placeholder={p.placeholder} value={values[p.name]||''} onChange={e=>setValues({...values,[p.name]:e.target.value})}/></label>)}<div className="generated"><small>GENERATED COMMAND</small><code>{generated}</code><button onClick={copy}><Copy size={15}/> Copy</button></div></>:<p>This command has no editable placeholders.</p>}</Panel>}
+ {tab==='Detect'&&<div className="twocol"><Panel title="Defender View"><p>Use the telemetry below as assessment context. A command alone is not automatically suspicious; correlation and intent matter.</p>{c.telemetry.map(x=><div className="check" key={x}><CheckCircle2 size={16}/>{x}</div>)}</Panel><Panel title="ATT&CK Context">{c.attack.length?c.attack.map(x=><div className="attackpill" key={x}>{x}</div>):<p>No ATT&CK mapping assigned to this reference entry.</p>}</Panel></div>}
+ {tab==='Visualise'&&<VisualPreview c={{...c,command:generated}}/>}
+ {tab==='Related'&&<div className="twocol"><Panel title="Security Notes"><p>Continue with the full methodology and supporting documentation.</p><a className="textlink" href={c.notes}>Open related Security Notes <ExternalLink size={14}/></a></Panel><Panel title="Tags"><div className="tags big">{c.tags.map(x=><small key={x}>{x}</small>)}</div><p className="permalink">Permalink<br/><code>{location.href}</code></p></Panel></div>}
+ </div></>
+}
+
+function VisualPreview({c,standalone=false}){
+ const ref=useRef(null);
+ const [theme,setTheme]=useState('Security Notes Dark');
+ const [prompt,setPrompt]=useState(c.platform==='Windows'?'PS>':'$');
+ const [watermark,setWatermark]=useState(true);
+ const download=async(type)=>{
+   if(!ref.current)return;
+   const fn=type==='png'?toPng:toSvg;
+   const data=await fn(ref.current,{pixelRatio:2,cacheBust:true});
+   const a=document.createElement('a');a.href=data;a.download=`${c.id}.${type}`;a.click();
+ };
+ return <div className="visualwrap"><div className="visualcontrols"><label>Theme<select value={theme} onChange={e=>setTheme(e.target.value)}><option>Security Notes Dark</option><option>Midnight</option><option>Clean Light</option></select></label><label>Prompt<input value={prompt} onChange={e=>setPrompt(e.target.value)}/></label><label className="toggle"><input type="checkbox" checked={watermark} onChange={e=>setWatermark(e.target.checked)}/> Watermark</label></div><div ref={ref} className={`exportcard ${theme==='Clean Light'?'light':theme==='Midnight'?'midnight':''}`}><div className="exportbar"><i/><i/><i/><span>{c.tool}</span></div><div className="exportbody"><div><b>{prompt}</b> <code>{c.command}</code></div>{watermark&&<small>studio.asifnawazminhas.com</small>}</div></div><div className="exportactions"><button onClick={()=>download('png')}><Download/> PNG</button><button onClick={()=>download('svg')}><Download/> SVG</button><button onClick={()=>navigator.clipboard?.writeText(c.command)}><Copy/> Copy</button></div></div>
+}
+
+function Visualiser({c}){
+ const [chosen,setChosen]=useState(c||commands[0]);
+ return <><PageTitle kicker="COMMANDS" title="Command Visualiser" text="Create a recognisable Security Studio command card and export it as PNG or SVG."/><div className="visualselect"><label>Command<select value={chosen.id} onChange={e=>setChosen(commands.find(c=>c.id===e.target.value))}>{commands.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label></div><VisualPreview c={chosen} standalone/></>
+}
+
+function AttackExplorer({openCommand}){
+ return <><PageTitle kicker="EXPLORERS" title="ATT&CK Explorer" text="Connect ATT&CK techniques to commands, defensive telemetry and Security Notes."/><div className="attackgrid">{attackCatalog.map(([id,name,tactic])=>{const mapped=commands.filter(c=>c.attack.includes(id));return <div className="attackcard" key={id}><div><span>{tactic}</span><b>{id}</b></div><h3>{name}</h3><p>{mapped.length} mapped command{mapped.length===1?'':'s'}</p>{mapped.map(c=><button key={c.id} onClick={()=>openCommand(c)}>{c.title}<ChevronRight size={14}/></button>)}</div>})}</div></>
+}
+
+function WorkflowBuilder(){
+ const [nodes,setNodes]=useState([{id:1,title:'Define scope'},{id:2,title:'Run validation'},{id:3,title:'Review telemetry'},{id:4,title:'Capture learning'}]);
+ return <><PageTitle kicker="BUILDERS" title="Workflow Builder" text="Arrange safe assessment and validation steps into a reusable visual workflow."/><div className="workflow"><div className="workflowbar"><button onClick={()=>setNodes([...nodes,{id:Date.now(),title:'New step'}])}><Plus size={15}/> Add step</button></div>{nodes.map((n,i)=><React.Fragment key={n.id}><div className="worknode"><span>{i+1}</span><input value={n.title} onChange={e=>setNodes(nodes.map(x=>x.id===n.id?{...x,title:e.target.value}:x))}/><button onClick={()=>setNodes(nodes.filter(x=>x.id!==n.id))}><Trash2 size={15}/></button></div>{i<nodes.length-1&&<div className="connector">↓</div>}</React.Fragment>)}</div></>
+}
+
+function Detection(){
+ const counts={};
+ commands.flatMap(c=>c.telemetry).forEach(x=>counts[x]=(counts[x]||0)+1);
+ const top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,12);
+ return <><PageTitle kicker="DEFENCE" title="Detection & Telemetry" text="Explore which data sources provide visibility across the command catalogue."/><div className="metricgrid">{top.map(([s,count])=><div className="metric" key={s}><RadioTower/><b>{count}</b><span>{s}</span></div>)}</div><Panel title="Telemetry coverage"><p>Open a command in Command Studio and select <b>Detect</b> to see its individual defensive context.</p></Panel></>
+}
+
+function Purple(){
+ return <><PageTitle kicker="DEFENCE" title="Purple Team Mapping" text="Connect validation actions to expected telemetry, detection and learning outcomes."/><div className="purpleflow">{['Validation action','Expected signal','Telemetry source','Detection','Response','Learning outcome'].map((x,i)=><React.Fragment key={x}><div><span>{i+1}</span><b>{x}</b><small>{['Authorised assessment step','What should become observable','Where the signal should appear','How the activity is identified','Expected defensive action','What should improve next'][i]}</small></div>{i<5&&<ChevronRight/>}</React.Fragment>)}</div><Panel title="How to use this mapping"><p>Start with an authorised validation objective, define the expected observable signal, identify the telemetry source, document detection behaviour and capture the resulting learning outcome.</p></Panel></>
+}
+
+function Feature({data}){
+ if(!data)return <PageTitle kicker="STUDIO" title="Not found" text="This Studio route does not exist."/>;
+ const I=data.icon;
+ return <><PageTitle kicker="EXPLORERS" title={data.title} text={data.desc}/><div className="coming"><I/><span>INTERACTIVE FOUNDATION</span><h2>{data.title}</h2><p>This release keeps the explorer foundation ready for the next structured dataset.</p><div>{data.steps.map(x=><span key={x}>✓ {x}</span>)}</div></div></>
+}
 function PageTitle({kicker,title,text}){return <div className="pagetitle"><span className="eyebrow">{kicker}</span><h1>{title}</h1><p>{text}</p></div>}
 function Panel({title,children}){return <div className="panel"><h3>{title}</h3>{children}</div>}
+
 createRoot(document.getElementById('root')).render(<App/>);

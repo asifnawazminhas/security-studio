@@ -1,22 +1,24 @@
 # Asif's Security Studio
 
-Interactive companion to Asif's Security Notes.
+Interactive companion application for Asif's Security Notes.
 
-## v1.1
+## v1.2
 
-- Searchable Command Library with platform filters
-- Command Studio with Explain, Modify, Detect, Visualise and Related views
-- ATT&CK Explorer backed by the shared command catalogue
-- Detection & Telemetry overview
-- Editable Workflow Builder foundation
-- Purple Team Mapping visual flow
-- PrivEsc and Attack Path Explorer foundations
-- GitHub Pages deployment workflow
+- Expanded structured command library
+- Platform and tool filters
+- Ctrl+K global command palette
+- URL-addressable command pages
+- Command Studio: Explain, Modify, Detect, Visualise, Related
+- PNG and SVG command-card export
+- ATT&CK Explorer mappings
+- Detection and telemetry coverage
+- Workflow Builder foundation
+- Purple Team Mapping foundation
 
 ## Local development
 
 ```bash
-npm ci
+npm install
 npm run dev
 ```
 
@@ -26,4 +28,4 @@ npm run dev
 npm run build
 ```
 
-The static output is written to `dist/`.
+The GitHub Actions workflow publishes `dist/` to GitHub Pages.

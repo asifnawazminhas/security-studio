@@ -3,8 +3,8 @@ import {createRoot} from 'react-dom/client';
 import {toPng,toSvg} from 'html-to-image';
 import {
   Activity,ArrowLeft,BookOpen,CheckCircle2,ChevronDown,ChevronRight,Copy,Download,
-  ExternalLink,Filter,GitCompareArrows,Image,Layers3,LayoutDashboard,Library,Menu,
-  Network,Plus,RadioTower,Search,ShieldCheck,TerminalSquare,Trash2,Workflow,X
+  Clock3,ExternalLink,Filter,GitCompareArrows,Image,Layers3,LayoutDashboard,Library,Menu,
+  Network,Plus,RadioTower,RotateCcw,Search,ShieldCheck,Star,TerminalSquare,Trash2,Workflow,X
 } from 'lucide-react';
 import {commands} from './data/commands';
 import './styles.css';
@@ -13,6 +13,7 @@ const sections=[
  {title:'',items:[['Dashboard','dashboard',LayoutDashboard]]},
  {title:'COMMANDS',items:[['Command Library','library',Library],['Command Studio','command-studio',TerminalSquare],['Command Visualiser','visualiser',Image]]},
  {title:'EXPLORERS',items:[['PrivEsc Explorer','privesc',ShieldCheck],['ATT&CK Explorer','attack',Network],['Attack Path Explorer','attack-path',GitCompareArrows]]},
+ {title:'WORKSPACE',items:[['Saved Workspace','workspace',Star]]},
  {title:'BUILDERS',items:[['Workflow Builder','workflow',Workflow]]},
  {title:'DEFENCE',items:[['Detection & Telemetry','detection',RadioTower],['Purple Team Mapping','purple',Layers3]]}
 ];
@@ -51,6 +52,14 @@ function App(){
  const [mobile,setMobile]=useState(false);
  const [tab,setTab]=useState('Explain');
  const [palette,setPalette]=useState(false);
+ const [favorites,setFavorites]=useState(()=>{
+   try{return JSON.parse(localStorage.getItem('security-studio-favorites')||'[]')}catch{return []}
+ });
+ const [recent,setRecent]=useState(()=>{
+   try{return JSON.parse(localStorage.getItem('security-studio-recent')||'[]')}catch{return []}
+ });
+ useEffect(()=>localStorage.setItem('security-studio-favorites',JSON.stringify(favorites)),[favorites]);
+ useEffect(()=>localStorage.setItem('security-studio-recent',JSON.stringify(recent)),[recent]);
 
  useEffect(()=>{
    const onHash=()=>{const r=parseRoute();setPage(r.page);if(r.command)setSelected(r.command)};
@@ -67,7 +76,13 @@ function App(){
    location.hash=routeFor(p,c||selected);
    setPage(p);setMobile(false);window.scrollTo(0,0);
  };
- const openCommand=c=>{setSelected(c);setTab('Explain');go('command-studio',c)};
+ const toggleFavorite=id=>setFavorites(current=>current.includes(id)?current.filter(x=>x!==id):[...current,id]);
+ const openCommand=c=>{
+   setSelected(c);
+   setTab('Explain');
+   setRecent(current=>[c.id,...current.filter(x=>x!==c.id)].slice(0,8));
+   go('command-studio',c);
+ };
 
  return <div className="app">
   <header>
@@ -78,13 +93,14 @@ function App(){
   </header>
   <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v1.3</div></aside>
   <main>
-   {page==='dashboard'?<Dashboard go={go}/>:
-    page==='library'?<LibraryPage query={query} setQuery={setQuery} platform={platform} setPlatform={setPlatform} tool={tool} setTool={setTool} openCommand={openCommand}/>:
-    page==='command-studio'?<CommandStudio c={selected} tab={tab} setTab={setTab} go={go}/>:
+   {page==='dashboard'?<Dashboard go={go} favorites={favorites} recent={recent}/>:
+    page==='library'?<LibraryPage query={query} setQuery={setQuery} platform={platform} setPlatform={setPlatform} tool={tool} setTool={setTool} openCommand={openCommand} favorites={favorites} toggleFavorite={toggleFavorite}/>:
+    page==='command-studio'?<CommandStudio c={selected} tab={tab} setTab={setTab} go={go} favorites={favorites} toggleFavorite={toggleFavorite}/>:
     page==='visualiser'?<Visualiser c={selected}/>:
     page==='privesc'?<PrivEscExplorer openCommand={openCommand}/>:
     page==='attack'?<AttackExplorer openCommand={openCommand}/>:
     page==='attack-path'?<AttackPathExplorer openCommand={openCommand}/>:
+    page==='workspace'?<WorkspacePage favorites={favorites} recent={recent} toggleFavorite={toggleFavorite} openCommand={openCommand}/>: 
     page==='workflow'?<WorkflowBuilder/>:
     page==='detection'?<Detection/>:
     page==='purple'?<Purple/>:<NotFound/>}
@@ -93,9 +109,9 @@ function App(){
  </div>
 }
 
-function Dashboard({go}){
- const quick=[['Command Library','library',Library,'Search structured security commands'],['Command Studio','command-studio',TerminalSquare,'Explain, modify and contextualise commands'],['PrivEsc Explorer','privesc',ShieldCheck,'Explore privilege-boundary checks'],['ATT&CK Explorer','attack',Network,'Map techniques to commands and telemetry'],['Workflow Builder','workflow',Workflow,'Build reusable assessment flows'],['Purple Team Mapping','purple',Layers3,'Connect validation to defence']];
- return <><div className="hero"><div><span className="eyebrow">ASIF'S SECURITY STUDIO</span><h1>Security knowledge,<br/><em>made interactive.</em></h1><p>Explore commands, understand context, map telemetry and turn security notes into practical workflows.</p><div className="heroactions"><button onClick={()=>go('library')}>Explore Commands <ChevronRight size={16}/></button><a href="https://notes.asifnawazminhas.com/"><BookOpen size={16}/> Open Security Notes</a></div></div><div className="terminal"><div className="termbar"><i/><i/><i/><span>security-studio</span></div><code><b>$</b> knowledge --interactive<br/><span>✓ {commands.length} commands indexed</span><br/><span>✓ ATT&CK mappings loaded</span><br/><span>✓ Explorer datasets ready</span><br/><span>✓ Detection context ready</span><br/><span>✓ URL-addressable commands</span><br/><br/><b>$</b> explore <u>security</u><br/><strong>Ready.</strong></code></div></div><section><div className="sectionhead"><div><span className="eyebrow">WORKSPACE</span><h2>Choose where to start</h2></div></div><div className="grid">{quick.map(([n,id,I,d])=><button className="featurecard" onClick={()=>go(id)} key={id}><I/><div><h3>{n}</h3><p>{d}</p></div><ChevronRight className="arrow"/></button>)}</div></section><section><div className="banner"><Activity/><div><b>Built to connect Notes and Studio</b><span>Read methodology in Security Notes, then explore structured interactive material here.</span></div></div></section></>
+function Dashboard({go,favorites,recent}){
+ const quick=[['Command Library','library',Library,'Search structured security commands'],['Command Studio','command-studio',TerminalSquare,'Explain, modify and contextualise commands'],['Saved Workspace','workspace',Star,'Return to favourites and recent commands'],['PrivEsc Explorer','privesc',ShieldCheck,'Explore privilege-boundary checks'],['ATT&CK Explorer','attack',Network,'Map techniques to commands and telemetry'],['Purple Team Mapping','purple',Layers3,'Connect validation to defence']];
+ return <><div className="hero"><div><span className="eyebrow">ASIF'S SECURITY STUDIO</span><h1>Security knowledge,<br/><em>made interactive.</em></h1><p>Explore commands, understand context, map telemetry and turn security notes into practical workflows.</p><div className="heroactions"><button onClick={()=>go('library')}>Explore Commands <ChevronRight size={16}/></button><a href="https://notes.asifnawazminhas.com/"><BookOpen size={16}/> Open Security Notes</a></div><div className="heroStats"><span><b>{commands.length}</b> commands</span><span><b>{favorites.length}</b> favourites</span><span><b>{recent.length}</b> recent</span></div></div><div className="terminal"><div className="termbar"><i/><i/><i/><span>security-studio</span></div><code><b>$</b> knowledge --interactive<br/><span>✓ {commands.length} commands indexed</span><br/><span>✓ Notes integration ready</span><br/><span>✓ Saved workspace enabled</span><br/><span>✓ ATT&CK mappings loaded</span><br/><span>✓ Detection context ready</span><br/><br/><b>$</b> explore <u>security</u><br/><strong>Ready.</strong></code></div></div><section><div className="sectionhead"><div><span className="eyebrow">WORKSPACE</span><h2>Choose where to start</h2></div></div><div className="grid">{quick.map(([n,id,I,d])=><button className="featurecard" onClick={()=>go(id)} key={id}><I/><div><h3>{n}</h3><p>{d}</p></div><ChevronRight className="arrow"/></button>)}</div></section><section><div className="banner"><Activity/><div><b>Built to connect Notes and Studio</b><span>Read methodology in Security Notes, open commands in Studio, then save useful references to your workspace.</span></div></div></section></>
 }
 
 function CommandPalette({close,openCommand,go}){
@@ -106,19 +122,59 @@ function CommandPalette({close,openCommand,go}){
  return <div className="paletteback" onMouseDown={e=>e.target===e.currentTarget&&close()}><div className="palette"><div className="paletteinput"><Search/><input ref={input} value={q} onChange={e=>setQ(e.target.value)} placeholder="Search commands, tools, techniques..."/><kbd>Esc</kbd></div><div className="paletteresults">{results.map(c=><button key={c.id} onClick={()=>openCommand(c)}><TerminalSquare/><div><b>{c.title}</b><span>{c.platform} · {c.tool} · {c.category}</span></div><ChevronRight/></button>)}{!results.length&&<div className="empty">No matching commands.</div>}</div><div className="palettefoot"><button onClick={()=>go('library')}>Open Command Library</button><span>{commands.length} indexed commands</span></div></div></div>
 }
 
-function LibraryPage({query,setQuery,platform,setPlatform,tool,setTool,openCommand}){
+function LibraryPage({query,setQuery,platform,setPlatform,tool,setTool,openCommand,favorites,toggleFavorite}){
+ const [sort,setSort]=useState('Title');
+ const [onlyFavorites,setOnlyFavorites]=useState(false);
  const platforms=['All',...new Set(commands.map(c=>c.platform))];
  const tools=['All',...new Set(commands.map(c=>c.tool))];
- const filtered=useMemo(()=>commands.filter(c=>(platform==='All'||c.platform===platform)&&(tool==='All'||c.tool===tool)&&`${c.title} ${c.platform} ${c.tool} ${c.category} ${c.tags.join(' ')} ${c.command}`.toLowerCase().includes(query.toLowerCase())),[query,platform,tool]);
- return <><PageTitle kicker="COMMANDS" title="Command Library" text="Search reusable security commands by platform, tool and security context."/><div className="librarytools"><div className="librarysearch"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search commands, tools, categories..."/></div><div className="filterrow"><Filter size={16}/><b>Platform</b>{platforms.map(p=><button className={platform===p?'selected':''} onClick={()=>setPlatform(p)} key={p}>{p}</button>)}</div><div className="filterrow"><Filter size={16}/><b>Tool</b>{tools.map(p=><button className={tool===p?'selected':''} onClick={()=>setTool(p)} key={p}>{p}</button>)}</div></div><div className="resultline"><b>{filtered.length}</b> commands</div><div className="commandgrid">{filtered.map(c=><button className="commandcard" key={c.id} onClick={()=>openCommand(c)}><div className="badges"><span>{c.platform}</span><span>{c.tool}</span><small>{c.risk}</small></div><h3>{c.title}</h3><p>{c.description}</p><code>{c.command}</code><div className="tags">{c.tags.map(t=><small key={t}>{t}</small>)}</div><div className="openstudio">Open in Studio <ChevronRight size={15}/></div></button>)}</div>{!filtered.length&&<div className="empty">No commands match the current search and filters.</div>}</>
+ const filtered=useMemo(()=>{
+   const rows=commands.filter(c=>
+     (platform==='All'||c.platform===platform) &&
+     (tool==='All'||c.tool===tool) &&
+     (!onlyFavorites||favorites.includes(c.id)) &&
+     `${c.title} ${c.platform} ${c.tool} ${c.category} ${c.tags.join(' ')} ${c.command}`.toLowerCase().includes(query.toLowerCase())
+   );
+   return [...rows].sort((a,b)=>{
+     if(sort==='Platform')return a.platform.localeCompare(b.platform)||a.title.localeCompare(b.title);
+     if(sort==='Tool')return a.tool.localeCompare(b.tool)||a.title.localeCompare(b.title);
+     return a.title.localeCompare(b.title);
+   });
+ },[query,platform,tool,onlyFavorites,favorites,sort]);
+
+ const copy=(e,c)=>{e.stopPropagation();navigator.clipboard?.writeText(c.command)};
+ const fav=(e,c)=>{e.stopPropagation();toggleFavorite(c.id)};
+
+ return <><PageTitle kicker="COMMANDS" title="Command Library" text="Search reusable security commands by platform, tool and security context."/>
+ <div className="librarytools">
+  <div className="librarysearch"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search commands, tools, categories..."/></div>
+  <div className="filterrow"><Filter size={16}/><b>Platform</b>{platforms.map(p=><button className={platform===p?'selected':''} onClick={()=>setPlatform(p)} key={p}>{p}</button>)}</div>
+  <div className="filterrow"><Filter size={16}/><b>Tool</b>{tools.map(p=><button className={tool===p?'selected':''} onClick={()=>setTool(p)} key={p}>{p}</button>)}</div>
+  <div className="libraryOptions">
+   <button className={onlyFavorites?'optionActive':''} onClick={()=>setOnlyFavorites(!onlyFavorites)}><Star size={14} fill={onlyFavorites?'currentColor':'none'}/> Favourites</button>
+   <label>Sort<select value={sort} onChange={e=>setSort(e.target.value)}><option>Title</option><option>Platform</option><option>Tool</option></select></label>
+  </div>
+ </div>
+ <div className="resultline"><b>{filtered.length}</b> commands</div>
+ <div className="commandgrid">{filtered.map(c=><article className="commandcard" key={c.id}>
+  <div className="badges"><span>{c.platform}</span><span>{c.tool}</span><small>{c.risk}</small></div>
+  <h3>{c.title}</h3><p>{c.description}</p><code>{c.command}</code>
+  <div className="tags">{c.tags.map(t=><small key={t}>{t}</small>)}</div>
+  <div className="cardActions">
+   <button onClick={e=>fav(e,c)} className={favorites.includes(c.id)?'favOn':''}><Star size={14} fill={favorites.includes(c.id)?'currentColor':'none'}/> {favorites.includes(c.id)?'Saved':'Save'}</button>
+   <button onClick={e=>copy(e,c)}><Copy size={14}/> Copy</button>
+   <a href={c.notes} onClick={e=>e.stopPropagation()}><BookOpen size={14}/> Notes</a>
+   <button className="openBtn" onClick={()=>openCommand(c)}>Open in Studio <ChevronRight size={14}/></button>
+  </div>
+ </article>)}</div>
+ {!filtered.length&&<div className="empty">No commands match the current search and filters.</div>}</>
 }
 
-function CommandStudio({c,tab,setTab,go}){
+function CommandStudio({c,tab,setTab,go,favorites,toggleFavorite}){
  const [values,setValues]=useState({});
  useEffect(()=>setValues(Object.fromEntries(c.parameters.map(p=>[p.name,'']))),[c.id]);
  const generated=c.parameters.reduce((s,p)=>s.replaceAll(`<${p.name}>`,values[p.name]||`<${p.name}>`),c.command);
  const copy=()=>navigator.clipboard?.writeText(generated);
- return <><button className="back" onClick={()=>go('library')}><ArrowLeft size={15}/> Command Library</button><PageTitle kicker={`${c.platform} / ${c.category}`} title={c.title} text={c.description}/><div className="studio"><div className="commandbox"><div className="commandmeta"><span className="cmdtool"><TerminalSquare size={18}/>{c.tool}</span><span className="cmdrisk">{c.risk}</span></div><div className="commandline"><code>{generated}</code><button className="copybtn" onClick={copy}><Copy size={15}/> Copy</button></div></div><div className="tabs">{['Explain','Modify','Detect','Visualise','Related'].map(t=><button className={tab===t?'active':''} onClick={()=>setTab(t)} key={t}>{t}</button>)}</div>
+ return <><button className="back" onClick={()=>go('library')}><ArrowLeft size={15}/> Command Library</button><div className="studioTitleRow"><PageTitle kicker={`${c.platform} / ${c.category}`} title={c.title} text={c.description}/><button className={`saveCommand ${favorites.includes(c.id)?'saved':''}`} onClick={()=>toggleFavorite(c.id)}><Star size={16} fill={favorites.includes(c.id)?'currentColor':'none'}/>{favorites.includes(c.id)?'Saved':'Save command'}</button></div><div className="studio"><div className="commandbox"><div className="commandmeta"><span className="cmdtool"><TerminalSquare size={18}/>{c.tool}</span><span className="cmdrisk">{c.risk}</span></div><div className="commandline"><code>{generated}</code><button className="copybtn" onClick={copy}><Copy size={15}/> Copy</button></div></div><div className="tabs">{['Explain','Modify','Detect','Visualise','Related'].map(t=><button className={tab===t?'active':''} onClick={()=>setTab(t)} key={t}>{t}</button>)}</div>
  {tab==='Explain'&&<div className="twocol"><Panel title="Command Breakdown"><dl>{c.explanation.map(([a,b])=><React.Fragment key={a}><dt>{a}</dt><dd>{b}</dd></React.Fragment>)}</dl></Panel><Panel title="Context"><dl><dt>Platform</dt><dd>{c.platform}</dd><dt>Tool</dt><dd>{c.tool}</dd><dt>Category</dt><dd>{c.category}</dd><dt>Changes system</dt><dd>{c.changesSystem?'Yes':'No'}</dd><dt>Risk</dt><dd>{c.risk}</dd></dl></Panel></div>}
  {tab==='Modify'&&<Panel title="Command Parameters">{c.parameters.length?<>{c.parameters.map(p=><label className="field" key={p.name}>{p.label}<input placeholder={p.placeholder} value={values[p.name]||''} onChange={e=>setValues({...values,[p.name]:e.target.value})}/></label>)}<div className="generated"><small>GENERATED COMMAND</small><code>{generated}</code><button onClick={copy}><Copy size={15}/> Copy</button></div></>:<p>This command has no editable placeholders.</p>}</Panel>}
  {tab==='Detect'&&<div className="twocol"><Panel title="Defender View"><p>Use the telemetry below as assessment context. A command alone is not automatically suspicious; correlation and intent matter.</p>{c.telemetry.map(x=><div className="check" key={x}><CheckCircle2 size={16}/>{x}</div>)}</Panel><Panel title="ATT&CK Context">{c.attack.length?c.attack.map(x=><div className="attackpill" key={x}>{x}</div>):<p>No ATT&CK mapping assigned to this reference entry.</p>}</Panel></div>}
@@ -296,6 +352,13 @@ function Visualiser({c}){
  return <><PageTitle kicker="COMMANDS" title="Command Visualiser" text="Create a recognisable Security Studio command card and export it as PNG or SVG."/><div className="visualselect"><label>Command<select value={chosen.id} onChange={e=>setChosen(commands.find(c=>c.id===e.target.value))}>{commands.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label></div><VisualPreview c={chosen}/></>
 }
 
+function WorkspacePage({favorites,recent,toggleFavorite,openCommand}){
+ const saved=favorites.map(id=>commands.find(c=>c.id===id)).filter(Boolean);
+ const viewed=recent.map(id=>commands.find(c=>c.id===id)).filter(Boolean);
+ const render=(list,emptyText)=>list.length?<div className="workspaceList">{list.map(c=><div className="workspaceItem" key={c.id}><div><span>{c.platform} · {c.tool}</span><b>{c.title}</b><code>{c.command}</code></div><div><button onClick={()=>toggleFavorite(c.id)} title="Toggle favourite"><Star size={15} fill={favorites.includes(c.id)?'currentColor':'none'}/></button><a href={c.notes} title="Open Notes"><BookOpen size={15}/></a><button onClick={()=>openCommand(c)}>Open <ChevronRight size={14}/></button></div></div>)}</div>:<div className="empty">{emptyText}</div>;
+ return <><PageTitle kicker="WORKSPACE" title="Saved Workspace" text="Keep useful commands close and return to recently viewed material."/><div className="workspaceStats"><div><Star/><b>{saved.length}</b><span>Saved commands</span></div><div><Clock3/><b>{viewed.length}</b><span>Recent commands</span></div><div><Library/><b>{commands.length}</b><span>Total catalogue</span></div></div><div className="workspaceColumns"><Panel title="Favourites">{render(saved,'No saved commands yet. Use the star button in the Command Library or Command Studio.')}</Panel><Panel title="Recently viewed">{render(viewed,'Open commands in Studio and they will appear here.')}</Panel></div></>
+}
+
 function WorkflowBuilder(){
  const defaultNodes=[
   {id:1,title:'Define scope',kind:'Planning'},
@@ -334,9 +397,11 @@ function WorkflowBuilder(){
   <PageTitle kicker="BUILDERS" title="Workflow Builder" text="Arrange assessment and validation steps into a reusable visual workflow."/>
   <div className="workflowShell">
    <div className="workflowToolbar">
-    <button className="primarySmall" onClick={add}><Plus size={15}/> Add step</button>
-    <button className="secondarySmall" onClick={exportJson}><Download size={15}/> Export JSON</button>
-    <button className="secondarySmall" onClick={reset}>Reset</button>
+    <div className="toolbarButtons">
+     <button className="primarySmall" onClick={add}><Plus size={15}/> Add step</button>
+     <button className="secondarySmall" onClick={exportJson}><Download size={15}/> Export JSON</button>
+     <button className="secondarySmall" onClick={reset}><RotateCcw size={15}/> Reset workflow</button>
+    </div>
     <span>Saved locally in your browser</span>
    </div>
    <div className="workflow">
@@ -354,9 +419,9 @@ function WorkflowBuilder(){
        </select>
       </div>
       <div className="workactions">
-       <button disabled={i===0} onClick={()=>move(i,-1)} title="Move up">↑</button>
-       <button disabled={i===nodes.length-1} onClick={()=>move(i,1)} title="Move down">↓</button>
-       <button onClick={()=>setNodes(nodes.filter(x=>x.id!==n.id))} title="Delete"><Trash2 size={15}/></button>
+       <button disabled={i===0} onClick={()=>move(i,-1)} title="Move up">↑ <span>Up</span></button>
+       <button disabled={i===nodes.length-1} onClick={()=>move(i,1)} title="Move down">↓ <span>Down</span></button>
+       <button className="dangerAction" onClick={()=>setNodes(nodes.filter(x=>x.id!==n.id))} title="Delete"><Trash2 size={14}/><span>Delete</span></button>
       </div>
      </div>
      {i<nodes.length-1&&<div className="connector">↓</div>}
@@ -404,8 +469,10 @@ function Purple(){
  return <>
   <PageTitle kicker="DEFENCE" title="Purple Team Mapping" text="Connect validation actions to expected telemetry, detection, response and learning outcomes."/>
   <div className="mappingToolbar">
-   <button className="primarySmall" onClick={exportMap}><Download size={15}/> Export mapping</button>
-   <button className="secondarySmall" onClick={clear}>Clear</button>
+   <div className="toolbarButtons">
+    <button className="primarySmall" onClick={exportMap}><Download size={15}/> Export mapping</button>
+    <button className="secondarySmall dangerOutline" onClick={clear}><Trash2 size={15}/> Clear mapping</button>
+   </div>
    <span>Editable and saved locally in your browser</span>
   </div>
   <div className="purpleflow editable">

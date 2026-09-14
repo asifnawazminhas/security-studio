@@ -1379,5 +1379,857 @@ export const commands = [
       "Local process execution"
     ],
     "notes": "https://notes.asifnawazminhas.com/cheatsheets/git-ripgrep/"
+  },
+  {
+    "id": "windows-computer-info",
+    "title": "Display Windows Computer Summary",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "System",
+    "command": "Get-ComputerInfo | Select-Object WindowsProductName,WindowsVersion,OsBuildNumber,CsName",
+    "description": "Display a concise operating-system and computer summary.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Inventory",
+      "PowerShell"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-ComputerInfo",
+        "Returns operating-system and computer properties."
+      ],
+      [
+        "Select-Object",
+        "Limits the output to useful summary fields."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry",
+      "Process creation"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-hotfixes",
+    "title": "List Installed Windows Hotfixes",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Patching",
+    "command": "Get-HotFix | Sort-Object InstalledOn -Descending",
+    "description": "List installed Windows hotfixes ordered by installation date.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Hotfixes",
+      "Patching"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-HotFix",
+        "Returns installed Windows updates and hotfixes."
+      ],
+      [
+        "Sort-Object InstalledOn -Descending",
+        "Shows the newest entries first."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-os-cim",
+    "title": "Inspect Windows OS via CIM",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "System",
+    "command": "Get-CimInstance Win32_OperatingSystem | Select-Object Caption,Version,BuildNumber,OSArchitecture",
+    "description": "Inspect operating-system details using CIM.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "CIM",
+      "Inventory"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-CimInstance Win32_OperatingSystem",
+        "Queries the operating-system CIM class."
+      ],
+      [
+        "Select-Object",
+        "Selects concise OS properties."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry",
+      "WMI/CIM telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-system-cim",
+    "title": "Inspect Windows Computer System",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "System",
+    "command": "Get-CimInstance Win32_ComputerSystem | Select-Object Manufacturer,Model,Domain,PartOfDomain",
+    "description": "Inspect manufacturer, model and domain membership.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "CIM",
+      "Domain"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-CimInstance Win32_ComputerSystem",
+        "Queries computer-system information."
+      ],
+      [
+        "Select-Object",
+        "Selects concise system properties."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry",
+      "WMI/CIM telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-local-users",
+    "title": "List Local Windows Users",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Identity",
+    "command": "Get-LocalUser | Select-Object Name,Enabled,LastLogon",
+    "description": "List local user accounts and selected status fields.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Users",
+      "Identity"
+    ],
+    "attack": [
+      "T1087.001"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-LocalUser",
+        "Returns local user accounts."
+      ],
+      [
+        "Select-Object",
+        "Limits output to useful fields."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-local-groups",
+    "title": "List Local Windows Groups",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Identity",
+    "command": "Get-LocalGroup | Sort-Object Name",
+    "description": "List local groups on the current Windows system.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Groups",
+      "Identity"
+    ],
+    "attack": [
+      "T1069.001"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-LocalGroup",
+        "Returns local groups."
+      ],
+      [
+        "Sort-Object Name",
+        "Orders groups alphabetically."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-scheduled-tasks",
+    "title": "List Windows Scheduled Tasks",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Scheduled Tasks",
+    "command": "Get-ScheduledTask | Select-Object TaskPath,TaskName,State",
+    "description": "List scheduled tasks with path, name and state.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Scheduled Tasks",
+      "Inventory"
+    ],
+    "attack": [
+      "T1053.005"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-ScheduledTask",
+        "Returns registered scheduled tasks."
+      ],
+      [
+        "Select-Object",
+        "Limits output to useful task fields."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry",
+      "Task Scheduler telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-ip-config",
+    "title": "Inspect Windows IP Configuration",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Network",
+    "command": "Get-NetIPConfiguration",
+    "description": "Display interface, IP, gateway and DNS configuration.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Network",
+      "IP"
+    ],
+    "attack": [
+      "T1016"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-NetIPConfiguration",
+        "Returns IP configuration for local interfaces."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-adapters",
+    "title": "List Windows Network Adapters",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Network",
+    "command": "Get-NetAdapter | Sort-Object Status,Name",
+    "description": "List Windows network adapters and their current state.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Network",
+      "Adapters"
+    ],
+    "attack": [
+      "T1016"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-NetAdapter",
+        "Returns local network adapters."
+      ],
+      [
+        "Sort-Object Status,Name",
+        "Orders results by state and name."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-firewall-rules",
+    "title": "List Enabled Windows Firewall Rules",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Firewall",
+    "command": "Get-NetFirewallRule -Enabled True | Select-Object DisplayName,Direction,Action,Profile",
+    "description": "Review enabled Windows Firewall rules and core policy fields.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Firewall",
+      "Rules"
+    ],
+    "attack": [
+      "T1518.001"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-NetFirewallRule -Enabled True",
+        "Returns enabled firewall rules."
+      ],
+      [
+        "Select-Object",
+        "Limits output to assessment fields."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "linux-hostnamectl",
+    "title": "Display Linux Host Information",
+    "platform": "Linux",
+    "tool": "hostnamectl",
+    "category": "System",
+    "command": "hostnamectl",
+    "description": "Display hostname, operating-system and kernel metadata where systemd is available.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "System",
+      "Hostname"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "hostnamectl",
+        "Displays host and operating-system metadata."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-os-release",
+    "title": "Read Linux OS Release Information",
+    "platform": "Linux",
+    "tool": "cat",
+    "category": "System",
+    "command": "cat /etc/os-release",
+    "description": "Display distribution identification information from /etc/os-release.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "OS",
+      "Distribution"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "cat /etc/os-release",
+        "Reads standard Linux distribution metadata."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-users",
+    "title": "List Linux Account Database Entries",
+    "platform": "Linux",
+    "tool": "getent",
+    "category": "Identity",
+    "command": "getent passwd",
+    "description": "Read passwd database entries through the configured NSS sources.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Users",
+      "NSS"
+    ],
+    "attack": [
+      "T1087.001"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "getent passwd",
+        "Queries passwd entries through Name Service Switch."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-groups",
+    "title": "List Linux Group Database Entries",
+    "platform": "Linux",
+    "tool": "getent",
+    "category": "Identity",
+    "command": "getent group",
+    "description": "Read group database entries through the configured NSS sources.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Groups",
+      "NSS"
+    ],
+    "attack": [
+      "T1069.001"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "getent group",
+        "Queries group entries through Name Service Switch."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-block-devices",
+    "title": "List Linux Block Devices",
+    "platform": "Linux",
+    "tool": "lsblk",
+    "category": "Storage",
+    "command": "lsblk -f",
+    "description": "Display block devices, filesystems and mount points.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Storage",
+      "Filesystem"
+    ],
+    "attack": [
+      "T1083"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "lsblk",
+        "Lists block devices."
+      ],
+      [
+        "-f",
+        "Shows filesystem information."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-neighbours",
+    "title": "Display Linux Neighbour Table",
+    "platform": "Linux",
+    "tool": "ip",
+    "category": "Network",
+    "command": "ip neigh show",
+    "description": "Display neighbour-cache entries known to the host.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Network",
+      "ARP"
+    ],
+    "attack": [
+      "T1016"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "ip neigh show",
+        "Displays neighbour-table entries."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "web-http-status",
+    "title": "Check HTTP Status Code",
+    "platform": "Web",
+    "tool": "curl",
+    "category": "HTTP",
+    "command": "curl -sS -o /dev/null -w \"%{http_code}\\n\" https://<TARGET>",
+    "description": "Return the HTTP status code from an authorised web endpoint.",
+    "risk": "Network query",
+    "changesSystem": false,
+    "tags": [
+      "Web",
+      "HTTP",
+      "Status"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "TARGET",
+        "label": "Target host",
+        "placeholder": "example.com"
+      }
+    ],
+    "explanation": [
+      [
+        "-sS",
+        "Uses silent mode while retaining errors."
+      ],
+      [
+        "-o /dev/null",
+        "Discards the response body."
+      ],
+      [
+        "-w",
+        "Prints selected transfer metadata."
+      ]
+    ],
+    "telemetry": [
+      "Web server access logs",
+      "Proxy logs"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/curl/"
+  },
+  {
+    "id": "web-robots",
+    "title": "Retrieve robots.txt",
+    "platform": "Web",
+    "tool": "curl",
+    "category": "HTTP",
+    "command": "curl -sS https://<TARGET>/robots.txt",
+    "description": "Retrieve robots.txt from an authorised web application.",
+    "risk": "Network query",
+    "changesSystem": false,
+    "tags": [
+      "Web",
+      "robots.txt",
+      "Discovery"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "TARGET",
+        "label": "Target host",
+        "placeholder": "example.com"
+      }
+    ],
+    "explanation": [
+      [
+        "curl -sS",
+        "Retrieves the resource while keeping output concise."
+      ],
+      [
+        "/robots.txt",
+        "Standard crawler instruction location."
+      ]
+    ],
+    "telemetry": [
+      "Web server access logs",
+      "Proxy logs"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/reconnaissance/"
+  },
+  {
+    "id": "network-ping",
+    "title": "Ping an Authorised Target",
+    "platform": "Network",
+    "tool": "ping",
+    "category": "Connectivity",
+    "command": "ping -c 4 <TARGET>",
+    "description": "Send four ICMP echo requests to an authorised target.",
+    "risk": "Active network probe",
+    "changesSystem": false,
+    "tags": [
+      "Network",
+      "ICMP",
+      "Connectivity"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "TARGET",
+        "label": "Target host",
+        "placeholder": "10.10.10.10"
+      }
+    ],
+    "explanation": [
+      [
+        "ping",
+        "Tests basic IP reachability."
+      ],
+      [
+        "-c 4",
+        "Sends four requests."
+      ]
+    ],
+    "telemetry": [
+      "Firewall logs",
+      "Network telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/networking/"
+  },
+  {
+    "id": "network-traceroute",
+    "title": "Trace Network Path",
+    "platform": "Network",
+    "tool": "traceroute",
+    "category": "Connectivity",
+    "command": "traceroute <TARGET>",
+    "description": "Trace the network path toward an authorised target.",
+    "risk": "Active network probe",
+    "changesSystem": false,
+    "tags": [
+      "Network",
+      "Routing",
+      "Traceroute"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "TARGET",
+        "label": "Target host",
+        "placeholder": "example.com"
+      }
+    ],
+    "explanation": [
+      [
+        "traceroute",
+        "Displays hop-by-hop path information toward a destination."
+      ]
+    ],
+    "telemetry": [
+      "Firewall logs",
+      "Network telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/networking/"
+  },
+  {
+    "id": "network-tls-inspect",
+    "title": "Inspect TLS Certificate with OpenSSL",
+    "platform": "Network",
+    "tool": "openssl",
+    "category": "TLS",
+    "command": "openssl s_client -connect <TARGET>:443 -servername <TARGET> </dev/null",
+    "description": "Inspect the TLS handshake and certificate chain for an authorised HTTPS endpoint.",
+    "risk": "Network query",
+    "changesSystem": false,
+    "tags": [
+      "TLS",
+      "Certificate",
+      "OpenSSL"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "TARGET",
+        "label": "Target host",
+        "placeholder": "example.com"
+      }
+    ],
+    "explanation": [
+      [
+        "s_client",
+        "Creates a diagnostic TLS client connection."
+      ],
+      [
+        "-connect",
+        "Specifies host and port."
+      ],
+      [
+        "-servername",
+        "Supplies the TLS SNI hostname."
+      ]
+    ],
+    "telemetry": [
+      "Network telemetry",
+      "Proxy logs"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/networking/"
+  },
+  {
+    "id": "ad-logon-domain",
+    "title": "Display Windows Logon Domain",
+    "platform": "Active Directory",
+    "tool": "cmd",
+    "category": "Directory",
+    "command": "echo %USERDNSDOMAIN%",
+    "description": "Display the DNS domain associated with the current Windows logon context.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Active Directory",
+      "Domain",
+      "Environment"
+    ],
+    "attack": [
+      "T1016"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "%USERDNSDOMAIN%",
+        "Environment variable containing the user's DNS domain when available."
+      ]
+    ],
+    "telemetry": [
+      "Process creation"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/active-directory/"
+  },
+  {
+    "id": "tools-ripgrep",
+    "title": "Search Files with ripgrep",
+    "platform": "Tools",
+    "tool": "ripgrep",
+    "category": "Search",
+    "command": "rg -n \"<TERM>\" <PATH>",
+    "description": "Search text recursively and include matching line numbers.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "ripgrep",
+      "Search",
+      "Files"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "TERM",
+        "label": "Search term",
+        "placeholder": "TODO"
+      },
+      {
+        "name": "PATH",
+        "label": "Path",
+        "placeholder": "."
+      }
+    ],
+    "explanation": [
+      [
+        "rg",
+        "Fast recursive text search."
+      ],
+      [
+        "-n",
+        "Shows matching line numbers."
+      ]
+    ],
+    "telemetry": [
+      "Local process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/git-ripgrep/"
+  },
+  {
+    "id": "git-current-branch",
+    "title": "Show Current Git Branch",
+    "platform": "Tools",
+    "tool": "Git",
+    "category": "Version Control",
+    "command": "git branch --show-current",
+    "description": "Display the currently checked-out Git branch.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Git",
+      "Branch",
+      "Repository"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "git branch --show-current",
+        "Prints the current branch name."
+      ]
+    ],
+    "telemetry": [
+      "Local process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/git-ripgrep/"
+  },
+  {
+    "id": "git-diff-stat",
+    "title": "Show Git Change Summary",
+    "platform": "Tools",
+    "tool": "Git",
+    "category": "Version Control",
+    "command": "git diff --stat",
+    "description": "Display a concise summary of unstaged changes.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Git",
+      "Diff",
+      "Repository"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "git diff --stat",
+        "Shows changed files and line-count statistics."
+      ]
+    ],
+    "telemetry": [
+      "Local process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/git-ripgrep/"
   }
 ];

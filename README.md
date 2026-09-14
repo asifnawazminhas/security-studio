@@ -2,29 +2,45 @@
 
 Interactive companion application for Asif's Security Notes.
 
-## v1.4
+## v1.5 - Connected Workspace
 
-This release combines the requested quality pass with the next functional improvements.
+This release combines the requested button/UI fixes with the next major product step.
 
-### Quality fixes
-- Improved ATT&CK Explorer card contrast
-- Fixed Attack Path Explorer clipping with a padded horizontal path track
-- Strengthened active navigation styling
-- Refined Command Studio copy-button alignment
-- Improved responsive spacing
+### UI fixes
+- Reworked Purple Team Mapping toolbar
+- Replaced the small Clear button with a consistent "Clear mapping" action
+- Reworked Workflow Builder toolbar
+- Larger, labelled Up / Down / Delete workflow actions
+- Improved destructive-action styling and responsive behaviour
 
-### New v1.4 functionality
-- Workflow Builder now supports:
-  - editable step type
-  - move up / move down
-  - add / delete
-  - automatic browser persistence
-  - JSON export
-  - reset
-- Purple Team Mapping is now editable
-- Purple Team Mapping persists locally
-- Purple Team Mapping supports JSON export
-- Existing Command Library, Command Studio, Visualiser, Explorers and Detection views retained
+### Connected workspace
+- New Saved Workspace section
+- Favourite commands stored locally in the browser
+- Recently viewed commands stored locally
+- Dashboard counts for catalogue, favourites and recent commands
+- Save command action in Command Studio
+- Favourites filter in Command Library
+- Sort Command Library by title, platform or tool
+- Copy directly from Command Library cards
+- Direct Notes links from Command Library cards
+- Notes + Studio workflow made more visible throughout the UI
+
+### Command expansion
+- Expanded catalogue from 39 to 64 commands
+- Additional Windows inventory and policy commands
+- Additional Linux identity/system/network commands
+- Additional web and network inspection commands
+- Additional Git/ripgrep references
+
+### Existing features retained
+- Command Studio
+- Command Visualiser PNG/SVG export
+- PrivEsc Explorer
+- ATT&CK Explorer
+- Attack Path Explorer
+- Workflow Builder local persistence and JSON export
+- Purple Team Mapping local persistence and JSON export
+- Detection & Telemetry
 
 ## Local development
 

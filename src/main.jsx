@@ -94,7 +94,7 @@ function App(){
    <a className="notes" href="https://notes.asifnawazminhas.com/">Notes <ExternalLink size={14}/></a>
    <button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button>
   </header>
-  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v1.7</div></aside>
+  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v1.8</div></aside>
   <main>
    {page==='dashboard'?<Dashboard go={go} favorites={favorites} recent={recent}/>:
     page==='library'?<LibraryPage query={query} setQuery={setQuery} platform={platform} setPlatform={setPlatform} tool={tool} setTool={setTool} openCommand={openCommand} favorites={favorites} toggleFavorite={toggleFavorite}/>:
@@ -522,8 +522,71 @@ function Visualiser({c}){
 }
 
 function WorkspacePage({favorites,recent,toggleFavorite,openCommand,removeRecent,clearRecent}){
+ const importRef=useRef(null);
  const saved=favorites.map(id=>commands.find(c=>c.id===id)).filter(Boolean);
  const viewed=recent.map(id=>commands.find(c=>c.id===id)).filter(Boolean);
+
+ const exportWorkspace=()=>{
+  const payload={
+   name:'Asif Security Studio Workspace',
+   version:'1.8',
+   exportedAt:new Date().toISOString(),
+   favorites,
+   recent,
+   workflow:JSON.parse(localStorage.getItem('security-studio-workflow')||'[]'),
+   purpleMap:JSON.parse(localStorage.getItem('security-studio-purple-map')||'[]'),
+   purpleTechnique:localStorage.getItem('security-studio-purple-technique')||'',
+   purpleCommand:localStorage.getItem('security-studio-purple-command')||'',
+   purpleStatus:JSON.parse(localStorage.getItem('security-studio-purple-status')||'{}'),
+   purpleName:localStorage.getItem('security-studio-purple-name')||''
+  };
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='security-studio-workspace.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+ };
+
+ const importWorkspace=e=>{
+  const file=e.target.files?.[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+   try{
+    const p=JSON.parse(reader.result);
+    if(!p||!Array.isArray(p.favorites)||!Array.isArray(p.recent))throw new Error('Invalid workspace');
+    localStorage.setItem('security-studio-favorites',JSON.stringify(p.favorites));
+    localStorage.setItem('security-studio-recent',JSON.stringify(p.recent));
+    if(Array.isArray(p.workflow))localStorage.setItem('security-studio-workflow',JSON.stringify(p.workflow));
+    if(Array.isArray(p.purpleMap))localStorage.setItem('security-studio-purple-map',JSON.stringify(p.purpleMap));
+    if(typeof p.purpleTechnique==='string')localStorage.setItem('security-studio-purple-technique',p.purpleTechnique);
+    if(typeof p.purpleCommand==='string')localStorage.setItem('security-studio-purple-command',p.purpleCommand);
+    if(p.purpleStatus)localStorage.setItem('security-studio-purple-status',JSON.stringify(p.purpleStatus));
+    if(typeof p.purpleName==='string')localStorage.setItem('security-studio-purple-name',p.purpleName);
+    location.reload();
+   }catch{
+    alert('This file does not contain a valid Security Studio workspace backup.');
+   }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+ };
+
+ const clearWorkspace=()=>{
+  if(!confirm('Clear favourites, recent commands, workflow and purple-team workspace data from this browser?'))return;
+  [
+   'security-studio-favorites',
+   'security-studio-recent',
+   'security-studio-workflow',
+   'security-studio-purple-map',
+   'security-studio-purple-technique',
+   'security-studio-purple-command',
+   'security-studio-purple-status',
+   'security-studio-purple-name'
+  ].forEach(k=>localStorage.removeItem(k));
+  location.reload();
+ };
 
  const savedList=saved.length?<div className="workspaceList">{saved.map(c=>
   <div className="workspaceItem" key={c.id}>
@@ -547,12 +610,24 @@ function WorkspacePage({favorites,recent,toggleFavorite,openCommand,removeRecent
   </div>)}</div>:<div className="empty">Open commands in Studio and they will appear here.</div>;
 
  return <>
-  <PageTitle kicker="WORKSPACE" title="Saved Workspace" text="Keep useful commands close and manage recently viewed material."/>
+  <PageTitle kicker="WORKSPACE" title="Saved Workspace" text="Keep useful commands close, manage recent history and back up your Studio workspace."/>
+  <div className="studioToolbar workspaceToolbar">
+   <div className="toolbarPrimary">
+    <button className="primarySmall" onClick={exportWorkspace}><Download size={15}/> Export workspace</button>
+    <input ref={importRef} type="file" accept=".json,application/json" hidden onChange={importWorkspace}/>
+    <button className="secondarySmall" onClick={()=>importRef.current?.click()}><Upload size={15}/> Import workspace</button>
+   </div>
+   <div className="toolbarSecondary">
+    <button className="secondarySmall dangerOutline" onClick={clearWorkspace}><Trash2 size={15}/> Clear workspace</button>
+   </div>
+  </div>
+
   <div className="workspaceStats">
    <div><Star/><b>{saved.length}</b><span>Saved commands</span></div>
    <div><Clock3/><b>{viewed.length}</b><span>Recent commands</span></div>
    <div><Library/><b>{commands.length}</b><span>Total catalogue</span></div>
   </div>
+
   <div className="workspaceColumns">
    <Panel title="Favourites">{savedList}</Panel>
    <div className="panel">

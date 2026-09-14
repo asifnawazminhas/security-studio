@@ -298,3 +298,120 @@
  .purpleStatuses.four{grid-template-columns:1fr}
  .summaryStrip.five{grid-template-columns:1fr}
 }
+
+/* v1.8 unified action system + portable workspace */
+:root{--action-h:42px;--action-pad:0 14px;--action-radius:6px}
+
+.primarySmall,
+.secondarySmall,
+.studioToolbar button,
+.visualActionBar button,
+.toolbarPrimary button,
+.toolbarSecondary button{
+ min-height:var(--action-h)!important;
+ height:var(--action-h)!important;
+ padding:var(--action-pad)!important;
+ margin:0!important;
+ border-radius:var(--action-radius)!important;
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ gap:7px!important;
+ line-height:1!important;
+ font-size:13px!important;
+ font-weight:650!important;
+ white-space:nowrap!important;
+ box-sizing:border-box!important;
+}
+
+.primarySmall{
+ background:#00dff2!important;
+ color:#001014!important;
+ border:1px solid #00dff2!important;
+ font-weight:800!important
+}
+
+.secondarySmall{
+ background:#07131b!important;
+ color:#b7ccd8!important;
+ border:1px solid #315063!important
+}
+
+.dangerOutline{
+ background:#190d11!important;
+ color:#ff9cab!important;
+ border-color:#7a3d49!important
+}
+
+.studioToolbar select,
+.toolbarPrimary select,
+.toolbarSecondary select{
+ height:var(--action-h)!important;
+ min-height:var(--action-h)!important;
+ padding:0 34px 0 12px!important;
+ margin:0!important;
+ border-radius:var(--action-radius)!important;
+ box-sizing:border-box!important;
+ font-size:13px!important;
+}
+
+.studioToolbar,
+.visualActionBar{
+ display:flex!important;
+ align-items:center!important;
+ justify-content:space-between!important;
+ gap:12px!important;
+ flex-wrap:wrap!important;
+}
+
+.toolbarPrimary,
+.toolbarSecondary,
+.visualActionGroup{
+ display:flex!important;
+ align-items:center!important;
+ gap:8px!important;
+ flex-wrap:wrap!important;
+}
+
+.visualActionBar{margin-top:14px!important}
+.visualActionBar>button{margin-left:auto!important}
+
+.secondarySmall.compact{
+ min-height:34px!important;
+ height:34px!important;
+ padding:0 10px!important;
+ font-size:11px!important
+}
+
+.workspaceToolbar{margin-bottom:16px!important}
+.workspaceToolbar .toolbarSecondary{margin-left:auto}
+
+.workspaceItem .recentDelete{
+ border-color:#673844!important;
+ color:#ff99a8!important;
+ background:#190d11!important
+}
+.workspaceItem .recentDelete:hover{
+ border-color:#a44f60!important;
+ background:#271015!important
+}
+
+@media(max-width:800px){
+ .studioToolbar,.visualActionBar{
+  align-items:stretch!important;
+  flex-direction:column!important
+ }
+ .toolbarPrimary,.toolbarSecondary,.visualActionGroup{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  width:100%!important
+ }
+ .studioToolbar button,
+ .studioToolbar select,
+ .visualActionBar button,
+ .visualActionGroup button{
+  width:100%!important
+ }
+ .visualActionBar>button{margin-left:0!important}
+ .workspaceToolbar .toolbarSecondary{margin-left:0}
+}

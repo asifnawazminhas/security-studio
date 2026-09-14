@@ -2,79 +2,32 @@
 
 Interactive companion application for Asif's Security Notes.
 
-## v1.7 - Mature Catalogue + Workflow Studio + Purple Validation
+## v1.8 - Unified Actions + Portable Workspace
 
-### Command catalogue
-- Expanded to 129 curated reference commands
-- Windows
-- PowerShell
-- Linux
-- Active Directory
-- Web
-- Network
-- Nmap
-- curl
-- Wireshark/tshark
-- Git/ripgrep
-- Explanations, risk, telemetry, tags, Notes links and ATT&CK mapping where appropriate
-
-### Command Library UX
-- Search
-- Platform filters with counts
-- Tool filters with counts
-- Category filter
-- Tag filter
-- Favourites
-- Recently viewed
-- Sort by title, platform, tool or category
-- Copy directly from cards
-- Direct Notes links
-- Shareable filtered URLs
-- Copy filtered link
-- Reset filters
+### UI quality fixes
+- Unified button height, padding, radius and typography across Visualiser, Workflow Builder and Purple Team Validation
+- Primary, secondary and destructive actions now align consistently
+- Toolbar selects use the same height as buttons
+- Responsive button stacks are consistent on smaller screens
+- Visualiser Reset now aligns with the export action row
 
 ### Saved Workspace
-- Delete individual recently viewed items
-- Clear entire recent history
-- Favourite management
-- Notes links
-- Open commands directly
+- Delete individual recently viewed commands
+- Clear all recent history
+- Export the entire Studio workspace as JSON
+- Import a Studio workspace backup
+- Clear all locally stored Studio workspace data
+- Backup includes favourites, recent commands, workflow data and Purple Team validation data
 
-### Workflow Builder
-- Drag-and-drop reordering
-- Step and decision nodes
-- Attach Studio commands
-- Attach Notes URLs
-- Decision branch labels
-- Reusable workflow templates
-- Import JSON
-- Export JSON
-- Export PNG
-- Export SVG
-- Local browser persistence
-
-### Purple Team Validation Workspace
-- ATT&CK technique selection
-- Validation command selection
-- Expected telemetry
-- Actual telemetry observed
-- Telemetry source
-- Detection result
-- Response result
-- Learning outcome
-- Overall validation status
-- JSON export
-- Markdown exercise-summary export
-- Local browser persistence
-
-### Existing features retained
+### Existing v1.7 features retained
+- 129-command curated catalogue
+- Advanced Command Library filters and shareable filtered URLs
+- Saved favourites and recent history
+- Workflow Builder with drag-and-drop, decisions, commands, Notes links, templates, JSON import/export and PNG/SVG export
+- Purple Team Validation Workspace with expected vs observed telemetry, detection/response status and exercise-summary export
 - Visualiser Pro with 10 themes
-- Command Studio
-- ATT&CK Explorer
-- PrivEsc Explorer
-- Attack Path Explorer
+- ATT&CK, PrivEsc and Attack Path explorers
 - Detection & Telemetry
-- Saved Workspace
 
 ## Local development
 
@@ -88,5 +41,3 @@ npm run dev
 ```bash
 npm run build
 ```
-
-GitHub Actions publishes `dist/` to GitHub Pages.

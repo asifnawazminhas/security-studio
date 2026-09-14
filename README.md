@@ -1,15 +1,24 @@
 # Asif's Security Studio
 
-Interactive companion application for Asif's Security Notes.
+Interactive companion to Asif's Security Notes.
+
+## v1.1
+
+- Searchable Command Library with platform filters
+- Command Studio with Explain, Modify, Detect, Visualise and Related views
+- ATT&CK Explorer backed by the shared command catalogue
+- Detection & Telemetry overview
+- Editable Workflow Builder foundation
+- Purple Team Mapping visual flow
+- PrivEsc and Attack Path Explorer foundations
+- GitHub Pages deployment workflow
 
 ## Local development
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
-
-Open the local URL printed by Vite.
 
 ## Production build
 
@@ -17,38 +26,4 @@ Open the local URL printed by Vite.
 npm run build
 ```
 
-The static production site is written to `dist/`.
-
-## Recommended deployment
-
-Create a separate GitHub repository named `security-studio` and deploy it independently from the MkDocs `security-notes` repository. Point `studio.asifnawazminhas.com` at the deployment.
-
-The application is deliberately client-side in v1. No database, account system, or API is required.
-
-## Current modules
-
-- Dashboard
-- Command Library
-- Command Studio
-- Command Visualiser
-- PrivEsc Explorer scaffold
-- ATT&CK Explorer scaffold
-- Attack Path Explorer scaffold
-- Workflow Builder scaffold
-- Detection & Telemetry scaffold
-- Purple Team Mapping scaffold
-
-## Structure
-
-```text
-security-studio/
-├── data/
-│   └── commands/
-├── public/
-├── src/
-│   ├── main.jsx
-│   └── styles.css
-├── index.html
-├── package.json
-└── README.md
-```
+The static output is written to `dist/`.

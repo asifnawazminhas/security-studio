@@ -34,3 +34,55 @@
 .primarySmall{display:flex;align-items:center;gap:6px;background:#00dff2;border:0;border-radius:5px;padding:9px 12px;font-weight:800;margin-bottom:18px}
 @media(max-width:1000px){.explorerGrid,.attacklayout,.pathShell{grid-template-columns:1fr}.pathCanvas{justify-content:flex-start}.explorerTop{align-items:flex-start;flex-direction:column}}
 @media(max-width:760px){.commandline{grid-template-columns:1fr}.copybtn{justify-self:start}.pathCanvas{flex-direction:column;align-items:stretch}.pathEdge{transform:rotate(90deg);margin:4px auto}.explorerGrid{grid-template-columns:1fr}}
+
+/* v1.4 quality pass */
+.attackcard h3{color:#eaf2f7!important}
+.attackcard p{color:#8fb0c1!important}
+.attackcard>div span,.attackcard>div b{color:#71a8bf}
+.attackcard.selected h3{color:#ffffff!important}
+.navgroup button:hover:not(.active){background:#082531;color:#d9e8f0}
+.navgroup button.active{background:#084154!important;color:#00e5ff!important}
+
+.pathCanvas{display:block!important;overflow-x:auto!important;overflow-y:hidden!important;padding:0!important}
+.pathTrack{min-width:max-content;display:flex;align-items:center;gap:12px;padding:46px 54px}
+.pathNode{flex:0 0 170px}
+.pathEdge{flex:0 0 88px}
+.pathCanvas::-webkit-scrollbar{height:10px}
+.pathCanvas::-webkit-scrollbar-track{background:#061018}
+.pathCanvas::-webkit-scrollbar-thumb{background:#1f5164;border-radius:10px}
+
+.workflowShell{max-width:900px}
+.workflowToolbar,.mappingToolbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:18px}
+.workflowToolbar>span,.mappingToolbar>span{color:#6f91a3;font-size:11px;margin-left:auto}
+.workflow{max-width:none}
+.secondarySmall{display:inline-flex;align-items:center;gap:6px;border:1px solid #315063;background:#07131b;color:#b7ccd8;border-radius:5px;padding:9px 12px}
+.worknode.advanced{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center}
+.worknumber{width:32px!important;height:32px!important}
+.workfields{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:10px}
+.workfields input,.workfields select{background:#050d13;border:1px solid #294d5f;border-radius:5px;color:#e9f1f6;padding:9px 10px}
+.workactions{display:flex;gap:5px}
+.workactions button{width:32px;height:32px;display:grid;place-items:center;border:1px solid #294d5f!important;border-radius:5px!important;background:#07131b!important;color:#88a5b5!important}
+.workactions button:disabled{opacity:.3;cursor:not-allowed}
+
+.purpleflow.editable{align-items:stretch}
+.purpleflow.editable>div{min-height:210px}
+.purpleflow textarea{width:100%;min-height:88px;margin-top:14px;resize:vertical;background:#050d13;border:1px solid #294d5f;border-radius:5px;color:#eaf2f7;padding:9px;font:inherit;font-size:11px;line-height:1.45}
+.purpleflow textarea:focus{outline:1px solid #00dff2;border-color:#00dff2}
+
+.commandbox{max-width:1120px}
+.commandline{align-items:stretch}
+.commandline code{display:flex;align-items:center;min-height:44px}
+.copybtn{min-width:86px;justify-content:center}
+
+@media(max-width:1100px){
+ .purpleflow.editable{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+ .purpleflow.editable>svg{display:none}
+ .workflowToolbar>span,.mappingToolbar>span{width:100%;margin-left:0}
+}
+@media(max-width:760px){
+ .pathTrack{padding:28px}
+ .workfields{grid-template-columns:1fr}
+ .purpleflow.editable{grid-template-columns:1fr}
+ .worknode.advanced{grid-template-columns:auto minmax(0,1fr)}
+ .workactions{grid-column:2}
+}

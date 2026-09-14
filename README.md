@@ -2,19 +2,29 @@
 
 Interactive companion application for Asif's Security Notes.
 
-## v1.3 - fixed build
+## v1.4
 
-- Fixed Command Studio copy button layout
-- Functional PrivEsc Explorer
-- Expanded ATT&CK Explorer
-- Visual Attack Path Explorer
-- Existing v1.2 command platform retained
-- Ctrl+K search
-- Command Studio tabs
-- PNG/SVG visual export
-- Detection & Telemetry
-- Workflow Builder
-- Purple Team Mapping
+This release combines the requested quality pass with the next functional improvements.
+
+### Quality fixes
+- Improved ATT&CK Explorer card contrast
+- Fixed Attack Path Explorer clipping with a padded horizontal path track
+- Strengthened active navigation styling
+- Refined Command Studio copy-button alignment
+- Improved responsive spacing
+
+### New v1.4 functionality
+- Workflow Builder now supports:
+  - editable step type
+  - move up / move down
+  - add / delete
+  - automatic browser persistence
+  - JSON export
+  - reset
+- Purple Team Mapping is now editable
+- Purple Team Mapping persists locally
+- Purple Team Mapping supports JSON export
+- Existing Command Library, Command Studio, Visualiser, Explorers and Detection views retained
 
 ## Local development
 
@@ -30,5 +40,3 @@ npm run build
 ```
 
 GitHub Actions publishes `dist/` to GitHub Pages.
-
-- Fixed ATT&CK Explorer JSX syntax error from the first v1.3 package.

@@ -244,7 +244,37 @@ function AttackPathExplorer({openCommand}){
  ];
  const n=nodes.find(x=>x.id===focus);
  const c=commands.find(x=>x.id===n.cmd);
- return <><PageTitle kicker="EXPLORERS" title="Attack Path Explorer" text="Visualise identities, relationships, systems and defensive control boundaries."/><div className="pathShell"><div className="pathCanvas">{nodes.map((x,i)=><React.Fragment key={x.id}><button className={`pathNode ${focus===x.id?'active':''}`} onClick={()=>setFocus(x.id)}><small>{x.type}</small><b>{x.title}</b><span>{x.sub}</span></button>{i<nodes.length-1&&<div className="pathEdge"><span>{['MemberOf','Context','ProtectedBy','ObservedBy'][i]}</span><ChevronRight/></div>}</React.Fragment>)}</div><div className="pathDetail"><span className="eyebrow">{n.type.toUpperCase()}</span><h2>{n.title}</h2><p>{n.sub}</p>{c&&<><div className="commandSnippet"><code>{c.command}</code></div><button className="primarySmall" onClick={()=>openCommand(c)}>Open related command <ChevronRight size={14}/></button></>}<a className="textlink" href="https://notes.asifnawazminhas.com/active-directory/">Open related Security Notes <ExternalLink size={14}/></a></div></div></>
+
+ return <>
+  <PageTitle kicker="EXPLORERS" title="Attack Path Explorer" text="Visualise identities, relationships, systems and defensive control boundaries."/>
+  <div className="pathShell">
+   <div className="pathCanvas">
+    <div className="pathTrack">
+     {nodes.map((x,i)=><React.Fragment key={x.id}>
+      <button className={`pathNode ${focus===x.id?'active':''}`} onClick={()=>setFocus(x.id)}>
+       <small>{x.type}</small>
+       <b>{x.title}</b>
+       <span>{x.sub}</span>
+      </button>
+      {i<nodes.length-1&&<div className="pathEdge">
+       <span>{['MemberOf','Context','ProtectedBy','ObservedBy'][i]}</span>
+       <ChevronRight/>
+      </div>}
+     </React.Fragment>)}
+    </div>
+   </div>
+   <div className="pathDetail">
+    <span className="eyebrow">{n.type.toUpperCase()}</span>
+    <h2>{n.title}</h2>
+    <p>{n.sub}</p>
+    {c&&<>
+     <div className="commandSnippet"><code>{c.command}</code></div>
+     <button className="primarySmall" onClick={()=>openCommand(c)}>Open related command <ChevronRight size={14}/></button>
+    </>}
+    <a className="textlink" href="https://notes.asifnawazminhas.com/active-directory/">Open related Security Notes <ExternalLink size={14}/></a>
+   </div>
+  </div>
+ </>;
 }
 
 function VisualPreview({c}){
@@ -267,8 +297,74 @@ function Visualiser({c}){
 }
 
 function WorkflowBuilder(){
- const [nodes,setNodes]=useState([{id:1,title:'Define scope'},{id:2,title:'Run validation'},{id:3,title:'Review telemetry'},{id:4,title:'Capture learning'}]);
- return <><PageTitle kicker="BUILDERS" title="Workflow Builder" text="Arrange safe assessment and validation steps into a reusable visual workflow."/><div className="workflow"><div className="workflowbar"><button onClick={()=>setNodes([...nodes,{id:Date.now(),title:'New step'}])}><Plus size={15}/> Add step</button></div>{nodes.map((n,i)=><React.Fragment key={n.id}><div className="worknode"><span>{i+1}</span><input value={n.title} onChange={e=>setNodes(nodes.map(x=>x.id===n.id?{...x,title:e.target.value}:x))}/><button onClick={()=>setNodes(nodes.filter(x=>x.id!==n.id))}><Trash2 size={15}/></button></div>{i<nodes.length-1&&<div className="connector">↓</div>}</React.Fragment>)}</div></>
+ const defaultNodes=[
+  {id:1,title:'Define scope',kind:'Planning'},
+  {id:2,title:'Run validation',kind:'Validation'},
+  {id:3,title:'Review telemetry',kind:'Detection'},
+  {id:4,title:'Capture learning',kind:'Learning'}
+ ];
+ const [nodes,setNodes]=useState(()=>{
+   try{
+     const saved=localStorage.getItem('security-studio-workflow');
+     return saved?JSON.parse(saved):defaultNodes;
+   }catch{return defaultNodes}
+ });
+ useEffect(()=>localStorage.setItem('security-studio-workflow',JSON.stringify(nodes)),[nodes]);
+
+ const update=(id,patch)=>setNodes(nodes.map(n=>n.id===id?{...n,...patch}:n));
+ const move=(index,direction)=>{
+   const target=index+direction;
+   if(target<0||target>=nodes.length)return;
+   const next=[...nodes];
+   [next[index],next[target]]=[next[target],next[index]];
+   setNodes(next);
+ };
+ const add=()=>setNodes([...nodes,{id:Date.now(),title:'New step',kind:'Validation'}]);
+ const reset=()=>setNodes(defaultNodes);
+ const exportJson=()=>{
+   const blob=new Blob([JSON.stringify({name:'Security Studio Workflow',version:'1.4',steps:nodes},null,2)],{type:'application/json'});
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(blob);
+   a.download='security-studio-workflow.json';
+   a.click();
+   URL.revokeObjectURL(a.href);
+ };
+
+ return <>
+  <PageTitle kicker="BUILDERS" title="Workflow Builder" text="Arrange assessment and validation steps into a reusable visual workflow."/>
+  <div className="workflowShell">
+   <div className="workflowToolbar">
+    <button className="primarySmall" onClick={add}><Plus size={15}/> Add step</button>
+    <button className="secondarySmall" onClick={exportJson}><Download size={15}/> Export JSON</button>
+    <button className="secondarySmall" onClick={reset}>Reset</button>
+    <span>Saved locally in your browser</span>
+   </div>
+   <div className="workflow">
+    {nodes.map((n,i)=><React.Fragment key={n.id}>
+     <div className="worknode advanced">
+      <span className="worknumber">{i+1}</span>
+      <div className="workfields">
+       <input value={n.title} onChange={e=>update(n.id,{title:e.target.value})}/>
+       <select value={n.kind} onChange={e=>update(n.id,{kind:e.target.value})}>
+        <option>Planning</option>
+        <option>Validation</option>
+        <option>Detection</option>
+        <option>Response</option>
+        <option>Learning</option>
+       </select>
+      </div>
+      <div className="workactions">
+       <button disabled={i===0} onClick={()=>move(i,-1)} title="Move up">↑</button>
+       <button disabled={i===nodes.length-1} onClick={()=>move(i,1)} title="Move down">↓</button>
+       <button onClick={()=>setNodes(nodes.filter(x=>x.id!==n.id))} title="Delete"><Trash2 size={15}/></button>
+      </div>
+     </div>
+     {i<nodes.length-1&&<div className="connector">↓</div>}
+    </React.Fragment>)}
+    {!nodes.length&&<div className="empty">No workflow steps yet. Add a step to begin.</div>}
+   </div>
+  </div>
+ </>;
 }
 
 function Detection(){
@@ -278,7 +374,55 @@ function Detection(){
 }
 
 function Purple(){
- return <><PageTitle kicker="DEFENCE" title="Purple Team Mapping" text="Connect validation actions to expected telemetry, detection and learning outcomes."/><div className="purpleflow">{['Validation action','Expected signal','Telemetry source','Detection','Response','Learning outcome'].map((x,i)=><React.Fragment key={x}><div><span>{i+1}</span><b>{x}</b><small>{['Authorised assessment step','What should become observable','Where the signal should appear','How the activity is identified','Expected defensive action','What should improve next'][i]}</small></div>{i<5&&<ChevronRight/>}</React.Fragment>)}</div><Panel title="How to use this mapping"><p>Start with an authorised validation objective, define the expected observable signal, identify the telemetry source, document detection behaviour and capture the resulting learning outcome.</p></Panel></>
+ const defaults=[
+  {id:1,title:'Validation action',hint:'Authorised assessment step',value:''},
+  {id:2,title:'Expected signal',hint:'What should become observable',value:''},
+  {id:3,title:'Telemetry source',hint:'Where the signal should appear',value:''},
+  {id:4,title:'Detection',hint:'How the activity is identified',value:''},
+  {id:5,title:'Response',hint:'Expected defensive action',value:''},
+  {id:6,title:'Learning outcome',hint:'What should improve next',value:''}
+ ];
+ const [items,setItems]=useState(()=>{
+   try{
+     const saved=localStorage.getItem('security-studio-purple-map');
+     return saved?JSON.parse(saved):defaults;
+   }catch{return defaults}
+ });
+ useEffect(()=>localStorage.setItem('security-studio-purple-map',JSON.stringify(items)),[items]);
+
+ const setValue=(id,value)=>setItems(items.map(x=>x.id===id?{...x,value}:x));
+ const clear=()=>setItems(defaults);
+ const exportMap=()=>{
+   const blob=new Blob([JSON.stringify({name:'Purple Team Mapping',version:'1.4',mapping:items},null,2)],{type:'application/json'});
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(blob);
+   a.download='purple-team-mapping.json';
+   a.click();
+   URL.revokeObjectURL(a.href);
+ };
+
+ return <>
+  <PageTitle kicker="DEFENCE" title="Purple Team Mapping" text="Connect validation actions to expected telemetry, detection, response and learning outcomes."/>
+  <div className="mappingToolbar">
+   <button className="primarySmall" onClick={exportMap}><Download size={15}/> Export mapping</button>
+   <button className="secondarySmall" onClick={clear}>Clear</button>
+   <span>Editable and saved locally in your browser</span>
+  </div>
+  <div className="purpleflow editable">
+   {items.map((x,i)=><React.Fragment key={x.id}>
+    <div>
+     <span>{x.id}</span>
+     <b>{x.title}</b>
+     <small>{x.hint}</small>
+     <textarea value={x.value} onChange={e=>setValue(x.id,e.target.value)} placeholder={`Add ${x.title.toLowerCase()}...`}/>
+    </div>
+    {i<items.length-1&&<ChevronRight/>}
+   </React.Fragment>)}
+  </div>
+  <Panel title="How to use this mapping">
+   <p>Start with an authorised validation objective, define the expected observable signal, identify the telemetry source, document detection and response behaviour, then capture the resulting learning outcome.</p>
+  </Panel>
+ </>;
 }
 
 function NotFound(){return <PageTitle kicker="STUDIO" title="Not found" text="This Studio route does not exist."/>}

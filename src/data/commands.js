@@ -4471,5 +4471,1143 @@ export const commands = [
       "DNS resolver logs"
     ],
     "notes": "https://notes.asifnawazminhas.com/cheatsheets/nmap/"
+  },
+  {
+    "id": "runtime-powershell-version",
+    "title": "PowerShell Version",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Runtime",
+    "command": "$PSVersionTable",
+    "description": "Display PowerShell version and runtime information.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "PowerShell",
+      "Runtime",
+      "Version"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "$PSVersionTable",
+        "Displays PowerShell version, edition and runtime metadata."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/powershell/"
+  },
+  {
+    "id": "runtime-powershell-home",
+    "title": "PowerShell Home Path",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Runtime",
+    "command": "$PSHOME",
+    "description": "Display the PowerShell installation directory.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "PowerShell",
+      "Runtime",
+      "Path"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "$PSHOME",
+        "Returns the PowerShell installation directory."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/powershell/"
+  },
+  {
+    "id": "runtime-powershell-modules",
+    "title": "PowerShell Available Modules",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Runtime",
+    "command": "Get-Module -ListAvailable | Select-Object Name,Version,Path",
+    "description": "List available PowerShell modules with version and path.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "PowerShell",
+      "Modules",
+      "Inventory"
+    ],
+    "attack": [
+      "T1518"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-Module -ListAvailable",
+        "Lists modules available on the module search path."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/powershell/"
+  },
+  {
+    "id": "runtime-powershell-path",
+    "title": "PowerShell Module Path",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Runtime",
+    "command": "$env:PSModulePath -split ';'",
+    "description": "Display PowerShell module search paths.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "PowerShell",
+      "Modules",
+      "Path"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "$env:PSModulePath",
+        "Environment variable containing module search paths."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/powershell/"
+  },
+  {
+    "id": "runtime-bash-version",
+    "title": "Bash Version",
+    "platform": "Linux",
+    "tool": "Bash",
+    "category": "Runtime",
+    "command": "bash --version",
+    "description": "Display Bash version information.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Bash",
+      "Runtime",
+      "Version"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "bash --version",
+        "Prints Bash version information."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "runtime-bash-shell",
+    "title": "Current Login Shell",
+    "platform": "Linux",
+    "tool": "Bash",
+    "category": "Runtime",
+    "command": "printf '%s\\n' \"$SHELL\"",
+    "description": "Display the configured login shell.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Bash",
+      "Shell",
+      "Environment"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "$SHELL",
+        "Environment variable containing the configured shell path."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "runtime-bash-builtins",
+    "title": "List Bash Builtins",
+    "platform": "Linux",
+    "tool": "Bash",
+    "category": "Runtime",
+    "command": "compgen -b | sort",
+    "description": "List Bash builtin commands.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Bash",
+      "Builtins",
+      "Inventory"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "compgen -b",
+        "Lists Bash builtin command names."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "runtime-bash-options",
+    "title": "Bash Shell Options",
+    "platform": "Linux",
+    "tool": "Bash",
+    "category": "Runtime",
+    "command": "set -o",
+    "description": "Display Bash shell option state.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Bash",
+      "Options",
+      "Runtime"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "set -o",
+        "Displays shell option settings."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "runtime-bash-command-path",
+    "title": "Resolve Command Path",
+    "platform": "Linux",
+    "tool": "Bash",
+    "category": "Runtime",
+    "command": "type -a <COMMAND>",
+    "description": "Display how Bash resolves a command name.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Bash",
+      "PATH",
+      "Resolution"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "COMMAND",
+        "label": "Command",
+        "placeholder": "python3"
+      }
+    ],
+    "explanation": [
+      [
+        "type -a",
+        "Displays all matching command resolutions in the current shell."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "runtime-python-version",
+    "title": "Python Version",
+    "platform": "Tools",
+    "tool": "Python",
+    "category": "Runtime",
+    "command": "python3 --version",
+    "description": "Display Python 3 version information.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Python",
+      "Runtime",
+      "Version"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "python3 --version",
+        "Prints the Python interpreter version."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-python-pip-version",
+    "title": "pip Version",
+    "platform": "Tools",
+    "tool": "Python",
+    "category": "Packages",
+    "command": "python3 -m pip --version",
+    "description": "Display pip version and installation location.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Python",
+      "pip",
+      "Packages"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "python3 -m pip",
+        "Runs pip through the selected Python interpreter."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-python-packages",
+    "title": "List Python Packages",
+    "platform": "Tools",
+    "tool": "Python",
+    "category": "Packages",
+    "command": "python3 -m pip list",
+    "description": "List installed Python packages.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Python",
+      "pip",
+      "Packages"
+    ],
+    "attack": [
+      "T1518"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "pip list",
+        "Lists installed Python packages."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-python-freeze",
+    "title": "Python Package Freeze",
+    "platform": "Tools",
+    "tool": "Python",
+    "category": "Packages",
+    "command": "python3 -m pip freeze",
+    "description": "Display installed Python packages in requirements-style format.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Python",
+      "pip",
+      "Requirements"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "pip freeze",
+        "Outputs package pins in requirements format."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-python-path",
+    "title": "Python Import Path",
+    "platform": "Tools",
+    "tool": "Python",
+    "category": "Runtime",
+    "command": "python3 -c \"import sys; print('\\\\n'.join(sys.path))\"",
+    "description": "Display Python module import search paths.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Python",
+      "sys.path",
+      "Runtime"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "sys.path",
+        "Python list containing module search locations."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-python-executable",
+    "title": "Python Interpreter Path",
+    "platform": "Tools",
+    "tool": "Python",
+    "category": "Runtime",
+    "command": "python3 -c \"import sys; print(sys.executable)\"",
+    "description": "Display the path of the selected Python interpreter.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Python",
+      "Interpreter",
+      "Path"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "sys.executable",
+        "Path to the running Python interpreter."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-java-version",
+    "title": "Java Runtime Version",
+    "platform": "Tools",
+    "tool": "Java",
+    "category": "Runtime",
+    "command": "java -version",
+    "description": "Display Java runtime version information.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Java",
+      "JRE",
+      "Version"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "java -version",
+        "Prints Java runtime version information."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-javac-version",
+    "title": "Java Compiler Version",
+    "platform": "Tools",
+    "tool": "Java",
+    "category": "Runtime",
+    "command": "javac -version",
+    "description": "Display Java compiler version information.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Java",
+      "JDK",
+      "Compiler"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "javac -version",
+        "Prints Java compiler version."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-java-home",
+    "title": "JAVA_HOME",
+    "platform": "Tools",
+    "tool": "Java",
+    "category": "Runtime",
+    "command": "printf '%s\\n' \"$JAVA_HOME\"",
+    "description": "Display the configured JAVA_HOME path.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Java",
+      "JAVA_HOME",
+      "Environment"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "JAVA_HOME",
+        "Environment variable commonly pointing to the JDK/JRE root."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-java-settings",
+    "title": "Java Runtime Settings",
+    "platform": "Tools",
+    "tool": "Java",
+    "category": "Runtime",
+    "command": "java -XshowSettings:properties -version",
+    "description": "Display Java runtime property settings and version information.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Java",
+      "Runtime",
+      "Properties"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "-XshowSettings:properties",
+        "Prints Java system property settings."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-jar-version",
+    "title": "JAR Tool Version",
+    "platform": "Tools",
+    "tool": "Java",
+    "category": "Runtime",
+    "command": "jar --version",
+    "description": "Display the JAR tool version.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Java",
+      "JAR",
+      "Version"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "jar --version",
+        "Prints the JAR tool version."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-php-version",
+    "title": "PHP Version",
+    "platform": "Tools",
+    "tool": "PHP",
+    "category": "Runtime",
+    "command": "php -v",
+    "description": "Display PHP CLI version information.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "PHP",
+      "Runtime",
+      "Version"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "php -v",
+        "Prints PHP CLI version information."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-php-modules",
+    "title": "PHP Loaded Modules",
+    "platform": "Tools",
+    "tool": "PHP",
+    "category": "Runtime",
+    "command": "php -m",
+    "description": "List loaded PHP modules.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "PHP",
+      "Modules",
+      "Inventory"
+    ],
+    "attack": [
+      "T1518"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "php -m",
+        "Lists compiled and loaded PHP modules."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-php-ini",
+    "title": "PHP Configuration Files",
+    "platform": "Tools",
+    "tool": "PHP",
+    "category": "Runtime",
+    "command": "php --ini",
+    "description": "Display PHP configuration-file locations.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "PHP",
+      "php.ini",
+      "Configuration"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "php --ini",
+        "Displays PHP configuration file paths."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-composer-version",
+    "title": "Composer Version",
+    "platform": "Tools",
+    "tool": "PHP",
+    "category": "Packages",
+    "command": "composer --version",
+    "description": "Display Composer version information.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "PHP",
+      "Composer",
+      "Packages"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "composer --version",
+        "Prints Composer package-manager version."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-node-version",
+    "title": "Node.js Version",
+    "platform": "Tools",
+    "tool": "Node.js",
+    "category": "Runtime",
+    "command": "node --version",
+    "description": "Display Node.js version information.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Node.js",
+      "JavaScript",
+      "Runtime"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "node --version",
+        "Prints Node.js runtime version."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-npm-version",
+    "title": "npm Version",
+    "platform": "Tools",
+    "tool": "Node.js",
+    "category": "Packages",
+    "command": "npm --version",
+    "description": "Display npm version information.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Node.js",
+      "npm",
+      "Packages"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "npm --version",
+        "Prints npm package-manager version."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-node-path",
+    "title": "Node.js Executable Path",
+    "platform": "Tools",
+    "tool": "Node.js",
+    "category": "Runtime",
+    "command": "node -p \"process.execPath\"",
+    "description": "Display the active Node.js executable path.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Node.js",
+      "JavaScript",
+      "Path"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "process.execPath",
+        "Node.js property containing the executable path."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-node-platform",
+    "title": "Node.js Platform and Architecture",
+    "platform": "Tools",
+    "tool": "Node.js",
+    "category": "Runtime",
+    "command": "node -p \"process.platform + ' ' + process.arch\"",
+    "description": "Display Node.js platform and architecture.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Node.js",
+      "JavaScript",
+      "Platform"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "process.platform",
+        "Runtime operating-system platform."
+      ],
+      [
+        "process.arch",
+        "Runtime architecture."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-npm-list",
+    "title": "Top-level npm Packages",
+    "platform": "Tools",
+    "tool": "Node.js",
+    "category": "Packages",
+    "command": "npm list --depth=0",
+    "description": "List top-level npm dependencies for the current project.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Node.js",
+      "npm",
+      "Dependencies"
+    ],
+    "attack": [
+      "T1518"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "--depth=0",
+        "Limits dependency listing to top-level packages."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-javascript-v8",
+    "title": "V8 Engine Version",
+    "platform": "Tools",
+    "tool": "JavaScript",
+    "category": "Runtime",
+    "command": "node -p \"process.versions.v8\"",
+    "description": "Display the V8 JavaScript engine version used by Node.js.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "JavaScript",
+      "V8",
+      "Runtime"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "process.versions.v8",
+        "Node.js runtime property for the embedded V8 version."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-go-version",
+    "title": "Go Version",
+    "platform": "Tools",
+    "tool": "Go",
+    "category": "Runtime",
+    "command": "go version",
+    "description": "Display Go toolchain version information.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Go",
+      "Runtime",
+      "Version"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "go version",
+        "Prints Go toolchain version."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-go-env",
+    "title": "Go Environment",
+    "platform": "Tools",
+    "tool": "Go",
+    "category": "Runtime",
+    "command": "go env",
+    "description": "Display Go environment variables.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Go",
+      "Environment",
+      "Runtime"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "go env",
+        "Prints Go environment configuration."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-go-paths",
+    "title": "Go Root and Workspace",
+    "platform": "Tools",
+    "tool": "Go",
+    "category": "Runtime",
+    "command": "go env GOROOT GOPATH",
+    "description": "Display Go installation root and workspace paths.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Go",
+      "GOROOT",
+      "GOPATH"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "GOROOT",
+        "Go installation root."
+      ],
+      [
+        "GOPATH",
+        "Go workspace path."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-go-modules",
+    "title": "Go Module Dependencies",
+    "platform": "Tools",
+    "tool": "Go",
+    "category": "Packages",
+    "command": "go list -m all",
+    "description": "List Go modules in the current module graph.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Go",
+      "Modules",
+      "Dependencies"
+    ],
+    "attack": [
+      "T1518"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "go list -m all",
+        "Lists modules in the active module graph."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-dotnet-info",
+    "title": ".NET Runtime Information",
+    "platform": "Tools",
+    "tool": ".NET",
+    "category": "Runtime",
+    "command": "dotnet --info",
+    "description": "Display .NET SDK, runtime and environment information.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      ".NET",
+      "C#",
+      "Runtime"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "dotnet --info",
+        "Prints .NET SDK and runtime environment details."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-dotnet-sdks",
+    "title": "Installed .NET SDKs",
+    "platform": "Tools",
+    "tool": ".NET",
+    "category": "Runtime",
+    "command": "dotnet --list-sdks",
+    "description": "List installed .NET SDK versions.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      ".NET",
+      "SDK",
+      "Inventory"
+    ],
+    "attack": [
+      "T1518"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "dotnet --list-sdks",
+        "Lists installed .NET SDKs."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-dotnet-runtimes",
+    "title": "Installed .NET Runtimes",
+    "platform": "Tools",
+    "tool": ".NET",
+    "category": "Runtime",
+    "command": "dotnet --list-runtimes",
+    "description": "List installed .NET runtime versions.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      ".NET",
+      "Runtime",
+      "Inventory"
+    ],
+    "attack": [
+      "T1518"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "dotnet --list-runtimes",
+        "Lists installed .NET shared runtimes."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-dotnet-version",
+    "title": ".NET SDK Version",
+    "platform": "Tools",
+    "tool": ".NET",
+    "category": "Runtime",
+    "command": "dotnet --version",
+    "description": "Display the active .NET SDK version.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      ".NET",
+      "SDK",
+      "Version"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "dotnet --version",
+        "Prints the active .NET SDK version."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
+  },
+  {
+    "id": "runtime-csc-version",
+    "title": "C# Compiler Version",
+    "platform": "Tools",
+    "tool": ".NET",
+    "category": "Runtime",
+    "command": "csc -version",
+    "description": "Display Microsoft C# compiler version where available.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "C#",
+      ".NET",
+      "Compiler"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "csc -version",
+        "Prints C# compiler version."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/tools/"
   }
 ];

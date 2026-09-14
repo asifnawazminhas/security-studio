@@ -4,16 +4,16 @@ import {toPng,toSvg} from 'html-to-image';
 import {
   Activity,ArrowLeft,BookOpen,CheckCircle2,ChevronDown,ChevronRight,Copy,Download,
   Clock3,ExternalLink,Filter,GitCompareArrows,Image,Layers3,LayoutDashboard,Library,Menu,
-  Check,FileJson,FileText,GripVertical,Link2,Moon,Network,Package,Plus,RadioTower,RotateCcw,Save,Search,ShieldCheck,Star,Sun,Tag,TerminalSquare,Trash2,Upload,Workflow,X
+  Braces,Check,Code2,FileJson,FileText,GitBranch,GripVertical,HelpCircle,Link2,Moon,Network,Package,Plus,RadioTower,RotateCcw,Save,Search,ShieldCheck,Star,Sun,Tag,TerminalSquare,Trash2,Upload,Workflow,X
 } from 'lucide-react';
 import {commands} from './data/commands';
 import './styles.css';
 
 const sections=[
  {title:'',items:[['Dashboard','dashboard',LayoutDashboard]]},
- {title:'COMMANDS',items:[['Command Library','library',Library],['Command Studio','command-studio',TerminalSquare],['Command Visualiser','visualiser',Image],['Command Packs','packs',Package]]},
- {title:'EXPLORERS',items:[['PrivEsc Explorer','privesc',ShieldCheck],['ATT&CK Explorer','attack',Network],['Attack Path Explorer','attack-path',GitCompareArrows]]},
- {title:'WORKSPACE',items:[['Saved Workspace','workspace',Star],['Report Builder','reports',FileText],['Notes Link Builder','notes-links',Link2]]},
+ {title:'COMMANDS',items:[['Command Library','library',Library],['Command Studio','command-studio',TerminalSquare],['Command Visualiser','visualiser',Image],['Command Packs','packs',Package],['Runtime Library','runtimes',Code2]]},
+ {title:'EXPLORERS',items:[['PrivEsc Explorer','privesc',ShieldCheck],['ATT&CK Explorer','attack',Network],['Attack Path Explorer','attack-path',GitCompareArrows],['Knowledge Graph','graph',GitBranch]]},
+ {title:'WORKSPACE',items:[['Saved Workspace','workspace',Star],['Context Profiles','contexts',Braces],['Report Builder','reports',FileText],['Notes Link Builder','notes-links',Link2]]},
  {title:'BUILDERS',items:[['Workflow Builder','workflow',Workflow]]},
  {title:'DEFENCE',items:[['Detection & Telemetry','detection',RadioTower],['Purple Team Mapping','purple',Layers3]]}
 ];
@@ -44,6 +44,46 @@ const attackCatalog=[
  ['T1069.001','Permission Groups Discovery: Local Groups','Discovery'],
  ['T1595.002','Active Scanning: Vulnerability Scanning','Reconnaissance']
 ];
+
+const commandSearchScore=(c,q)=>{
+ const s=q.trim().toLowerCase();
+ if(!s)return 1;
+ const parts=s.split(/\s+/).filter(Boolean);
+ const text={
+  title:c.title.toLowerCase(),tool:c.tool.toLowerCase(),platform:c.platform.toLowerCase(),
+  category:c.category.toLowerCase(),tags:c.tags.join(' ').toLowerCase(),
+  command:c.command.toLowerCase(),attack:c.attack.join(' ').toLowerCase(),
+  description:c.description.toLowerCase()
+ };
+ return parts.reduce((score,p)=>{
+  if(text.title.includes(p))score+=14;
+  if(text.tool.includes(p))score+=9;
+  if(text.platform.includes(p))score+=7;
+  if(text.category.includes(p))score+=7;
+  if(text.tags.includes(p))score+=6;
+  if(text.attack.includes(p))score+=6;
+  if(text.description.includes(p))score+=3;
+  if(text.command.includes(p))score+=2;
+  return score;
+ },0);
+};
+
+const relatedCommandsFor=(c,limit=6)=>commands
+ .filter(x=>x.id!==c.id)
+ .map(x=>{
+  let score=0;
+  if(x.tool===c.tool)score+=4;
+  if(x.platform===c.platform)score+=3;
+  if(x.category===c.category)score+=3;
+  score+=x.tags.filter(t=>c.tags.includes(t)).length*2;
+  score+=x.attack.filter(t=>c.attack.includes(t)).length*4;
+  score+=x.telemetry.filter(t=>c.telemetry.includes(t)).length;
+  return {x,score};
+ })
+ .filter(r=>r.score>0)
+ .sort((a,b)=>b.score-a.score||a.x.title.localeCompare(b.x.title))
+ .slice(0,limit)
+ .map(r=>r.x);
 
 const routeFor=(page,c)=>page==='command-studio'&&c?`#/command/${c.id}`:`#/${page}`;
 const parseRoute=()=>{
@@ -83,6 +123,13 @@ function App(){
  const [mobile,setMobile]=useState(false);
  const [tab,setTab]=useState('Explain');
  const [palette,setPalette]=useState(false);
+ const [help,setHelp]=useState(false);
+ const [context,setContext]=useState(()=>{
+  try{return JSON.parse(localStorage.getItem('security-studio-context')||'{}')}catch{return {}}
+ });
+ const [contextProfile,setContextProfile]=useState(localStorage.getItem('security-studio-context-profile')||'Default');
+ useEffect(()=>localStorage.setItem('security-studio-context',JSON.stringify(context)),[context]);
+ useEffect(()=>localStorage.setItem('security-studio-context-profile',contextProfile),[contextProfile]);
  const [favorites,setFavorites]=useState(()=>{
    try{return JSON.parse(localStorage.getItem('security-studio-favorites')||'[]')}catch{return []}
  });
@@ -96,7 +143,9 @@ function App(){
    const onHash=()=>{const r=parseRoute();setPage(r.page);if(r.command)setSelected(r.command)};
    const onKey=e=>{
      if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();setPalette(true)}
-     if(e.key==='Escape')setPalette(false);
+     if(e.key==='/'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)){e.preventDefault();setPalette(true)}
+     if(e.key==='?'&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)){e.preventDefault();setHelp(true)}
+     if(e.key==='Escape'){setPalette(false);setHelp(false)}
    };
    addEventListener('hashchange',onHash);addEventListener('keydown',onKey);
    return()=>{removeEventListener('hashchange',onHash);removeEventListener('keydown',onKey)}
@@ -127,21 +176,25 @@ function App(){
      {theme==='dark'?<Sun size={16}/>:<Moon size={16}/>}
      <span>{theme==='dark'?'Light':'Dark'}</span>
     </button>
-    <a className="notes" href="https://notes.asifnawazminhas.com/">Notes <ExternalLink size={14}/></a>
+    <button className="headerIconButton" onClick={()=>setHelp(true)} title="Keyboard shortcuts" aria-label="Keyboard shortcuts"><HelpCircle size={16}/></button>
+    <a className="notes" href="https://notes.asifnawazminhas.com/" target="_blank" rel="noopener noreferrer">Notes <ExternalLink size={14}/></a>
    </div>
    <button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button>
   </header>
-  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v2.0</div></aside>
+  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v2.3</div></aside>
   <main>
    {page==='dashboard'?<Dashboard go={go} favorites={favorites} recent={recent}/>:
     page==='library'?<LibraryPage query={query} setQuery={setQuery} platform={platform} setPlatform={setPlatform} tool={tool} setTool={setTool} openCommand={openCommand} favorites={favorites} toggleFavorite={toggleFavorite}/>:
     page==='command-studio'?<CommandStudio c={selected} tab={tab} setTab={setTab} go={go} favorites={favorites} toggleFavorite={toggleFavorite}/>:
     page==='visualiser'?<Visualiser c={selected}/>: 
-    page==='packs'?<CommandPacks openCommand={openCommand}/>:
+    page==='packs'?<CommandPacks openCommand={openCommand}/>: 
+    page==='runtimes'?<RuntimeLibrary openCommand={openCommand}/>:
     page==='privesc'?<PrivEscExplorer openCommand={openCommand}/>:
     page==='attack'?<AttackExplorer openCommand={openCommand}/>:
-    page==='attack-path'?<AttackPathExplorer openCommand={openCommand}/>:
+    page==='attack-path'?<AttackPathExplorer openCommand={openCommand}/>: 
+    page==='graph'?<KnowledgeGraph openCommand={openCommand}/>:
     page==='workspace'?<WorkspacePage favorites={favorites} recent={recent} toggleFavorite={toggleFavorite} openCommand={openCommand} removeRecent={removeRecent} clearRecent={clearRecent}/>: 
+    page==='contexts'?<ContextProfiles context={context} setContext={setContext} active={contextProfile} setActive={setContextProfile}/>: 
     page==='reports'?<ReportBuilder/>:
     page==='notes-links'?<NotesLinkBuilder/>:
     page==='workflow'?<WorkflowBuilder/>:
@@ -149,7 +202,7 @@ function App(){
     page==='purple'?<Purple/>:<NotFound/>}
   </main>
   {palette&&<CommandPalette close={()=>setPalette(false)} openCommand={c=>{setPalette(false);openCommand(c)}} go={p=>{setPalette(false);go(p)}}/>}
-  <ToastHost/>
+  {help&&<ShortcutHelp close={()=>setHelp(false)}/>}<ToastHost/>
  </div>
 }
 
@@ -171,7 +224,7 @@ function Dashboard({go,favorites,recent}){
     <p>Explore commands, understand context, map telemetry and turn security notes into practical workflows and finished reports.</p>
     <div className="heroactions">
      <button onClick={()=>go('library')}>Explore Commands <ChevronRight size={16}/></button>
-     <a href="https://notes.asifnawazminhas.com/"><BookOpen size={16}/> Open Security Notes</a>
+     <a className="heroSecondary" href="https://notes.asifnawazminhas.com/" target="_blank" rel="noopener noreferrer"><BookOpen size={16}/> Open Security Notes</a>
     </div>
     <div className="heroStats">
      <span><b>{commands.length}</b> commands</span>
@@ -220,10 +273,29 @@ function Dashboard({go,favorites,recent}){
 
 function CommandPalette({close,openCommand,go}){
  const [q,setQ]=useState('');
+ const [active,setActive]=useState(0);
  const input=useRef(null);
  useEffect(()=>input.current?.focus(),[]);
- const results=commands.filter(c=>`${c.title} ${c.tool} ${c.platform} ${c.category} ${c.tags.join(' ')}`.toLowerCase().includes(q.toLowerCase())).slice(0,8);
- return <div className="paletteback" onMouseDown={e=>e.target===e.currentTarget&&close()}><div className="palette"><div className="paletteinput"><Search/><input ref={input} value={q} onChange={e=>setQ(e.target.value)} placeholder="Search commands, tools, techniques..."/><kbd>Esc</kbd></div><div className="paletteresults">{results.map(c=><button key={c.id} onClick={()=>openCommand(c)}><TerminalSquare/><div><b>{c.title}</b><span>{c.platform} · {c.tool} · {c.category}</span></div><ChevronRight/></button>)}{!results.length&&<div className="empty">No matching commands.</div>}</div><div className="palettefoot"><button onClick={()=>go('library')}>Open Command Library</button><span>{commands.length} indexed commands</span></div></div></div>
+ const results=commands
+  .map(c=>({c,score:commandSearchScore(c,q)}))
+  .filter(x=>x.score>0)
+  .sort((a,b)=>b.score-a.score||a.c.title.localeCompare(b.c.title))
+  .slice(0,9)
+  .map(x=>x.c);
+ useEffect(()=>setActive(0),[q]);
+ const key=e=>{
+  if(e.key==='ArrowDown'){e.preventDefault();setActive(x=>Math.min(x+1,results.length-1))}
+  if(e.key==='ArrowUp'){e.preventDefault();setActive(x=>Math.max(x-1,0))}
+  if(e.key==='Enter'&&results[active]){e.preventDefault();openCommand(results[active])}
+  if(e.key.toLowerCase()==='c'&&e.altKey&&results[active]){e.preventDefault();navigator.clipboard?.writeText(results[active].command);studioToast('Command copied')}
+ };
+ return <div className="paletteback" onMouseDown={e=>e.target===e.currentTarget&&close()}>
+  <div className="palette">
+   <div className="paletteinput"><Search/><input ref={input} value={q} onChange={e=>setQ(e.target.value)} onKeyDown={key} placeholder="Search commands, ATT&CK IDs, tools, tags..."/><kbd>Esc</kbd></div>
+   <div className="paletteresults">{results.map((c,i)=><button className={i===active?'active':''} key={c.id} onMouseEnter={()=>setActive(i)} onClick={()=>openCommand(c)}><TerminalSquare/><div><b>{c.title}</b><span>{c.platform} · {c.tool} · {c.category}</span></div><ChevronRight/></button>)}{!results.length&&<div className="empty">No matching commands.</div>}</div>
+   <div className="palettefoot"><button onClick={()=>go('library')}>Open Command Library</button><span>↑↓ navigate · Enter open · Alt+C copy</span></div>
+  </div>
+ </div>
 }
 
 function LibraryPage({query,setQuery,platform,setPlatform,tool,setTool,openCommand,favorites,toggleFavorite}){
@@ -258,8 +330,9 @@ function LibraryPage({query,setQuery,platform,setPlatform,tool,setTool,openComma
      (category==='All'||c.category===category) &&
      (tag==='All'||c.tags.includes(tag)) &&
      (!onlyFavorites||favorites.includes(c.id)) &&
-     `${c.title} ${c.platform} ${c.tool} ${c.category} ${c.tags.join(' ')} ${c.command}`.toLowerCase().includes(query.toLowerCase())
+     (!query||commandSearchScore(c,query)>0)
    );
+   if(query)return [...rows].sort((a,b)=>commandSearchScore(b,query)-commandSearchScore(a,query)||a.title.localeCompare(b.title));
    return [...rows].sort((a,b)=>{
      if(sort==='Platform')return a.platform.localeCompare(b.platform)||a.title.localeCompare(b.title);
      if(sort==='Tool')return a.tool.localeCompare(b.tool)||a.title.localeCompare(b.title);
@@ -304,7 +377,7 @@ function LibraryPage({query,setQuery,platform,setPlatform,tool,setTool,openComma
    <div className="cardActions">
     <button onClick={e=>fav(e,c)} className={favorites.includes(c.id)?'favOn':''}><Star size={14} fill={favorites.includes(c.id)?'currentColor':'none'}/> {favorites.includes(c.id)?'Saved':'Save'}</button>
     <button onClick={e=>copy(e,c)}><Copy size={14}/> Copy</button>
-    <a href={c.notes} onClick={e=>e.stopPropagation()}><BookOpen size={14}/> Notes</a>
+    <a href={c.notes} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()}><BookOpen size={14}/> Notes</a>
     <button className="openBtn" onClick={()=>openCommand(c)}>Open in Studio <ChevronRight size={14}/></button>
    </div>
   </article>)}</div>
@@ -314,15 +387,21 @@ function LibraryPage({query,setQuery,platform,setPlatform,tool,setTool,openComma
 
 function CommandStudio({c,tab,setTab,go,favorites,toggleFavorite}){
  const [values,setValues]=useState({});
+ const [ctx,setCtx]=useState(()=>{try{return JSON.parse(localStorage.getItem('security-studio-context')||'{}')}catch{return {}}});
  useEffect(()=>setValues(Object.fromEntries(c.parameters.map(p=>[p.name,'']))),[c.id]);
- const generated=c.parameters.reduce((s,p)=>s.replaceAll(`<${p.name}>`,values[p.name]||`<${p.name}>`),c.command);
+ useEffect(()=>{const h=()=>{try{setCtx(JSON.parse(localStorage.getItem('security-studio-context')||'{}'))}catch{}};addEventListener('storage',h);return()=>removeEventListener('storage',h)},[]);
+ const generated=c.parameters.reduce((s,p)=>s.replaceAll(`<${p.name}>`,values[p.name]||ctx[p.name]||`<${p.name}>`),c.command);
+ const related=relatedCommandsFor(c);
  const copy=()=>navigator.clipboard?.writeText(generated);
  return <><button className="back" onClick={()=>go('library')}><ArrowLeft size={15}/> Command Library</button><div className="studioTitleRow"><PageTitle kicker={`${c.platform} / ${c.category}`} title={c.title} text={c.description}/><button className={`saveCommand ${favorites.includes(c.id)?'saved':''}`} onClick={()=>toggleFavorite(c.id)}><Star size={16} fill={favorites.includes(c.id)?'currentColor':'none'}/>{favorites.includes(c.id)?'Saved':'Save command'}</button></div><div className="studio"><div className="commandbox"><div className="commandmeta"><span className="cmdtool"><TerminalSquare size={18}/>{c.tool}</span><span className="cmdrisk">{c.risk}</span></div><div className="commandline"><code>{generated}</code><button className="copybtn" onClick={copy}><Copy size={15}/> Copy</button></div></div><div className="tabs">{['Explain','Modify','Detect','Visualise','Related'].map(t=><button className={tab===t?'active':''} onClick={()=>setTab(t)} key={t}>{t}</button>)}</div>
  {tab==='Explain'&&<div className="twocol"><Panel title="Command Breakdown"><dl>{c.explanation.map(([a,b])=><React.Fragment key={a}><dt>{a}</dt><dd>{b}</dd></React.Fragment>)}</dl></Panel><Panel title="Context"><dl><dt>Platform</dt><dd>{c.platform}</dd><dt>Tool</dt><dd>{c.tool}</dd><dt>Category</dt><dd>{c.category}</dd><dt>Changes system</dt><dd>{c.changesSystem?'Yes':'No'}</dd><dt>Risk</dt><dd>{c.risk}</dd></dl></Panel></div>}
  {tab==='Modify'&&<Panel title="Command Parameters">{c.parameters.length?<>{c.parameters.map(p=><label className="field" key={p.name}>{p.label}<input placeholder={p.placeholder} value={values[p.name]||''} onChange={e=>setValues({...values,[p.name]:e.target.value})}/></label>)}<div className="generated"><small>GENERATED COMMAND</small><code>{generated}</code><button onClick={copy}><Copy size={15}/> Copy</button></div></>:<p>This command has no editable placeholders.</p>}</Panel>}
  {tab==='Detect'&&<div className="twocol"><Panel title="Defender View"><p>Use the telemetry below as assessment context. A command alone is not automatically suspicious; correlation and intent matter.</p>{c.telemetry.map(x=><div className="check" key={x}><CheckCircle2 size={16}/>{x}</div>)}</Panel><Panel title="ATT&CK Context">{c.attack.length?c.attack.map(x=><div className="attackpill" key={x}>{x}</div>):<p>No ATT&CK mapping assigned to this reference entry.</p>}</Panel></div>}
  {tab==='Visualise'&&<VisualPreview c={{...c,command:generated}}/>}
- {tab==='Related'&&<div className="twocol"><Panel title="Security Notes"><p>Continue with the full methodology and supporting documentation.</p><a className="textlink" href={c.notes}>Open related Security Notes <ExternalLink size={14}/></a></Panel><Panel title="Tags"><div className="tags big">{c.tags.map(x=><small key={x}>{x}</small>)}</div><p className="permalink">Permalink<br/><code>{location.href}</code></p></Panel></div>}
+ {tab==='Related'&&<div className="relatedGrid">
+   <Panel title="Command Relationships"><div className="relationshipList">{related.map((x,i)=><button key={x.id} onClick={()=>{location.hash=`#/command/${x.id}`;location.reload()}}><span>{i===0?'Next check':'Related'}</span><div><b>{x.title}</b><small>{x.platform} · {x.tool} · {x.category}</small></div><ChevronRight/></button>)}</div></Panel>
+   <Panel title="Security Notes"><p>Continue with the full methodology and supporting documentation.</p><a className="textlink" href={c.notes} target="_blank" rel="noopener noreferrer">Open related Security Notes <ExternalLink size={14}/></a><div className="tags big">{c.tags.map(x=><small key={x}>{x}</small>)}</div><p className="permalink">Permalink<br/><code>{location.href}</code></p></Panel>
+  </div>}
  </div></>
 }
 
@@ -348,7 +427,7 @@ function PrivEscExplorer({openCommand}){
  const current=steps.find(x=>x[0]===step)||steps[0];
  useEffect(()=>setStep(flow[os][0][0]),[os]);
  const currentCommands=current[3].map(id=>commands.find(c=>c.id===id)).filter(Boolean);
- return <><PageTitle kicker="EXPLORERS" title="PrivEsc Explorer" text="Decision-support for reviewing privilege boundaries, context and defensive controls."/><div className="explorerShell"><div className="explorerTop"><div className="segmented"><button className={os==='Windows'?'active':''} onClick={()=>setOs('Windows')}>Windows</button><button className={os==='Linux'?'active':''} onClick={()=>setOs('Linux')}>Linux</button></div><div className="explainer">This explorer organises review steps and links to read-only validation commands. It does not perform exploitation.</div></div><div className="explorerGrid"><div className="stepRail">{steps.map(([id,title],i)=><button className={step===id?'active':''} key={id} onClick={()=>setStep(id)}><span>{i+1}</span><b>{title}</b><ChevronRight/></button>)}</div><div className="stepContent"><span className="eyebrow">{os.toUpperCase()} REVIEW STEP</span><h2>{current[1]}</h2><p>{current[2]}</p><div className="decisionRow"><button className={answers[step]==='reviewed'?'yes':''} onClick={()=>setAnswers({...answers,[step]:'reviewed'})}>Mark reviewed</button><button className={answers[step]==='followup'?'follow':''} onClick={()=>setAnswers({...answers,[step]:'followup'})}>Needs follow-up</button></div><h3>Related commands</h3><div className="miniCommands">{currentCommands.map(c=><button key={c.id} onClick={()=>openCommand(c)}><div><b>{c.title}</b><code>{c.command}</code></div><ChevronRight/></button>)}</div><a className="textlink" href={os==='Windows'?'https://notes.asifnawazminhas.com/windows/':'https://notes.asifnawazminhas.com/linux/'}>Open {os} Security Notes <ExternalLink size={14}/></a></div></div></div></>
+ return <><PageTitle kicker="EXPLORERS" title="PrivEsc Explorer" text="Decision-support for reviewing privilege boundaries, context and defensive controls."/><div className="explorerShell"><div className="explorerTop"><div className="segmented"><button className={os==='Windows'?'active':''} onClick={()=>setOs('Windows')}>Windows</button><button className={os==='Linux'?'active':''} onClick={()=>setOs('Linux')}>Linux</button></div><div className="explainer">This explorer organises review steps and links to read-only validation commands. It does not perform exploitation.</div></div><div className="explorerGrid"><div className="stepRail">{steps.map(([id,title],i)=><button className={step===id?'active':''} key={id} onClick={()=>setStep(id)}><span>{i+1}</span><b>{title}</b><ChevronRight/></button>)}</div><div className="stepContent"><span className="eyebrow">{os.toUpperCase()} REVIEW STEP</span><h2>{current[1]}</h2><p>{current[2]}</p><div className="decisionRow"><button className={answers[step]==='reviewed'?'yes':''} onClick={()=>setAnswers({...answers,[step]:'reviewed'})}>Mark reviewed</button><button className={answers[step]==='followup'?'follow':''} onClick={()=>setAnswers({...answers,[step]:'followup'})}>Needs follow-up</button></div><h3>Related commands</h3><div className="miniCommands">{currentCommands.map(c=><button key={c.id} onClick={()=>openCommand(c)}><div><b>{c.title}</b><code>{c.command}</code></div><ChevronRight/></button>)}</div><a className="textlink" target="_blank" rel="noopener noreferrer" href={os==='Windows'?'https://notes.asifnawazminhas.com/windows/':'https://notes.asifnawazminhas.com/linux/'}>Open {os} Security Notes <ExternalLink size={14}/></a></div></div></div></>
 }
 
 function AttackExplorer({openCommand}){
@@ -470,7 +549,7 @@ function AttackPathExplorer({openCommand}){
      <div className="commandSnippet"><code>{c.command}</code></div>
      <button className="primarySmall" onClick={()=>openCommand(c)}>Open related command <ChevronRight size={14}/></button>
     </>}
-    <a className="textlink" href="https://notes.asifnawazminhas.com/active-directory/">Open related Security Notes <ExternalLink size={14}/></a>
+    <a className="textlink" target="_blank" rel="noopener noreferrer" href="https://notes.asifnawazminhas.com/active-directory/" target="_blank" rel="noopener noreferrer">Open related Security Notes <ExternalLink size={14}/></a>
    </div>
   </div>
  </>;
@@ -662,6 +741,98 @@ function Visualiser({c}){
   </div>
   <VisualPreview c={chosen}/>
  </>
+}
+
+const runtimeGroups=[
+ ['PowerShell','PowerShell'],['Bash','Bash'],['Python','Python'],['Java','Java'],['PHP','PHP'],
+ ['Node.js','Node.js'],['JavaScript','JavaScript'],['Go','Go'],['.NET','.NET']
+];
+
+function RuntimeLibrary({openCommand}){
+ const [runtime,setRuntime]=useState('PowerShell');
+ const rows=commands.filter(c=>c.tool===runtime || (runtime==='JavaScript'&&c.tags.includes('JavaScript')));
+ return <>
+  <PageTitle kicker="COMMANDS" title="Runtime Library" text="Common runtime, language and package-management references integrated with Security Studio."/>
+  <div className="runtimeTabs">{runtimeGroups.map(([label,key])=><button className={runtime===key?'active':''} key={key} onClick={()=>setRuntime(key)}><Code2 size={15}/>{label}<span>{commands.filter(c=>c.tool===key || (key==='JavaScript'&&c.tags.includes('JavaScript'))).length}</span></button>)}</div>
+  <div className="runtimeGrid">{rows.map(c=><article key={c.id} className="runtimeCard"><div className="runtimeCardTop"><span>{c.category}</span><small>{c.risk}</small></div><h3>{c.title}</h3><p>{c.description}</p><code>{c.command}</code><div className="runtimeCardActions"><button onClick={()=>navigator.clipboard?.writeText(c.command)}><Copy size={14}/> Copy</button><a href={c.notes} target="_blank" rel="noopener noreferrer"><BookOpen size={14}/> Notes</a><button className="openBtn" onClick={()=>openCommand(c)}>Open <ChevronRight size={14}/></button></div></article>)}</div>
+ </>
+}
+
+function KnowledgeGraph({openCommand}){
+ const [commandId,setCommandId]=useState(commands[0]?.id||'');
+ const c=commands.find(x=>x.id===commandId)||commands[0];
+ const related=relatedCommandsFor(c,5);
+ return <>
+  <PageTitle kicker="EXPLORERS" title="Knowledge Graph" text="Explore how a command connects to tools, ATT&CK, telemetry, related commands and Security Notes."/>
+  <div className="graphToolbar"><label>Start from command<select value={commandId} onChange={e=>setCommandId(e.target.value)}>{commands.map(x=><option key={x.id} value={x.id}>{x.title}</option>)}</select></label></div>
+  <div className="knowledgeGraph">
+   <div className="graphCenter"><TerminalSquare/><span>COMMAND</span><b>{c.title}</b><code>{c.command}</code><button onClick={()=>openCommand(c)}>Open in Studio <ChevronRight size={14}/></button></div>
+   <div className="graphColumn left">
+    <div className="graphNode"><Code2/><span>TOOL</span><b>{c.tool}</b><small>{c.platform}</small></div>
+    <div className="graphNode"><Tag/><span>CATEGORY</span><b>{c.category}</b><small>{c.tags.slice(0,3).join(' · ')}</small></div>
+   </div>
+   <div className="graphColumn right">
+    <div className="graphNode"><Network/><span>ATT&CK</span><b>{c.attack.length?c.attack.join(', '):'Not mapped'}</b><small>Technique context</small></div>
+    <div className="graphNode"><RadioTower/><span>TELEMETRY</span><b>{c.telemetry.length} sources</b><small>{c.telemetry.slice(0,2).join(' · ')}</small></div>
+   </div>
+  </div>
+  <div className="graphBottom">
+   <Panel title="Related commands"><div className="relationshipList">{related.map(x=><button key={x.id} onClick={()=>openCommand(x)}><span>Related</span><div><b>{x.title}</b><small>{x.tool} · {x.category}</small></div><ChevronRight/></button>)}</div></Panel>
+   <Panel title="Knowledge source"><p>{c.description}</p><a className="textlink" href={c.notes} target="_blank" rel="noopener noreferrer">Open Security Notes <ExternalLink size={14}/></a></Panel>
+  </div>
+ </>
+}
+
+function ContextProfiles({context,setContext,active,setActive}){
+ const defaults={
+  'Default':{},
+  'Lab':{TARGET:'',DOMAIN:'',USERNAME:'',INTERFACE:'',PORT:'',PATH:''},
+  'Internal Assessment':{TARGET:'',DOMAIN:'',USERNAME:'',INTERFACE:'',PORT:'',PATH:''},
+  'AD Lab':{TARGET:'',DOMAIN:'',USERNAME:'',INTERFACE:'',PORT:'',PATH:''},
+  'Web Test':{TARGET:'',DOMAIN:'',USERNAME:'',INTERFACE:'',PORT:'443',PATH:'/'}
+ };
+ const [profiles,setProfiles]=useState(()=>{
+  try{return JSON.parse(localStorage.getItem('security-studio-context-profiles')||JSON.stringify(defaults))}catch{return defaults}
+ });
+ useEffect(()=>localStorage.setItem('security-studio-context-profiles',JSON.stringify(profiles)),[profiles]);
+
+ const activate=name=>{
+  setActive(name);
+  const next=profiles[name]||{};
+  setContext(next);
+  localStorage.setItem('security-studio-context',JSON.stringify(next));
+  studioToast(`${name} context activated`);
+ };
+ const update=(k,v)=>{
+  const next={...context,[k]:v};
+  setContext(next);
+  setProfiles({...profiles,[active]:next});
+ };
+ const duplicate=()=>{
+  const name=prompt('New context profile name');
+  if(!name?.trim())return;
+  const clean=name.trim();
+  setProfiles({...profiles,[clean]:{...context}});
+  setActive(clean);
+  studioToast('Context profile created');
+ };
+ const clear=()=>{
+  const next={};
+  setContext(next);setProfiles({...profiles,[active]:next});
+ };
+
+ return <>
+  <PageTitle kicker="WORKSPACE" title="Context Profiles" text="Store reusable target context locally in your browser and reuse it when commands contain placeholders."/>
+  <div className="contextProfileLayout">
+   <div className="profileRail"><span className="eyebrow">PROFILES</span>{Object.keys(profiles).map(name=><button className={name===active?'active':''} key={name} onClick={()=>activate(name)}><Braces size={15}/><div><b>{name}</b><small>{Object.values(profiles[name]||{}).filter(Boolean).length} values</small></div></button>)}<button className="newProfile" onClick={duplicate}><Plus size={15}/> New profile</button></div>
+   <div className="profileEditor panel"><div className="panelTitleActions"><h3>{active}</h3><button className="secondarySmall dangerOutline compact" onClick={clear}><Trash2 size={14}/> Clear values</button></div><div className="profileFields">{['TARGET','DOMAIN','USERNAME','INTERFACE','PORT','PATH'].map(k=><label key={k}>{k}<input value={context[k]||''} onChange={e=>update(k,e.target.value)} placeholder={k==='TARGET'?'10.10.10.10 or host':k.toLowerCase()}/></label>)}</div><div className="localOnly"><ShieldCheck size={16}/><div><b>Local only</b><span>Context values are stored in browser localStorage. Security Studio does not send them to a backend.</span></div></div></div>
+  </div>
+ </>
+}
+
+function ShortcutHelp({close}){
+ const rows=[['Ctrl + K','Open command search'],['/','Open command search'],['↑ / ↓','Navigate search results'],['Enter','Open highlighted result'],['Alt + C','Copy highlighted command'],['?','Open this shortcut guide'],['Esc','Close overlays']];
+ return <div className="paletteback" onMouseDown={e=>e.target===e.currentTarget&&close()}><div className="shortcutModal"><div className="shortcutHead"><div><span className="eyebrow">KEYBOARD</span><h2>Shortcuts</h2></div><button onClick={close}><X/></button></div>{rows.map(([a,b])=><div className="shortcutRow" key={a}><kbd>{a}</kbd><span>{b}</span></div>)}</div></div>
 }
 
 const builtInPacks=[
@@ -896,7 +1067,7 @@ function NotesLinkBuilder(){
 
    <div className="notesBuilderActions">
     <a className="primarySmall" href={studioUrl}>Open command <ExternalLink size={15}/></a>
-    <a className="secondarySmall" href={c.notes}>Open Notes page <BookOpen size={15}/></a>
+    <a className="secondarySmall" href={c.notes} target="_blank" rel="noopener noreferrer">Open Notes page <BookOpen size={15}/></a>
    </div>
   </div>
  </>
@@ -990,7 +1161,7 @@ function WorkspacePage({favorites,recent,toggleFavorite,openCommand,removeRecent
    <div><span>{c.platform} · {c.tool}</span><b>{c.title}</b><code>{c.command}</code></div>
    <div>
     <button onClick={()=>toggleFavorite(c.id)} title="Remove favourite"><Star size={15} fill="currentColor"/></button>
-    <a href={c.notes} title="Open Notes"><BookOpen size={15}/></a>
+    <a href={c.notes} target="_blank" rel="noopener noreferrer" title="Open Notes"><BookOpen size={15}/></a>
     <button onClick={()=>openCommand(c)}>Open <ChevronRight size={14}/></button>
    </div>
   </div>)}</div>:<div className="empty">No saved commands yet. Use the star button in the Command Library or Command Studio.</div>;
@@ -1000,7 +1171,7 @@ function WorkspacePage({favorites,recent,toggleFavorite,openCommand,removeRecent
    <div><span>{c.platform} · {c.tool}</span><b>{c.title}</b><code>{c.command}</code></div>
    <div>
     <button onClick={()=>toggleFavorite(c.id)} title="Toggle favourite"><Star size={15} fill={favorites.includes(c.id)?'currentColor':'none'}/></button>
-    <a href={c.notes} title="Open Notes"><BookOpen size={15}/></a>
+    <a href={c.notes} target="_blank" rel="noopener noreferrer" title="Open Notes"><BookOpen size={15}/></a>
     <button onClick={()=>openCommand(c)}>Open <ChevronRight size={14}/></button>
     <button className="recentDelete" onClick={()=>removeRecent(c.id)} title="Remove from recently viewed"><X size={15}/></button>
    </div>
@@ -1242,7 +1413,7 @@ function Purple(){
 
   {selectedCommand&&<div className="purpleCommandPreview">
    <div><span>{selectedCommand.platform} · {selectedCommand.tool}</span><b>{selectedCommand.title}</b><code>{selectedCommand.command}</code></div>
-   <a href={selectedCommand.notes}>Open Notes <ExternalLink size={13}/></a>
+   <a href={selectedCommand.notes} target="_blank" rel="noopener noreferrer">Open Notes <ExternalLink size={13}/></a>
   </div>}
 
   <div className="purpleStatuses four">

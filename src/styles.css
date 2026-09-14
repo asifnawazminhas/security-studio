@@ -804,3 +804,135 @@ html[data-theme="light"] .exportcard.theme-contrast{background:#000!important;co
  .themeToggle{width:36px;padding:0;justify-content:center}
  .topActions{gap:6px}
 }
+
+/* v2.3 - runtimes, knowledge graph, context profiles and light-mode QA */
+
+/* Light-mode secondary hero action */
+html[data-theme="light"] .heroSecondary{
+ color:#173b48!important;
+ border-color:#6f94a3!important;
+ background:#ffffff!important;
+ box-shadow:0 1px 2px #12313d12!important;
+}
+html[data-theme="light"] .heroSecondary svg{color:#007d90!important}
+html[data-theme="light"] .heroSecondary:hover{
+ color:#005d70!important;
+ border-color:#00a9c0!important;
+ background:#edfafd!important;
+}
+html[data-theme="light"] header .brand b{color:#122e39!important}
+html[data-theme="light"] header .brand span{color:#007e91!important}
+html[data-theme="light"] .topsearch{background:#ffffff!important;border-color:#b9ced8!important;color:#496877!important}
+html[data-theme="light"] .topsearch kbd{color:#345663!important;border-color:#a8c1cc!important;background:#edf5f7!important}
+
+.headerIconButton{
+ width:36px;height:36px;display:grid;place-items:center;border:1px solid #294e60;
+ background:#07131b;color:#91adba;border-radius:50%
+}
+.headerIconButton:hover{color:#00e5ff;border-color:#00a9bd}
+html[data-theme="light"] .headerIconButton{background:#fff!important;color:#315966!important;border-color:#b9ced8!important}
+
+/* Runtime library */
+.runtimeTabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+.runtimeTabs button{
+ display:flex;align-items:center;gap:6px;border:1px solid #294e60;background:#07131b;
+ color:#9fb8c5;border-radius:999px;padding:8px 10px
+}
+.runtimeTabs button span{font-size:9px;color:#6f91a3}
+.runtimeTabs button.active{border-color:#00cce2;background:#08303d;color:#00e5ff}
+.runtimeGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.runtimeCard{border:1px solid #1c4355;background:#07151e;border-radius:8px;padding:15px}
+.runtimeCardTop{display:flex;justify-content:space-between;gap:8px;color:#6e91a2;font-size:10px}
+.runtimeCard h3{margin:10px 0 7px}
+.runtimeCard p{color:#84a2b2;min-height:42px}
+.runtimeCard>code{display:block;background:#050d13;border:1px solid #173443;border-radius:5px;color:#6edff0;padding:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.runtimeCardActions{display:flex;gap:6px;margin-top:12px}
+.runtimeCardActions button,.runtimeCardActions a{
+ display:inline-flex;align-items:center;gap:5px;border:1px solid #294e60;background:#07131b;
+ color:#9eb7c3;text-decoration:none;border-radius:5px;padding:7px 9px;font-size:10px
+}
+.runtimeCardActions .openBtn{margin-left:auto;color:#00e5ff}
+
+/* Knowledge graph */
+.graphToolbar{margin-bottom:15px}
+.graphToolbar label{display:block;color:#7899ac;font-size:10px}
+.graphToolbar select{display:block;width:min(700px,100%);margin-top:6px;height:42px;background:#050d13;border:1px solid #315063;color:#eaf2f7;border-radius:5px;padding:0 10px}
+.knowledgeGraph{
+ display:grid;grid-template-columns:1fr 1.35fr 1fr;grid-template-areas:"left center right";
+ gap:22px;align-items:center;min-height:430px;border:1px solid #173f51;border-radius:10px;
+ background:radial-gradient(circle at 50% 50%,#07344266,transparent 33%),#061018;padding:30px
+}
+.graphCenter{grid-area:center;border:1px solid #00bcd4;background:#08222c;border-radius:12px;padding:22px;text-align:center;box-shadow:0 0 45px #00e5ff12}
+.graphCenter>svg{color:#00e5ff}
+.graphCenter>span,.graphNode>span{display:block;color:#00dff2;font-size:9px;letter-spacing:1px;margin:7px 0}
+.graphCenter>b{display:block;font-size:20px;margin-bottom:10px}
+.graphCenter>code{display:block;background:#050d13;border:1px solid #174455;border-radius:6px;color:#6be2f3;padding:12px;margin-bottom:12px;overflow:auto}
+.graphCenter button{display:inline-flex;align-items:center;gap:5px;border:1px solid #00bed4;background:#00dff2;color:#001014;border-radius:5px;padding:8px 11px;font-weight:800}
+.graphColumn{display:grid;gap:18px}
+.graphColumn.left{grid-area:left}.graphColumn.right{grid-area:right}
+.graphNode{position:relative;border:1px solid #1c5265;background:#07151e;border-radius:9px;padding:17px}
+.graphNode>svg{color:#00e5ff}
+.graphNode>b,.graphNode>small{display:block}
+.graphNode>small{color:#7899ac;margin-top:5px}
+.graphColumn.left .graphNode::after,.graphColumn.right .graphNode::before{
+ content:'';position:absolute;top:50%;width:24px;height:1px;background:#1b8196
+}
+.graphColumn.left .graphNode::after{right:-24px}.graphColumn.right .graphNode::before{left:-24px}
+.graphBottom{display:grid;grid-template-columns:1.3fr .7fr;gap:14px;margin-top:14px}
+
+/* Context profiles */
+.contextProfileLayout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:14px}
+.profileRail{border:1px solid #1c4355;background:#07151e;border-radius:8px;padding:12px}
+.profileRail>.eyebrow{display:block;margin:5px 8px 8px}
+.profileRail button{width:100%;display:flex;align-items:center;gap:9px;text-align:left;border:1px solid transparent;background:transparent;color:#a7bdc8;border-radius:6px;padding:10px}
+.profileRail button b,.profileRail button small{display:block}
+.profileRail button small{color:#698b9d;margin-top:3px}
+.profileRail button.active{border-color:#1b6f84;background:#082a35;color:#fff}
+.profileRail .newProfile{margin-top:8px;border-color:#294e60;justify-content:center}
+.profileFields{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}
+.profileFields label{color:#7899ac;font-size:10px}
+.profileFields input{display:block;width:100%;margin-top:5px;background:#050d13;border:1px solid #315063;color:#eaf2f7;border-radius:5px;padding:10px}
+.localOnly{display:flex;gap:10px;border:1px solid #195a52;background:#071e1a;border-radius:7px;padding:12px;margin-top:15px}
+.localOnly svg{color:#39d98a}.localOnly b,.localOnly span{display:block}.localOnly span{color:#78a79b;font-size:10px;margin-top:3px}
+
+/* Relationships */
+.relatedGrid{display:grid;grid-template-columns:1.25fr .75fr;gap:14px}
+.relationshipList{display:grid;gap:7px}
+.relationshipList button{display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;text-align:left;border:1px solid #1c4355;background:#061018;color:#dce8f2;border-radius:6px;padding:10px}
+.relationshipList button>span{color:#00dff2;font-size:9px;text-transform:uppercase;letter-spacing:.6px}
+.relationshipList b,.relationshipList small{display:block}.relationshipList small{color:#6f91a3;margin-top:3px}
+
+/* Shortcut help */
+.shortcutModal{width:min(520px,calc(100vw - 30px));background:#07151e;border:1px solid #1c6579;border-radius:10px;padding:18px;box-shadow:0 30px 90px #000a}
+.shortcutHead{display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid #173443;padding-bottom:11px;margin-bottom:7px}
+.shortcutHead h2{margin:3px 0}.shortcutHead button{border:0;background:transparent;color:#8ba8b6}
+.shortcutRow{display:flex;align-items:center;justify-content:space-between;padding:10px 3px;border-bottom:1px solid #112c38;color:#8fa9b6}
+.shortcutRow kbd{min-width:90px;text-align:center;border:1px solid #315063;background:#050d13;color:#dce8f2;border-radius:5px;padding:5px 8px}
+.paletteresults button.active{border-color:#00bcd4!important;background:#082832!important}
+
+/* Light versions */
+html[data-theme="light"] .runtimeCard,
+html[data-theme="light"] .profileRail,
+html[data-theme="light"] .graphNode,
+html[data-theme="light"] .graphCenter,
+html[data-theme="light"] .shortcutModal{background:#fff!important;border-color:#c5d8e0!important}
+html[data-theme="light"] .knowledgeGraph{background:radial-gradient(circle at 50% 50%,#00cce20f,transparent 34%),#f8fbfc!important;border-color:#c5d8e0!important}
+html[data-theme="light"] .runtimeTabs button{background:#fff!important;border-color:#bdd2db!important;color:#365866!important}
+html[data-theme="light"] .runtimeTabs button.active{background:#e3f8fb!important;color:#007d91!important;border-color:#00a8bd!important}
+html[data-theme="light"] .runtimeCard>code,
+html[data-theme="light"] .graphCenter>code{background:#f4fafb!important;border-color:#c9dde5!important;color:#006d80!important}
+html[data-theme="light"] .relationshipList button{background:#f8fbfc!important;border-color:#c9dce4!important;color:#17333f!important}
+html[data-theme="light"] .profileRail button{color:#365866!important}
+html[data-theme="light"] .profileRail button.active{background:#e3f8fb!important;color:#007d91!important;border-color:#00a8bd!important}
+
+@media(max-width:1050px){
+ .runtimeGrid{grid-template-columns:repeat(2,1fr)}
+ .knowledgeGraph{grid-template-columns:1fr;grid-template-areas:"center" "left" "right"}
+ .graphColumn.left,.graphColumn.right{grid-template-columns:1fr 1fr}
+ .graphColumn.left .graphNode::after,.graphColumn.right .graphNode::before{display:none}
+ .graphBottom,.contextProfileLayout,.relatedGrid{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+ .runtimeGrid,.profileFields,.graphColumn.left,.graphColumn.right{grid-template-columns:1fr}
+ .runtimeCardActions{flex-wrap:wrap}.runtimeCardActions .openBtn{margin-left:0}
+}

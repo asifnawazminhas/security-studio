@@ -1,51 +1,75 @@
 # Asif's Security Studio
 
-## v2.2 - Theme + Visual Design + Security Hardening
+## v2.3 - Runtime Library + Knowledge Graph + Context Profiles
 
-### Application appearance
-- Dark mode
-- Light mode
-- Persistent theme preference
-- Defaults to operating-system preference on first visit
-- Header theme switch
+### Runtime Library
+- PowerShell
+- Bash
+- Python
+- Java
+- PHP
+- Node.js
+- JavaScript
+- Go
+- .NET / C#
+- 168 total catalogue entries
+- runtime, compiler, package and environment references
 
-### Command Visualiser
-- No default `$` prompt for Linux/network commands
-- PowerShell retains `PS>` by default
-- Four presentation layouts:
-  - Terminal
-  - Minimal
-  - Card
-  - Poster
-- Ten visual themes retained
-- Optional command metadata
-- Improved typography, spacing and visual hierarchy
-- Refined window chrome
-- Improved watermark and risk presentation
-- PNG and SVG export retained
+### Knowledge Graph
+- command -> tool
+- command -> category
+- command -> ATT&CK
+- command -> telemetry
+- inferred related commands
+- Security Notes relationship
 
-### Security hardening
-- React text rendering remains escaped by default
-- No file-upload functionality
-- Content Security Policy added
-- Object embedding disabled
-- Frames disabled
-- Base URI restricted
-- Referrer policy added
-- No use of dangerouslySetInnerHTML or eval introduced
+### Context Profiles
+- Default
+- Lab
+- Internal Assessment
+- AD Lab
+- Web Test
+- custom local profiles
+- TARGET
+- DOMAIN
+- USERNAME
+- INTERFACE
+- PORT
+- PATH
 
-### Existing platform retained
-- Command Library
+Context remains local to browser storage.
+
+### Search
+- weighted search
+- title/tool/platform/category/tags/ATT&CK weighting
+- arrow-key navigation
+- Enter opens result
+- Alt+C copies highlighted command
+- / opens search
+- ? opens shortcut help
+
+### Notes behaviour
+All Security Notes links now open in a new browser tab using:
+`target="_blank" rel="noopener noreferrer"`
+
+### Light mode QA
+- fixed Open Security Notes contrast
+- stronger secondary button contrast
+- improved header/search contrast
+- preserved Visualiser theme independence
+
+### Existing features retained
 - Command Studio
+- Command Visualiser
 - Command Packs
-- Saved Workspace
-- Workflow Builder
 - ATT&CK Explorer
 - PrivEsc Explorer
 - Attack Path Explorer
-- Detection & Telemetry
+- Saved Workspace
+- Workflow Builder
 - Purple Team Validation
 - Report Builder
 - Notes Link Builder
+- dark/light mode
 - PWA/offline support
-- Catalogue validation
+- no user file uploads

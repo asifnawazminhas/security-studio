@@ -2,45 +2,52 @@
 
 Interactive companion application for Asif's Security Notes.
 
-## v1.5 - Connected Workspace
+## v1.6 - Visualiser Pro + Purple Team Validation Workspace
 
-This release combines the requested button/UI fixes with the next major product step.
+### Visualiser Pro
+- 10 terminal themes
+- Editable command text
+- Editable prompt
+- Editable window title
+- Configurable watermark text
+- Configurable font size
+- Configurable card padding
+- PNG and SVG export
+- Reset control
+- Improved export button positioning
 
-### UI fixes
-- Reworked Purple Team Mapping toolbar
-- Replaced the small Clear button with a consistent "Clear mapping" action
-- Reworked Workflow Builder toolbar
-- Larger, labelled Up / Down / Delete workflow actions
-- Improved destructive-action styling and responsive behaviour
+Themes:
+- Security Notes Dark
+- Midnight
+- Clean Light
+- Matrix Green
+- Purple Ops
+- Dracula
+- Nord
+- Solarized Dark
+- Amber Terminal
+- High Contrast
 
-### Connected workspace
-- New Saved Workspace section
-- Favourite commands stored locally in the browser
-- Recently viewed commands stored locally
-- Dashboard counts for catalogue, favourites and recent commands
-- Save command action in Command Studio
-- Favourites filter in Command Library
-- Sort Command Library by title, platform or tool
-- Copy directly from Command Library cards
-- Direct Notes links from Command Library cards
-- Notes + Studio workflow made more visible throughout the UI
+### Purple Team Validation Workspace
+- Exercise name
+- ATT&CK technique selector
+- Validation command selector
+- Command preview with Notes link
+- Telemetry status
+- Detection status
+- Response status
+- Existing six-stage mapping retained
+- Browser persistence
+- JSON export
+- Markdown export
+- Validation summary
 
-### Command expansion
-- Expanded catalogue from 39 to 64 commands
-- Additional Windows inventory and policy commands
-- Additional Linux identity/system/network commands
-- Additional web and network inspection commands
-- Additional Git/ripgrep references
-
-### Existing features retained
-- Command Studio
-- Command Visualiser PNG/SVG export
-- PrivEsc Explorer
-- ATT&CK Explorer
-- Attack Path Explorer
-- Workflow Builder local persistence and JSON export
-- Purple Team Mapping local persistence and JSON export
-- Detection & Telemetry
+### Fixes
+- Version badge updated to v1.6
+- Visualiser action alignment improved
+- Responsive Visualiser controls improved
+- Purple Team toolbar actions retained in consistent grouped layout
+- Existing Workflow Builder, Saved Workspace, Explorers, Command Studio, Command Library and Detection views retained
 
 ## Local development
 

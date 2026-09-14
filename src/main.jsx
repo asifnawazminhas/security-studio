@@ -4,7 +4,7 @@ import {toPng,toSvg} from 'html-to-image';
 import {
   Activity,ArrowLeft,BookOpen,CheckCircle2,ChevronDown,ChevronRight,Copy,Download,
   Clock3,ExternalLink,Filter,GitCompareArrows,Image,Layers3,LayoutDashboard,Library,Menu,
-  Network,Plus,RadioTower,RotateCcw,Search,ShieldCheck,Star,TerminalSquare,Trash2,Workflow,X
+  Network,Plus,RadioTower,RotateCcw,Save,Search,ShieldCheck,Star,TerminalSquare,Trash2,Workflow,X
 } from 'lucide-react';
 import {commands} from './data/commands';
 import './styles.css';
@@ -91,7 +91,7 @@ function App(){
    <a className="notes" href="https://notes.asifnawazminhas.com/">Notes <ExternalLink size={14}/></a>
    <button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button>
   </header>
-  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v1.3</div></aside>
+  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v1.6</div></aside>
   <main>
    {page==='dashboard'?<Dashboard go={go} favorites={favorites} recent={recent}/>:
     page==='library'?<LibraryPage query={query} setQuery={setQuery} platform={platform} setPlatform={setPlatform} tool={tool} setTool={setTool} openCommand={openCommand} favorites={favorites} toggleFavorite={toggleFavorite}/>:
@@ -338,18 +338,145 @@ function VisualPreview({c}){
  const [theme,setTheme]=useState('Security Notes Dark');
  const [prompt,setPrompt]=useState(c.platform==='Windows'?'PS>':'$');
  const [watermark,setWatermark]=useState(true);
+ const [watermarkText,setWatermarkText]=useState('studio.asifnawazminhas.com');
+ const [windowTitle,setWindowTitle]=useState(c.tool);
+ const [fontSize,setFontSize]=useState(20);
+ const [padding,setPadding]=useState(48);
+ const [customCommand,setCustomCommand]=useState(c.command);
+
+ useEffect(()=>{
+   setPrompt(c.platform==='Windows'?'PS>':'$');
+   setWindowTitle(c.tool);
+   setCustomCommand(c.command);
+ },[c.id]);
+
+ const themeClass={
+   'Security Notes Dark':'theme-security',
+   'Midnight':'theme-midnight',
+   'Clean Light':'theme-light',
+   'Matrix Green':'theme-matrix',
+   'Purple Ops':'theme-purple',
+   'Dracula':'theme-dracula',
+   'Nord':'theme-nord',
+   'Solarized Dark':'theme-solarized',
+   'Amber Terminal':'theme-amber',
+   'High Contrast':'theme-contrast'
+ }[theme]||'theme-security';
+
  const download=async(type)=>{
    if(!ref.current)return;
    const fn=type==='png'?toPng:toSvg;
    const data=await fn(ref.current,{pixelRatio:2,cacheBust:true});
-   const a=document.createElement('a');a.href=data;a.download=`${c.id}.${type}`;a.click();
+   const a=document.createElement('a');
+   a.href=data;
+   a.download=`${c.id}-${theme.toLowerCase().replaceAll(' ','-')}.${type}`;
+   a.click();
  };
- return <div className="visualwrap"><div className="visualcontrols"><label>Theme<select value={theme} onChange={e=>setTheme(e.target.value)}><option>Security Notes Dark</option><option>Midnight</option><option>Clean Light</option></select></label><label>Prompt<input value={prompt} onChange={e=>setPrompt(e.target.value)}/></label><label className="toggle"><input type="checkbox" checked={watermark} onChange={e=>setWatermark(e.target.checked)}/> Watermark</label></div><div ref={ref} className={`exportcard ${theme==='Clean Light'?'light':theme==='Midnight'?'midnight':''}`}><div className="exportbar"><i/><i/><i/><span>{c.tool}</span></div><div className="exportbody"><div><b>{prompt}</b> <code>{c.command}</code></div>{watermark&&<small>studio.asifnawazminhas.com</small>}</div></div><div className="exportactions"><button onClick={()=>download('png')}><Download/> PNG</button><button onClick={()=>download('svg')}><Download/> SVG</button><button onClick={()=>navigator.clipboard?.writeText(c.command)}><Copy/> Copy</button></div></div>
+
+ const reset=()=>{
+   setTheme('Security Notes Dark');
+   setPrompt(c.platform==='Windows'?'PS>':'$');
+   setWatermark(true);
+   setWatermarkText('studio.asifnawazminhas.com');
+   setWindowTitle(c.tool);
+   setFontSize(20);
+   setPadding(48);
+   setCustomCommand(c.command);
+ };
+
+ return <div className="visualPro">
+  <div className="visualSettings">
+   <div className="visualField wide">
+    <label>Command</label>
+    <textarea value={customCommand} onChange={e=>setCustomCommand(e.target.value)}/>
+   </div>
+   <div className="visualField">
+    <label>Theme</label>
+    <select value={theme} onChange={e=>setTheme(e.target.value)}>
+     <option>Security Notes Dark</option>
+     <option>Midnight</option>
+     <option>Clean Light</option>
+     <option>Matrix Green</option>
+     <option>Purple Ops</option>
+     <option>Dracula</option>
+     <option>Nord</option>
+     <option>Solarized Dark</option>
+     <option>Amber Terminal</option>
+     <option>High Contrast</option>
+    </select>
+   </div>
+   <div className="visualField">
+    <label>Prompt</label>
+    <input value={prompt} onChange={e=>setPrompt(e.target.value)}/>
+   </div>
+   <div className="visualField">
+    <label>Window title</label>
+    <input value={windowTitle} onChange={e=>setWindowTitle(e.target.value)}/>
+   </div>
+   <div className="visualField">
+    <label>Font size</label>
+    <select value={fontSize} onChange={e=>setFontSize(Number(e.target.value))}>
+     <option value="16">16 px</option>
+     <option value="18">18 px</option>
+     <option value="20">20 px</option>
+     <option value="22">22 px</option>
+     <option value="24">24 px</option>
+     <option value="28">28 px</option>
+    </select>
+   </div>
+   <div className="visualField">
+    <label>Card padding</label>
+    <select value={padding} onChange={e=>setPadding(Number(e.target.value))}>
+     <option value="32">Compact</option>
+     <option value="48">Balanced</option>
+     <option value="64">Spacious</option>
+     <option value="80">Poster</option>
+    </select>
+   </div>
+   <div className="visualField watermarkField">
+    <label>Watermark</label>
+    <div className="inlineControl">
+     <input type="checkbox" checked={watermark} onChange={e=>setWatermark(e.target.checked)}/>
+     <input disabled={!watermark} value={watermarkText} onChange={e=>setWatermarkText(e.target.value)}/>
+    </div>
+   </div>
+  </div>
+
+  <div ref={ref} className={`exportcard pro ${themeClass}`}>
+   <div className="exportbar"><i/><i/><i/><span>{windowTitle}</span></div>
+   <div className="exportbody" style={{padding:`${padding}px`}}>
+    <div className="exportCommand" style={{fontSize:`${fontSize}px`}}>
+     <b>{prompt}</b>
+     <code>{customCommand}</code>
+    </div>
+    {watermark&&<small>{watermarkText}</small>}
+   </div>
+  </div>
+
+  <div className="visualActionBar">
+   <div className="visualActionGroup">
+    <button className="primarySmall" onClick={()=>download('png')}><Download size={15}/> Export PNG</button>
+    <button className="secondarySmall" onClick={()=>download('svg')}><Download size={15}/> Export SVG</button>
+    <button className="secondarySmall" onClick={()=>navigator.clipboard?.writeText(customCommand)}><Copy size={15}/> Copy command</button>
+   </div>
+   <button className="secondarySmall" onClick={reset}><RotateCcw size={15}/> Reset</button>
+  </div>
+ </div>
 }
 
 function Visualiser({c}){
  const [chosen,setChosen]=useState(c||commands[0]);
- return <><PageTitle kicker="COMMANDS" title="Command Visualiser" text="Create a recognisable Security Studio command card and export it as PNG or SVG."/><div className="visualselect"><label>Command<select value={chosen.id} onChange={e=>setChosen(commands.find(c=>c.id===e.target.value))}>{commands.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label></div><VisualPreview c={chosen}/></>
+ return <>
+  <PageTitle kicker="COMMANDS" title="Command Visualiser" text="Create polished Security Studio command cards with multiple terminal themes and export them as PNG or SVG."/>
+  <div className="visualselect">
+   <label>Library command
+    <select value={chosen.id} onChange={e=>setChosen(commands.find(c=>c.id===e.target.value))}>
+     {commands.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}
+    </select>
+   </label>
+  </div>
+  <VisualPreview c={chosen}/>
+ </>
 }
 
 function WorkspacePage({favorites,recent,toggleFavorite,openCommand}){
@@ -453,28 +580,133 @@ function Purple(){
      return saved?JSON.parse(saved):defaults;
    }catch{return defaults}
  });
+ const [technique,setTechnique]=useState(()=>{
+   try{return localStorage.getItem('security-studio-purple-technique')||''}catch{return ''}
+ });
+ const [commandId,setCommandId]=useState(()=>{
+   try{return localStorage.getItem('security-studio-purple-command')||''}catch{return ''}
+ });
+ const [statuses,setStatuses]=useState(()=>{
+   try{
+     return JSON.parse(localStorage.getItem('security-studio-purple-status')||'{"telemetry":"Not tested","detection":"Not tested","response":"Not tested"}')
+   }catch{return {telemetry:'Not tested',detection:'Not tested',response:'Not tested'}}
+ });
+ const [exerciseName,setExerciseName]=useState(()=>{
+   try{return localStorage.getItem('security-studio-purple-name')||'Purple Team Validation'}catch{return 'Purple Team Validation'}
+ });
+
  useEffect(()=>localStorage.setItem('security-studio-purple-map',JSON.stringify(items)),[items]);
+ useEffect(()=>localStorage.setItem('security-studio-purple-technique',technique),[technique]);
+ useEffect(()=>localStorage.setItem('security-studio-purple-command',commandId),[commandId]);
+ useEffect(()=>localStorage.setItem('security-studio-purple-status',JSON.stringify(statuses)),[statuses]);
+ useEffect(()=>localStorage.setItem('security-studio-purple-name',exerciseName),[exerciseName]);
 
  const setValue=(id,value)=>setItems(items.map(x=>x.id===id?{...x,value}:x));
- const clear=()=>setItems(defaults);
- const exportMap=()=>{
-   const blob=new Blob([JSON.stringify({name:'Purple Team Mapping',version:'1.4',mapping:items},null,2)],{type:'application/json'});
+ const selectedCommand=commands.find(c=>c.id===commandId);
+ const techniques=[...new Set(commands.flatMap(c=>c.attack))].sort();
+
+ const clear=()=>{
+   setItems(defaults);
+   setTechnique('');
+   setCommandId('');
+   setStatuses({telemetry:'Not tested',detection:'Not tested',response:'Not tested'});
+   setExerciseName('Purple Team Validation');
+ };
+
+ const payload=()=>({
+   name:exerciseName,
+   version:'1.6',
+   technique,
+   command:selectedCommand?{id:selectedCommand.id,title:selectedCommand.title,command:selectedCommand.command}:null,
+   statuses,
+   mapping:items
+ });
+
+ const exportJson=()=>{
+   const blob=new Blob([JSON.stringify(payload(),null,2)],{type:'application/json'});
    const a=document.createElement('a');
    a.href=URL.createObjectURL(blob);
-   a.download='purple-team-mapping.json';
+   a.download='purple-team-validation.json';
    a.click();
    URL.revokeObjectURL(a.href);
  };
 
+ const exportMarkdown=()=>{
+   const p=payload();
+   const md=[
+    `# ${p.name}`,
+    '',
+    `- Technique: ${p.technique||'Not selected'}`,
+    `- Command: ${p.command?.title||'Not selected'}`,
+    `- Telemetry: ${p.statuses.telemetry}`,
+    `- Detection: ${p.statuses.detection}`,
+    `- Response: ${p.statuses.response}`,
+    '',
+    '## Validation Mapping',
+    '',
+    ...p.mapping.flatMap(x=>[`### ${x.id}. ${x.title}`,x.value||'_Not documented_',''])
+   ].join('\n');
+   const blob=new Blob([md],{type:'text/markdown'});
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(blob);
+   a.download='purple-team-validation.md';
+   a.click();
+   URL.revokeObjectURL(a.href);
+ };
+
+ const statusClass=v=>v==='Observed'||v==='Detected'||v==='Successful'?'good':v==='Partial'?'partial':v==='Missed'||v==='Failed'?'bad':'neutral';
+
  return <>
-  <PageTitle kicker="DEFENCE" title="Purple Team Mapping" text="Connect validation actions to expected telemetry, detection, response and learning outcomes."/>
+  <PageTitle kicker="DEFENCE" title="Purple Team Validation Workspace" text="Map an authorised validation action to expected telemetry, detection, response and learning outcomes." />
+
+  <div className="purpleSetup">
+   <label>Exercise name<input value={exerciseName} onChange={e=>setExerciseName(e.target.value)}/></label>
+   <label>ATT&CK technique
+    <select value={technique} onChange={e=>setTechnique(e.target.value)}>
+     <option value="">Select technique</option>
+     {techniques.map(t=><option key={t}>{t}</option>)}
+    </select>
+   </label>
+   <label>Validation command
+    <select value={commandId} onChange={e=>setCommandId(e.target.value)}>
+     <option value="">Select command</option>
+     {commands.filter(c=>!technique||c.attack.includes(technique)).map(c=><option key={c.id} value={c.id}>{c.title}</option>)}
+    </select>
+   </label>
+  </div>
+
+  {selectedCommand&&<div className="purpleCommandPreview">
+   <div><span>{selectedCommand.platform} · {selectedCommand.tool}</span><b>{selectedCommand.title}</b><code>{selectedCommand.command}</code></div>
+   <a href={selectedCommand.notes}>Open Notes <ExternalLink size={13}/></a>
+  </div>}
+
+  <div className="purpleStatuses">
+   <label>Telemetry
+    <select className={statusClass(statuses.telemetry)} value={statuses.telemetry} onChange={e=>setStatuses({...statuses,telemetry:e.target.value})}>
+     <option>Not tested</option><option>Observed</option><option>Partial</option><option>Missed</option>
+    </select>
+   </label>
+   <label>Detection
+    <select className={statusClass(statuses.detection)} value={statuses.detection} onChange={e=>setStatuses({...statuses,detection:e.target.value})}>
+     <option>Not tested</option><option>Detected</option><option>Partial</option><option>Missed</option>
+    </select>
+   </label>
+   <label>Response
+    <select className={statusClass(statuses.response)} value={statuses.response} onChange={e=>setStatuses({...statuses,response:e.target.value})}>
+     <option>Not tested</option><option>Successful</option><option>Partial</option><option>Failed</option>
+    </select>
+   </label>
+  </div>
+
   <div className="mappingToolbar">
    <div className="toolbarButtons">
-    <button className="primarySmall" onClick={exportMap}><Download size={15}/> Export mapping</button>
-    <button className="secondarySmall dangerOutline" onClick={clear}><Trash2 size={15}/> Clear mapping</button>
+    <button className="primarySmall" onClick={exportJson}><Download size={15}/> Export JSON</button>
+    <button className="secondarySmall" onClick={exportMarkdown}><Download size={15}/> Export Markdown</button>
+    <button className="secondarySmall dangerOutline" onClick={clear}><Trash2 size={15}/> Clear validation</button>
    </div>
-   <span>Editable and saved locally in your browser</span>
+   <span>Saved locally in your browser</span>
   </div>
+
   <div className="purpleflow editable">
    {items.map((x,i)=><React.Fragment key={x.id}>
     <div>
@@ -486,8 +718,14 @@ function Purple(){
     {i<items.length-1&&<ChevronRight/>}
    </React.Fragment>)}
   </div>
-  <Panel title="How to use this mapping">
-   <p>Start with an authorised validation objective, define the expected observable signal, identify the telemetry source, document detection and response behaviour, then capture the resulting learning outcome.</p>
+
+  <Panel title="Validation summary">
+   <div className="summaryStrip">
+    <span>Technique <b>{technique||'Not selected'}</b></span>
+    <span>Telemetry <b className={statusClass(statuses.telemetry)}>{statuses.telemetry}</b></span>
+    <span>Detection <b className={statusClass(statuses.detection)}>{statuses.detection}</b></span>
+    <span>Response <b className={statusClass(statuses.response)}>{statuses.response}</b></span>
+   </div>
   </Panel>
  </>;
 }

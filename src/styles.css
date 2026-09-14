@@ -153,3 +153,92 @@
  .toolbarButtons{width:100%}
  .toolbarButtons button{flex:1}
 }
+
+/* v1.6 - Visualiser Pro + Purple Team Validation Workspace */
+
+.visualPro{max-width:1050px}
+.visualSettings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}
+.visualField{display:flex;flex-direction:column;gap:7px;color:#8eaabb;font-size:11px}
+.visualField.wide{grid-column:1/-1}
+.visualField input,.visualField select,.visualField textarea,.purpleSetup input,.purpleSetup select,.purpleStatuses select{
+ background:#050d13;border:1px solid #315063;border-radius:5px;color:#eaf2f7;padding:10px 11px
+}
+.visualField textarea{min-height:74px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:#77dfff}
+.inlineControl{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center}
+.inlineControl input[type="checkbox"]{width:18px;height:18px;padding:0}
+.watermarkField{grid-column:span 2}
+
+.exportcard.pro{border-radius:10px;overflow:hidden;min-height:300px;transition:.15s}
+.exportcard.pro .exportbody{min-height:250px}
+.exportCommand{display:flex;align-items:flex-start;gap:10px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.exportCommand b{flex:0 0 auto}
+.exportCommand code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
+.visualActionBar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}
+.visualActionGroup{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Themes */
+.theme-security{background:#07151e!important;color:#eef7fb!important;border-color:#1c6579!important}
+.theme-security .exportbar{background:#06131c}.theme-security .exportCommand b{color:#00e5ff}.theme-security .exportbody small{color:#6c91a5}
+
+.theme-midnight{background:#02060c!important;color:#eaf2ff!important;border-color:#25344d!important}
+.theme-midnight .exportbar{background:#01040a}.theme-midnight .exportCommand b{color:#7aa2ff}.theme-midnight .exportbody small{color:#64748b}
+
+.theme-light{background:#f6f8fa!important;color:#17212b!important;border-color:#b7c4cc!important}
+.theme-light .exportbar{background:#e8edf1;border-color:#cbd5dc}.theme-light .exportCommand b{color:#007f94}.theme-light .exportbody small{color:#61727e}
+
+.theme-matrix{background:#020802!important;color:#b6ffb6!important;border-color:#1e7d36!important}
+.theme-matrix .exportbar{background:#010501;border-color:#164b24}.theme-matrix .exportCommand b{color:#00ff66}.theme-matrix .exportbody small{color:#55a86e}
+
+.theme-purple{background:#100b18!important;color:#f4ecff!important;border-color:#7650a8!important}
+.theme-purple .exportbar{background:#0a0710;border-color:#412a60}.theme-purple .exportCommand b{color:#c58cff}.theme-purple .exportbody small{color:#9c7bbd}
+
+.theme-dracula{background:#282a36!important;color:#f8f8f2!important;border-color:#6272a4!important}
+.theme-dracula .exportbar{background:#21222c;border-color:#44475a}.theme-dracula .exportCommand b{color:#ff79c6}.theme-dracula .exportbody small{color:#8be9fd}
+
+.theme-nord{background:#2e3440!important;color:#eceff4!important;border-color:#5e81ac!important}
+.theme-nord .exportbar{background:#242933;border-color:#4c566a}.theme-nord .exportCommand b{color:#88c0d0}.theme-nord .exportbody small{color:#81a1c1}
+
+.theme-solarized{background:#002b36!important;color:#eee8d5!important;border-color:#2aa198!important}
+.theme-solarized .exportbar{background:#073642;border-color:#586e75}.theme-solarized .exportCommand b{color:#b58900}.theme-solarized .exportbody small{color:#839496}
+
+.theme-amber{background:#110c02!important;color:#ffe7a0!important;border-color:#ad7414!important}
+.theme-amber .exportbar{background:#0a0701;border-color:#5e3d08}.theme-amber .exportCommand b{color:#ffb000}.theme-amber .exportbody small{color:#b58a3b}
+
+.theme-contrast{background:#000!important;color:#fff!important;border:2px solid #fff!important}
+.theme-contrast .exportbar{background:#000;border-color:#fff}.theme-contrast .exportCommand b{color:#00ffff}.theme-contrast .exportbody small{color:#fff}
+
+/* Purple Team Workspace */
+.purpleSetup{display:grid;grid-template-columns:1.1fr .8fr 1.4fr;gap:12px;margin-bottom:14px}
+.purpleSetup label,.purpleStatuses label{display:flex;flex-direction:column;gap:7px;color:#8eaabb;font-size:11px}
+.purpleCommandPreview{display:flex;align-items:center;justify-content:space-between;gap:14px;border:1px solid #1c6579;background:#07151e;border-radius:7px;padding:14px;margin-bottom:14px}
+.purpleCommandPreview span,.purpleCommandPreview b,.purpleCommandPreview code{display:block}
+.purpleCommandPreview span{color:#7294a7;font-size:10px}
+.purpleCommandPreview b{margin:4px 0}
+.purpleCommandPreview code{color:#6edff0;font-size:11px}
+.purpleCommandPreview a{display:inline-flex;align-items:center;gap:5px;color:#00e5ff;text-decoration:none;white-space:nowrap}
+
+.purpleStatuses{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.purpleStatuses select.good,.summaryStrip .good{border-color:#25a766!important;color:#51e39a!important}
+.purpleStatuses select.partial,.summaryStrip .partial{border-color:#b8822b!important;color:#ffc761!important}
+.purpleStatuses select.bad,.summaryStrip .bad{border-color:#9f4050!important;color:#ff8798!important}
+.purpleStatuses select.neutral,.summaryStrip .neutral{color:#91aaba!important}
+
+.summaryStrip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.summaryStrip span{border:1px solid #1c4355;background:#061018;border-radius:6px;padding:11px;color:#7294a7;font-size:10px}
+.summaryStrip b{display:block;color:#dce8f2;font-size:13px;margin-top:5px}
+
+@media(max-width:900px){
+ .visualSettings{grid-template-columns:1fr 1fr}
+ .watermarkField{grid-column:1/-1}
+ .purpleSetup{grid-template-columns:1fr}
+ .purpleStatuses{grid-template-columns:1fr}
+ .summaryStrip{grid-template-columns:1fr 1fr}
+}
+@media(max-width:760px){
+ .visualSettings{grid-template-columns:1fr}
+ .visualField.wide,.watermarkField{grid-column:auto}
+ .visualActionBar{align-items:stretch;flex-direction:column}
+ .visualActionGroup{display:grid;grid-template-columns:1fr}
+ .visualActionBar>button{width:100%}
+ .summaryStrip{grid-template-columns:1fr}
+}

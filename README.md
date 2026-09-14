@@ -2,18 +2,19 @@
 
 Interactive companion application for Asif's Security Notes.
 
-## v1.2
+## v1.3
 
-- Expanded structured command library
-- Platform and tool filters
-- Ctrl+K global command palette
-- URL-addressable command pages
-- Command Studio: Explain, Modify, Detect, Visualise, Related
-- PNG and SVG command-card export
-- ATT&CK Explorer mappings
-- Detection and telemetry coverage
-- Workflow Builder foundation
-- Purple Team Mapping foundation
+- Fixed Command Studio copy button layout
+- Functional PrivEsc Explorer
+- Expanded ATT&CK Explorer
+- Visual Attack Path Explorer
+- Existing v1.2 command platform retained
+- Ctrl+K search
+- Command Studio tabs
+- PNG/SVG visual export
+- Detection & Telemetry
+- Workflow Builder
+- Purple Team Mapping
 
 ## Local development
 
@@ -28,4 +29,4 @@ npm run dev
 npm run build
 ```
 
-The GitHub Actions workflow publishes `dist/` to GitHub Pages.
+GitHub Actions publishes `dist/` to GitHub Pages.

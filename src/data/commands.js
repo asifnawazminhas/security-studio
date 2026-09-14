@@ -2231,5 +2231,2244 @@ export const commands = [
       "Local process execution"
     ],
     "notes": "https://notes.asifnawazminhas.com/cheatsheets/git-ripgrep/"
+  },
+  {
+    "id": "ps-version",
+    "title": "Display PowerShell Version",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "PowerShell",
+    "command": "$PSVersionTable",
+    "description": "Display PowerShell edition, version and runtime information.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "PowerShell",
+      "Version",
+      "Runtime"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "$PSVersionTable",
+        "Built-in table containing PowerShell version and runtime metadata."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/powershell/"
+  },
+  {
+    "id": "ps-execution-policy",
+    "title": "Inspect PowerShell Execution Policies",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "PowerShell",
+    "command": "Get-ExecutionPolicy -List",
+    "description": "Display execution-policy scopes without changing configuration.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "PowerShell",
+      "Execution Policy",
+      "Configuration"
+    ],
+    "attack": [
+      "T1518.001"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-ExecutionPolicy",
+        "Reads PowerShell execution policy."
+      ],
+      [
+        "-List",
+        "Displays all policy scopes."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/powershell/"
+  },
+  {
+    "id": "ps-modules",
+    "title": "List Available PowerShell Modules",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "PowerShell",
+    "command": "Get-Module -ListAvailable | Select-Object Name,Version,Path",
+    "description": "List installed PowerShell modules and their paths.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "PowerShell",
+      "Modules",
+      "Inventory"
+    ],
+    "attack": [
+      "T1518"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-Module -ListAvailable",
+        "Returns modules available on the module path."
+      ],
+      [
+        "Select-Object",
+        "Selects concise module metadata."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/powershell/"
+  },
+  {
+    "id": "windows-drives",
+    "title": "List Windows Filesystem Drives",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Filesystem",
+    "command": "Get-PSDrive -PSProvider FileSystem",
+    "description": "List filesystem drives exposed to PowerShell.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Filesystem",
+      "Drives"
+    ],
+    "attack": [
+      "T1083"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-PSDrive",
+        "Returns PowerShell drives."
+      ],
+      [
+        "-PSProvider FileSystem",
+        "Limits output to filesystem-backed drives."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-shares",
+    "title": "List Local SMB Shares",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "SMB",
+    "command": "Get-SmbShare | Select-Object Name,Path,Description",
+    "description": "List locally configured SMB shares.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "SMB",
+      "Shares"
+    ],
+    "attack": [
+      "T1135"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-SmbShare",
+        "Returns local SMB shares."
+      ],
+      [
+        "Select-Object",
+        "Selects name, path and description."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-smb-connections",
+    "title": "Inspect SMB Connections",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "SMB",
+    "command": "Get-SmbConnection",
+    "description": "Display current SMB client connections.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "SMB",
+      "Connections"
+    ],
+    "attack": [
+      "T1049"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-SmbConnection",
+        "Returns active SMB client connections."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry",
+      "SMB telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-arp",
+    "title": "Display Windows Neighbour Cache",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Network",
+    "command": "Get-NetNeighbor | Sort-Object InterfaceIndex,IPAddress",
+    "description": "Display IPv4/IPv6 neighbour-cache entries.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Network",
+      "ARP",
+      "NDP"
+    ],
+    "attack": [
+      "T1016"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-NetNeighbor",
+        "Returns neighbour-cache entries."
+      ],
+      [
+        "Sort-Object",
+        "Orders output by interface and address."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-dns-servers",
+    "title": "Display Windows DNS Servers",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "DNS",
+    "command": "Get-DnsClientServerAddress | Select-Object InterfaceAlias,AddressFamily,ServerAddresses",
+    "description": "Display DNS resolvers configured per interface.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "DNS",
+      "Network"
+    ],
+    "attack": [
+      "T1016"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-DnsClientServerAddress",
+        "Returns DNS server configuration for local interfaces."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-eventlog-list",
+    "title": "List Windows Event Logs",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Event Logs",
+    "command": "Get-WinEvent -ListLog * | Select-Object LogName,RecordCount,IsEnabled",
+    "description": "List event logs with record counts and enabled state.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Event Logs",
+      "Telemetry"
+    ],
+    "attack": [
+      "T1654"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-WinEvent -ListLog *",
+        "Returns metadata for registered Windows event logs."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-process-paths",
+    "title": "List Processes with Paths",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Processes",
+    "command": "Get-Process | Select-Object Name,Id,Path",
+    "description": "Display running process names, IDs and executable paths where accessible.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Processes",
+      "Paths"
+    ],
+    "attack": [
+      "T1057"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-Process",
+        "Returns running processes."
+      ],
+      [
+        "Select-Object",
+        "Selects name, ID and path."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-service-details",
+    "title": "List Service Executable Paths",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Services",
+    "command": "Get-CimInstance Win32_Service | Select-Object Name,State,StartMode,PathName",
+    "description": "Display Windows service state, start mode and executable path.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Services",
+      "CIM"
+    ],
+    "attack": [
+      "T1007"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-CimInstance Win32_Service",
+        "Queries Windows service metadata via CIM."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry",
+      "WMI/CIM telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-timezone",
+    "title": "Display Windows Time Zone",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "System",
+    "command": "Get-TimeZone",
+    "description": "Display the current Windows time-zone configuration.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Time",
+      "System"
+    ],
+    "attack": [
+      "T1124"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-TimeZone",
+        "Returns local time-zone information."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-culture",
+    "title": "Display Windows Culture",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "System",
+    "command": "Get-Culture",
+    "description": "Display locale and culture information for the current user.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Locale",
+      "System"
+    ],
+    "attack": [
+      "T1614.001"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-Culture",
+        "Returns the current culture settings."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-proxy",
+    "title": "Inspect WinHTTP Proxy",
+    "platform": "Windows",
+    "tool": "netsh",
+    "category": "Network",
+    "command": "netsh winhttp show proxy",
+    "description": "Display the WinHTTP proxy configuration.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Proxy",
+      "Network"
+    ],
+    "attack": [
+      "T1016"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "netsh winhttp show proxy",
+        "Displays WinHTTP proxy settings."
+      ]
+    ],
+    "telemetry": [
+      "Process creation"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-cert-store",
+    "title": "List Current User Certificates",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Certificates",
+    "command": "Get-ChildItem Cert:\\CurrentUser\\My | Select-Object Subject,Issuer,NotAfter,Thumbprint",
+    "description": "List personal certificates in the current-user certificate store.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Certificates",
+      "PKI"
+    ],
+    "attack": [
+      "T1552.004"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-ChildItem Cert:\\CurrentUser\\My",
+        "Enumerates certificates in the current user's personal store."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "ad-domain-controller",
+    "title": "Find Current Domain Controller",
+    "platform": "Active Directory",
+    "tool": "PowerShell",
+    "category": "Directory",
+    "command": "[System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().FindDomainController().Name",
+    "description": "Return a domain controller selected for the current domain context.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Active Directory",
+      "Domain Controller",
+      "Directory"
+    ],
+    "attack": [
+      "T1018"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "FindDomainController()",
+        "Selects a domain controller for the current domain."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry",
+      "Directory-service context"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/active-directory/"
+  },
+  {
+    "id": "ad-domain-info",
+    "title": "Display AD Domain Metadata",
+    "platform": "Active Directory",
+    "tool": "PowerShell",
+    "category": "Directory",
+    "command": "[System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain() | Select-Object Name,ForestMode,DomainMode",
+    "description": "Display basic current-domain metadata.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Active Directory",
+      "Domain",
+      "Forest"
+    ],
+    "attack": [
+      "T1016"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "GetCurrentDomain()",
+        "Returns the current Active Directory domain object."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry",
+      "Directory-service context"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/active-directory/"
+  },
+  {
+    "id": "ad-forest-info",
+    "title": "Display AD Forest Metadata",
+    "platform": "Active Directory",
+    "tool": "PowerShell",
+    "category": "Directory",
+    "command": "[System.DirectoryServices.ActiveDirectory.Forest]::GetCurrentForest() | Select-Object Name,ForestMode,RootDomain",
+    "description": "Display current forest name, functional mode and root domain.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Active Directory",
+      "Forest",
+      "Directory"
+    ],
+    "attack": [
+      "T1016"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "GetCurrentForest()",
+        "Returns the current Active Directory forest object."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry",
+      "Directory-service context"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/active-directory/"
+  },
+  {
+    "id": "ad-nltest-domain",
+    "title": "Display Domain with nltest",
+    "platform": "Active Directory",
+    "tool": "nltest",
+    "category": "Directory",
+    "command": "nltest /dsgetdc:<DOMAIN>",
+    "description": "Query domain-controller locator information for an authorised domain.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Active Directory",
+      "Domain Controller",
+      "nltest"
+    ],
+    "attack": [
+      "T1018"
+    ],
+    "parameters": [
+      {
+        "name": "DOMAIN",
+        "label": "Domain",
+        "placeholder": "example.local"
+      }
+    ],
+    "explanation": [
+      [
+        "/dsgetdc",
+        "Requests domain-controller locator information."
+      ],
+      [
+        "<DOMAIN>",
+        "Authorised Active Directory domain."
+      ]
+    ],
+    "telemetry": [
+      "Process creation",
+      "Directory-service context"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/active-directory/"
+  },
+  {
+    "id": "ad-whoami-upn",
+    "title": "Display Current UPN",
+    "platform": "Active Directory",
+    "tool": "whoami",
+    "category": "Identity",
+    "command": "whoami /upn",
+    "description": "Display the current user's user principal name when available.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Active Directory",
+      "UPN",
+      "Identity"
+    ],
+    "attack": [
+      "T1033"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "/upn",
+        "Displays the current user's UPN."
+      ]
+    ],
+    "telemetry": [
+      "Process creation"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/active-directory/"
+  },
+  {
+    "id": "ad-klist",
+    "title": "Inspect Kerberos Ticket Cache",
+    "platform": "Active Directory",
+    "tool": "klist",
+    "category": "Kerberos",
+    "command": "klist",
+    "description": "Display Kerberos tickets in the current logon session.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Active Directory",
+      "Kerberos",
+      "Tickets"
+    ],
+    "attack": [
+      "T1558"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "klist",
+        "Displays Kerberos ticket-cache information for the current session."
+      ]
+    ],
+    "telemetry": [
+      "Process creation",
+      "Authentication telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/active-directory/"
+  },
+  {
+    "id": "ad-dns-srv",
+    "title": "Resolve LDAP SRV Records",
+    "platform": "Active Directory",
+    "tool": "nslookup",
+    "category": "DNS",
+    "command": "nslookup -type=SRV _ldap._tcp.dc._msdcs.<DOMAIN>",
+    "description": "Resolve domain-controller LDAP SRV records for an authorised domain.",
+    "risk": "Network query",
+    "changesSystem": false,
+    "tags": [
+      "Active Directory",
+      "DNS",
+      "SRV"
+    ],
+    "attack": [
+      "T1018"
+    ],
+    "parameters": [
+      {
+        "name": "DOMAIN",
+        "label": "Domain",
+        "placeholder": "example.local"
+      }
+    ],
+    "explanation": [
+      [
+        "-type=SRV",
+        "Requests SRV records."
+      ],
+      [
+        "_ldap._tcp.dc._msdcs",
+        "Standard AD domain-controller locator namespace."
+      ]
+    ],
+    "telemetry": [
+      "DNS resolver logs",
+      "Network telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/active-directory/"
+  },
+  {
+    "id": "linux-kernel",
+    "title": "Display Linux Kernel Version",
+    "platform": "Linux",
+    "tool": "uname",
+    "category": "System",
+    "command": "uname -r",
+    "description": "Display the running Linux kernel release.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Kernel",
+      "System"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "uname -r",
+        "Prints the running kernel release."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-cpu",
+    "title": "Display CPU Information",
+    "platform": "Linux",
+    "tool": "lscpu",
+    "category": "System",
+    "command": "lscpu",
+    "description": "Display CPU architecture and topology information.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "CPU",
+      "Inventory"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "lscpu",
+        "Displays CPU architecture information."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-memory",
+    "title": "Display Linux Memory Usage",
+    "platform": "Linux",
+    "tool": "free",
+    "category": "System",
+    "command": "free -h",
+    "description": "Display system memory utilisation in human-readable units.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Memory",
+      "System"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "free",
+        "Reports memory usage."
+      ],
+      [
+        "-h",
+        "Uses human-readable units."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-uptime",
+    "title": "Display Linux Uptime",
+    "platform": "Linux",
+    "tool": "uptime",
+    "category": "System",
+    "command": "uptime",
+    "description": "Display system uptime and load averages.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Uptime",
+      "System"
+    ],
+    "attack": [
+      "T1124"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "uptime",
+        "Displays uptime and load-average information."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-open-files",
+    "title": "List Open Files for Current User",
+    "platform": "Linux",
+    "tool": "lsof",
+    "category": "Processes",
+    "command": "lsof -u \"$(id -un)\"",
+    "description": "List open files associated with processes owned by the current user.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "lsof",
+      "Processes"
+    ],
+    "attack": [
+      "T1057"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "lsof",
+        "Lists open files."
+      ],
+      [
+        "-u",
+        "Filters by user."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-cron",
+    "title": "List System Cron Directories",
+    "platform": "Linux",
+    "tool": "ls",
+    "category": "Scheduled Tasks",
+    "command": "ls -la /etc/cron.d /etc/cron.daily /etc/cron.hourly 2>/dev/null",
+    "description": "List standard system cron directories where readable.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Cron",
+      "Scheduled Tasks"
+    ],
+    "attack": [
+      "T1053.003"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "ls -la",
+        "Lists files with ownership and permission metadata."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-journal-services",
+    "title": "Show Recent Service Journal Entries",
+    "platform": "Linux",
+    "tool": "journalctl",
+    "category": "Logs",
+    "command": "journalctl -p warning -n 50 --no-pager",
+    "description": "Show recent warning-or-higher journal entries.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "journalctl",
+      "Logs"
+    ],
+    "attack": [
+      "T1654"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "-p warning",
+        "Filters by priority."
+      ],
+      [
+        "-n 50",
+        "Limits output to fifty entries."
+      ],
+      [
+        "--no-pager",
+        "Writes directly to stdout."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-dns-config",
+    "title": "Display Linux Resolver Configuration",
+    "platform": "Linux",
+    "tool": "cat",
+    "category": "DNS",
+    "command": "cat /etc/resolv.conf",
+    "description": "Display resolver configuration.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "DNS",
+      "Resolver"
+    ],
+    "attack": [
+      "T1016"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "/etc/resolv.conf",
+        "Common resolver configuration file."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-list-users",
+    "title": "List Logged-in Linux Users",
+    "platform": "Linux",
+    "tool": "who",
+    "category": "Identity",
+    "command": "who",
+    "description": "Display users currently logged in to the host.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Users",
+      "Sessions"
+    ],
+    "attack": [
+      "T1033"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "who",
+        "Shows users currently logged in."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-last-logins",
+    "title": "Show Recent Linux Logins",
+    "platform": "Linux",
+    "tool": "last",
+    "category": "Identity",
+    "command": "last -n 20",
+    "description": "Display recent login records from wtmp.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Logins",
+      "Audit"
+    ],
+    "attack": [
+      "T1033"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "last",
+        "Shows login history."
+      ],
+      [
+        "-n 20",
+        "Limits output to twenty entries."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "nmap-top-ports",
+    "title": "Scan Top TCP Ports",
+    "platform": "Network",
+    "tool": "Nmap",
+    "category": "Discovery",
+    "command": "nmap --top-ports <COUNT> <TARGET>",
+    "description": "Scan the most common TCP ports on an authorised target.",
+    "risk": "Active network probe",
+    "changesSystem": false,
+    "tags": [
+      "Nmap",
+      "Ports",
+      "Discovery"
+    ],
+    "attack": [
+      "T1046"
+    ],
+    "parameters": [
+      {
+        "name": "COUNT",
+        "label": "Top ports",
+        "placeholder": "100"
+      },
+      {
+        "name": "TARGET",
+        "label": "Target",
+        "placeholder": "10.10.10.10"
+      }
+    ],
+    "explanation": [
+      [
+        "--top-ports",
+        "Scans the requested number of common ports."
+      ],
+      [
+        "<TARGET>",
+        "Authorised target."
+      ]
+    ],
+    "telemetry": [
+      "Firewall logs",
+      "IDS/IPS",
+      "Network telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/nmap/"
+  },
+  {
+    "id": "nmap-selected-ports",
+    "title": "Scan Selected TCP Ports",
+    "platform": "Network",
+    "tool": "Nmap",
+    "category": "Discovery",
+    "command": "nmap -p <PORTS> <TARGET>",
+    "description": "Scan selected TCP ports on an authorised target.",
+    "risk": "Active network probe",
+    "changesSystem": false,
+    "tags": [
+      "Nmap",
+      "Ports",
+      "Discovery"
+    ],
+    "attack": [
+      "T1046"
+    ],
+    "parameters": [
+      {
+        "name": "PORTS",
+        "label": "Ports",
+        "placeholder": "22,80,443"
+      },
+      {
+        "name": "TARGET",
+        "label": "Target",
+        "placeholder": "10.10.10.10"
+      }
+    ],
+    "explanation": [
+      [
+        "-p",
+        "Specifies target ports."
+      ],
+      [
+        "<TARGET>",
+        "Authorised target."
+      ]
+    ],
+    "telemetry": [
+      "Firewall logs",
+      "IDS/IPS",
+      "Network telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/nmap/"
+  },
+  {
+    "id": "nmap-os-detect",
+    "title": "Nmap OS Detection",
+    "platform": "Network",
+    "tool": "Nmap",
+    "category": "Discovery",
+    "command": "nmap -O <TARGET>",
+    "description": "Perform operating-system fingerprinting against an authorised target.",
+    "risk": "Active network probe",
+    "changesSystem": false,
+    "tags": [
+      "Nmap",
+      "OS Detection",
+      "Fingerprinting"
+    ],
+    "attack": [
+      "T1046"
+    ],
+    "parameters": [
+      {
+        "name": "TARGET",
+        "label": "Target",
+        "placeholder": "10.10.10.10"
+      }
+    ],
+    "explanation": [
+      [
+        "-O",
+        "Enables Nmap operating-system detection."
+      ]
+    ],
+    "telemetry": [
+      "Firewall logs",
+      "IDS/IPS",
+      "Network telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/nmap/"
+  },
+  {
+    "id": "nmap-output",
+    "title": "Save Nmap Normal Output",
+    "platform": "Network",
+    "tool": "Nmap",
+    "category": "Reporting",
+    "command": "nmap -sV -oN <FILE> <TARGET>",
+    "description": "Perform service detection and save normal-format output.",
+    "risk": "Active network probe",
+    "changesSystem": false,
+    "tags": [
+      "Nmap",
+      "Output",
+      "Reporting"
+    ],
+    "attack": [
+      "T1046"
+    ],
+    "parameters": [
+      {
+        "name": "FILE",
+        "label": "Output file",
+        "placeholder": "scan.txt"
+      },
+      {
+        "name": "TARGET",
+        "label": "Target",
+        "placeholder": "10.10.10.10"
+      }
+    ],
+    "explanation": [
+      [
+        "-sV",
+        "Enables service detection."
+      ],
+      [
+        "-oN",
+        "Writes normal-format output."
+      ]
+    ],
+    "telemetry": [
+      "Firewall logs",
+      "IDS/IPS",
+      "Network telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/nmap/"
+  },
+  {
+    "id": "network-dig-a",
+    "title": "Query DNS A Record",
+    "platform": "Network",
+    "tool": "dig",
+    "category": "DNS",
+    "command": "dig +short A <DOMAIN>",
+    "description": "Return A records for an authorised domain.",
+    "risk": "Network query",
+    "changesSystem": false,
+    "tags": [
+      "DNS",
+      "A Record",
+      "dig"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "DOMAIN",
+        "label": "Domain",
+        "placeholder": "example.com"
+      }
+    ],
+    "explanation": [
+      [
+        "+short",
+        "Returns concise answer output."
+      ],
+      [
+        "A",
+        "Queries IPv4 address records."
+      ]
+    ],
+    "telemetry": [
+      "DNS resolver logs"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/networking/"
+  },
+  {
+    "id": "network-dig-mx",
+    "title": "Query DNS MX Records",
+    "platform": "Network",
+    "tool": "dig",
+    "category": "DNS",
+    "command": "dig +short MX <DOMAIN>",
+    "description": "Return mail-exchanger records for an authorised domain.",
+    "risk": "Network query",
+    "changesSystem": false,
+    "tags": [
+      "DNS",
+      "MX",
+      "dig"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "DOMAIN",
+        "label": "Domain",
+        "placeholder": "example.com"
+      }
+    ],
+    "explanation": [
+      [
+        "MX",
+        "Queries mail-exchanger records."
+      ]
+    ],
+    "telemetry": [
+      "DNS resolver logs"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/networking/"
+  },
+  {
+    "id": "network-dig-txt",
+    "title": "Query DNS TXT Records",
+    "platform": "Network",
+    "tool": "dig",
+    "category": "DNS",
+    "command": "dig +short TXT <DOMAIN>",
+    "description": "Return TXT records for an authorised domain.",
+    "risk": "Network query",
+    "changesSystem": false,
+    "tags": [
+      "DNS",
+      "TXT",
+      "dig"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "DOMAIN",
+        "label": "Domain",
+        "placeholder": "example.com"
+      }
+    ],
+    "explanation": [
+      [
+        "TXT",
+        "Queries text records."
+      ]
+    ],
+    "telemetry": [
+      "DNS resolver logs"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/networking/"
+  },
+  {
+    "id": "network-curl-ip",
+    "title": "Display Public IP via HTTPS",
+    "platform": "Network",
+    "tool": "curl",
+    "category": "Connectivity",
+    "command": "curl -sS https://api.ipify.org",
+    "description": "Retrieve the public egress IP from a public IP-echo service.",
+    "risk": "Network query",
+    "changesSystem": false,
+    "tags": [
+      "Network",
+      "Public IP",
+      "curl"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "curl -sS",
+        "Performs a concise HTTPS request."
+      ]
+    ],
+    "telemetry": [
+      "Proxy logs",
+      "Network telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/curl/"
+  },
+  {
+    "id": "curl-get",
+    "title": "Perform HTTP GET",
+    "platform": "Web",
+    "tool": "curl",
+    "category": "HTTP",
+    "command": "curl -i https://<TARGET>/<PATH>",
+    "description": "Perform an HTTP GET request to an authorised endpoint and include headers.",
+    "risk": "Network query",
+    "changesSystem": false,
+    "tags": [
+      "curl",
+      "HTTP",
+      "GET"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "TARGET",
+        "label": "Target host",
+        "placeholder": "example.com"
+      },
+      {
+        "name": "PATH",
+        "label": "Path",
+        "placeholder": "api/health"
+      }
+    ],
+    "explanation": [
+      [
+        "-i",
+        "Includes response headers."
+      ],
+      [
+        "https://<TARGET>/<PATH>",
+        "Authorised endpoint."
+      ]
+    ],
+    "telemetry": [
+      "Web server access logs",
+      "Proxy logs"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/curl/"
+  },
+  {
+    "id": "curl-json",
+    "title": "Request JSON Content",
+    "platform": "Web",
+    "tool": "curl",
+    "category": "HTTP",
+    "command": "curl -sS -H \"Accept: application/json\" https://<TARGET>/<PATH>",
+    "description": "Request JSON content from an authorised endpoint.",
+    "risk": "Network query",
+    "changesSystem": false,
+    "tags": [
+      "curl",
+      "JSON",
+      "HTTP"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "TARGET",
+        "label": "Target host",
+        "placeholder": "example.com"
+      },
+      {
+        "name": "PATH",
+        "label": "Path",
+        "placeholder": "api/status"
+      }
+    ],
+    "explanation": [
+      [
+        "-H",
+        "Adds an HTTP request header."
+      ],
+      [
+        "Accept: application/json",
+        "Requests JSON representation where supported."
+      ]
+    ],
+    "telemetry": [
+      "Web server access logs",
+      "Proxy logs"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/curl/"
+  },
+  {
+    "id": "curl-timing",
+    "title": "Measure HTTP Timing",
+    "platform": "Web",
+    "tool": "curl",
+    "category": "Performance",
+    "command": "curl -sS -o /dev/null -w \"dns=%{time_namelookup} connect=%{time_connect} total=%{time_total}\\n\" https://<TARGET>",
+    "description": "Measure DNS, connection and total request timing for an authorised endpoint.",
+    "risk": "Network query",
+    "changesSystem": false,
+    "tags": [
+      "curl",
+      "Timing",
+      "HTTP"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "TARGET",
+        "label": "Target host",
+        "placeholder": "example.com"
+      }
+    ],
+    "explanation": [
+      [
+        "-w",
+        "Prints transfer timing variables."
+      ],
+      [
+        "-o /dev/null",
+        "Discards the response body."
+      ]
+    ],
+    "telemetry": [
+      "Web server access logs",
+      "Proxy logs"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/curl/"
+  },
+  {
+    "id": "curl-follow",
+    "title": "Follow HTTP Redirects",
+    "platform": "Web",
+    "tool": "curl",
+    "category": "HTTP",
+    "command": "curl -i -L https://<TARGET>",
+    "description": "Follow redirects from an authorised endpoint while displaying response headers.",
+    "risk": "Network query",
+    "changesSystem": false,
+    "tags": [
+      "curl",
+      "Redirects",
+      "HTTP"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "TARGET",
+        "label": "Target host",
+        "placeholder": "example.com"
+      }
+    ],
+    "explanation": [
+      [
+        "-L",
+        "Follows HTTP redirects."
+      ],
+      [
+        "-i",
+        "Includes response headers."
+      ]
+    ],
+    "telemetry": [
+      "Web server access logs",
+      "Proxy logs"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/curl/"
+  },
+  {
+    "id": "web-security-headers",
+    "title": "Inspect Common Security Headers",
+    "platform": "Web",
+    "tool": "curl",
+    "category": "Headers",
+    "command": "curl -sSI https://<TARGET> | grep -Ei 'content-security-policy|strict-transport-security|x-content-type-options|referrer-policy|permissions-policy'",
+    "description": "Inspect common HTTP security headers returned by an authorised endpoint.",
+    "risk": "Network query",
+    "changesSystem": false,
+    "tags": [
+      "Web",
+      "Headers",
+      "Security Headers"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "TARGET",
+        "label": "Target host",
+        "placeholder": "example.com"
+      }
+    ],
+    "explanation": [
+      [
+        "-sSI",
+        "Requests response headers quietly."
+      ],
+      [
+        "grep -Ei",
+        "Filters common security-header names case-insensitively."
+      ]
+    ],
+    "telemetry": [
+      "Web server access logs",
+      "Proxy logs"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/web/"
+  },
+  {
+    "id": "web-cors-origin",
+    "title": "Inspect CORS Response Header",
+    "platform": "Web",
+    "tool": "curl",
+    "category": "CORS",
+    "command": "curl -sSI -H \"Origin: https://example.org\" https://<TARGET> | grep -i access-control",
+    "description": "Inspect CORS-related response headers using a benign test Origin value.",
+    "risk": "Network query",
+    "changesSystem": false,
+    "tags": [
+      "Web",
+      "CORS",
+      "Headers"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "TARGET",
+        "label": "Target host",
+        "placeholder": "example.com"
+      }
+    ],
+    "explanation": [
+      [
+        "Origin",
+        "Supplies a benign cross-origin request origin."
+      ],
+      [
+        "grep -i access-control",
+        "Filters CORS response headers."
+      ]
+    ],
+    "telemetry": [
+      "Web server access logs",
+      "Proxy logs"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/web/cors/"
+  },
+  {
+    "id": "tshark-interfaces",
+    "title": "List Capture Interfaces",
+    "platform": "Network",
+    "tool": "tshark",
+    "category": "Packet Analysis",
+    "command": "tshark -D",
+    "description": "List packet-capture interfaces available to tshark.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "tshark",
+      "Wireshark",
+      "Interfaces"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "-D",
+        "Lists available capture interfaces."
+      ]
+    ],
+    "telemetry": [
+      "Local process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/wireshark-tshark/"
+  },
+  {
+    "id": "tshark-read-file",
+    "title": "Read a PCAP File",
+    "platform": "Network",
+    "tool": "tshark",
+    "category": "Packet Analysis",
+    "command": "tshark -r <PCAP>",
+    "description": "Read packets from a capture file.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "tshark",
+      "PCAP",
+      "Wireshark"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "PCAP",
+        "label": "PCAP file",
+        "placeholder": "capture.pcapng"
+      }
+    ],
+    "explanation": [
+      [
+        "-r",
+        "Reads packets from a capture file."
+      ]
+    ],
+    "telemetry": [
+      "Local process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/wireshark-tshark/"
+  },
+  {
+    "id": "tshark-http",
+    "title": "Filter HTTP Packets",
+    "platform": "Network",
+    "tool": "tshark",
+    "category": "Packet Analysis",
+    "command": "tshark -r <PCAP> -Y http",
+    "description": "Display HTTP packets from a capture file.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "tshark",
+      "HTTP",
+      "Display Filter"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "PCAP",
+        "label": "PCAP file",
+        "placeholder": "capture.pcapng"
+      }
+    ],
+    "explanation": [
+      [
+        "-Y http",
+        "Applies the Wireshark HTTP display filter."
+      ]
+    ],
+    "telemetry": [
+      "Local process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/wireshark-tshark/"
+  },
+  {
+    "id": "tshark-dns",
+    "title": "Filter DNS Packets",
+    "platform": "Network",
+    "tool": "tshark",
+    "category": "Packet Analysis",
+    "command": "tshark -r <PCAP> -Y dns",
+    "description": "Display DNS packets from a capture file.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "tshark",
+      "DNS",
+      "Display Filter"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "PCAP",
+        "label": "PCAP file",
+        "placeholder": "capture.pcapng"
+      }
+    ],
+    "explanation": [
+      [
+        "-Y dns",
+        "Applies the Wireshark DNS display filter."
+      ]
+    ],
+    "telemetry": [
+      "Local process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/wireshark-tshark/"
+  },
+  {
+    "id": "tshark-fields",
+    "title": "Extract HTTP Request Fields",
+    "platform": "Network",
+    "tool": "tshark",
+    "category": "Packet Analysis",
+    "command": "tshark -r <PCAP> -Y http.request -T fields -e ip.src -e http.host -e http.request.uri",
+    "description": "Extract selected HTTP request fields from a capture file.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "tshark",
+      "HTTP",
+      "Fields"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "PCAP",
+        "label": "PCAP file",
+        "placeholder": "capture.pcapng"
+      }
+    ],
+    "explanation": [
+      [
+        "-T fields",
+        "Outputs selected protocol fields."
+      ],
+      [
+        "-e",
+        "Specifies fields to print."
+      ]
+    ],
+    "telemetry": [
+      "Local process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/wireshark-tshark/"
+  },
+  {
+    "id": "tcpdump-read",
+    "title": "Read PCAP with tcpdump",
+    "platform": "Network",
+    "tool": "tcpdump",
+    "category": "Packet Analysis",
+    "command": "tcpdump -nn -r <PCAP>",
+    "description": "Read a packet capture without hostname or service-name resolution.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "tcpdump",
+      "PCAP",
+      "Packets"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "PCAP",
+        "label": "PCAP file",
+        "placeholder": "capture.pcap"
+      }
+    ],
+    "explanation": [
+      [
+        "-r",
+        "Reads from a capture file."
+      ],
+      [
+        "-nn",
+        "Disables name and service resolution."
+      ]
+    ],
+    "telemetry": [
+      "Local process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/networking/"
+  },
+  {
+    "id": "git-remotes",
+    "title": "List Git Remotes",
+    "platform": "Tools",
+    "tool": "Git",
+    "category": "Version Control",
+    "command": "git remote -v",
+    "description": "Display configured Git remotes and URLs.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Git",
+      "Remote",
+      "Repository"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "git remote -v",
+        "Lists remote names and fetch/push URLs."
+      ]
+    ],
+    "telemetry": [
+      "Local process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/git-ripgrep/"
+  },
+  {
+    "id": "git-status-short",
+    "title": "Show Compact Git Status",
+    "platform": "Tools",
+    "tool": "Git",
+    "category": "Version Control",
+    "command": "git status --short --branch",
+    "description": "Display branch and working-tree status in compact form.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Git",
+      "Status",
+      "Repository"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "--short",
+        "Uses compact status output."
+      ],
+      [
+        "--branch",
+        "Includes branch information."
+      ]
+    ],
+    "telemetry": [
+      "Local process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/git-ripgrep/"
+  },
+  {
+    "id": "git-show",
+    "title": "Show Latest Git Commit",
+    "platform": "Tools",
+    "tool": "Git",
+    "category": "Version Control",
+    "command": "git show --stat --oneline HEAD",
+    "description": "Display the latest commit summary and changed-file statistics.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Git",
+      "History",
+      "Repository"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "git show",
+        "Displays a commit."
+      ],
+      [
+        "--stat",
+        "Shows changed-file statistics."
+      ]
+    ],
+    "telemetry": [
+      "Local process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/git-ripgrep/"
+  },
+  {
+    "id": "git-diff-name",
+    "title": "List Changed Files",
+    "platform": "Tools",
+    "tool": "Git",
+    "category": "Version Control",
+    "command": "git diff --name-only",
+    "description": "List files changed in the working tree relative to the index.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Git",
+      "Diff",
+      "Files"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "--name-only",
+        "Prints only changed file paths."
+      ]
+    ],
+    "telemetry": [
+      "Local process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/git-ripgrep/"
+  },
+  {
+    "id": "rg-files",
+    "title": "List Files with ripgrep",
+    "platform": "Tools",
+    "tool": "ripgrep",
+    "category": "Search",
+    "command": "rg --files <PATH>",
+    "description": "List files ripgrep would search beneath a path.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "ripgrep",
+      "Files",
+      "Search"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "PATH",
+        "label": "Path",
+        "placeholder": "."
+      }
+    ],
+    "explanation": [
+      [
+        "--files",
+        "Lists searchable files."
+      ]
+    ],
+    "telemetry": [
+      "Local process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/git-ripgrep/"
+  },
+  {
+    "id": "rg-ignore-case",
+    "title": "Case-insensitive Text Search",
+    "platform": "Tools",
+    "tool": "ripgrep",
+    "category": "Search",
+    "command": "rg -n -i \"<TERM>\" <PATH>",
+    "description": "Search recursively without case sensitivity and include line numbers.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "ripgrep",
+      "Search",
+      "Case-insensitive"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "TERM",
+        "label": "Search term",
+        "placeholder": "password"
+      },
+      {
+        "name": "PATH",
+        "label": "Path",
+        "placeholder": "."
+      }
+    ],
+    "explanation": [
+      [
+        "-i",
+        "Makes matching case-insensitive."
+      ],
+      [
+        "-n",
+        "Displays line numbers."
+      ]
+    ],
+    "telemetry": [
+      "Local process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/git-ripgrep/"
+  },
+  {
+    "id": "rg-filetype",
+    "title": "Search a File Type with ripgrep",
+    "platform": "Tools",
+    "tool": "ripgrep",
+    "category": "Search",
+    "command": "rg -n -t <TYPE> \"<TERM>\" <PATH>",
+    "description": "Search a selected ripgrep file type recursively.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "ripgrep",
+      "Search",
+      "File Type"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "TYPE",
+        "label": "File type",
+        "placeholder": "py"
+      },
+      {
+        "name": "TERM",
+        "label": "Search term",
+        "placeholder": "TODO"
+      },
+      {
+        "name": "PATH",
+        "label": "Path",
+        "placeholder": "."
+      }
+    ],
+    "explanation": [
+      [
+        "-t",
+        "Restricts search to a named ripgrep file type."
+      ],
+      [
+        "-n",
+        "Displays line numbers."
+      ]
+    ],
+    "telemetry": [
+      "Local process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/git-ripgrep/"
+  },
+  {
+    "id": "windows-hostname",
+    "title": "Display Windows Hostname",
+    "platform": "Windows",
+    "tool": "hostname",
+    "category": "System",
+    "command": "hostname",
+    "description": "Display the local Windows computer name.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Hostname"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "hostname",
+        "Prints the local host name."
+      ]
+    ],
+    "telemetry": [
+      "Process creation"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "windows-ipconfig",
+    "title": "Display Windows IP Configuration",
+    "platform": "Windows",
+    "tool": "ipconfig",
+    "category": "Network",
+    "command": "ipconfig /all",
+    "description": "Display detailed Windows interface, DNS and DHCP configuration.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Network",
+      "IP"
+    ],
+    "attack": [
+      "T1016"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "/all",
+        "Displays detailed configuration for all adapters."
+      ]
+    ],
+    "telemetry": [
+      "Process creation"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "linux-hostname",
+    "title": "Display Linux Hostname",
+    "platform": "Linux",
+    "tool": "hostname",
+    "category": "System",
+    "command": "hostname",
+    "description": "Display the current Linux hostname.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Hostname"
+    ],
+    "attack": [
+      "T1082"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "hostname",
+        "Prints the current hostname."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-route-get",
+    "title": "Resolve Linux Route to Destination",
+    "platform": "Linux",
+    "tool": "ip",
+    "category": "Network",
+    "command": "ip route get <TARGET>",
+    "description": "Show the route Linux would use for an authorised destination.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Network",
+      "Routes"
+    ],
+    "attack": [
+      "T1016"
+    ],
+    "parameters": [
+      {
+        "name": "TARGET",
+        "label": "Destination",
+        "placeholder": "8.8.8.8"
+      }
+    ],
+    "explanation": [
+      [
+        "ip route get",
+        "Resolves the route to a destination without sending traffic."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "curl-head-follow",
+    "title": "Inspect Redirected Headers",
+    "platform": "Web",
+    "tool": "curl",
+    "category": "HTTP",
+    "command": "curl -sSIL https://<TARGET>",
+    "description": "Follow redirects and display response headers from an authorised endpoint.",
+    "risk": "Network query",
+    "changesSystem": false,
+    "tags": [
+      "curl",
+      "HTTP",
+      "Redirects"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "TARGET",
+        "label": "Target host",
+        "placeholder": "example.com"
+      }
+    ],
+    "explanation": [
+      [
+        "-I",
+        "Headers only."
+      ],
+      [
+        "-L",
+        "Follow redirects."
+      ]
+    ],
+    "telemetry": [
+      "Web server access logs",
+      "Proxy logs"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/curl/"
+  },
+  {
+    "id": "nmap-list-scan",
+    "title": "Nmap List Scan",
+    "platform": "Network",
+    "tool": "Nmap",
+    "category": "Discovery",
+    "command": "nmap -sL <TARGET>",
+    "description": "List addresses in an authorised target range without sending probes to target hosts.",
+    "risk": "Low-impact network query",
+    "changesSystem": false,
+    "tags": [
+      "Nmap",
+      "Inventory",
+      "Range"
+    ],
+    "attack": [],
+    "parameters": [
+      {
+        "name": "TARGET",
+        "label": "Target/CIDR",
+        "placeholder": "10.10.10.0/24"
+      }
+    ],
+    "explanation": [
+      [
+        "-sL",
+        "Lists targets without scanning them."
+      ]
+    ],
+    "telemetry": [
+      "DNS resolver logs"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/cheatsheets/nmap/"
   }
 ];

@@ -4,7 +4,7 @@ import {toPng,toSvg} from 'html-to-image';
 import {
   Activity,ArrowLeft,BookOpen,CheckCircle2,ChevronDown,ChevronRight,Copy,Download,
   Clock3,ExternalLink,Filter,GitCompareArrows,Image,Layers3,LayoutDashboard,Library,Menu,
-  Network,Plus,RadioTower,RotateCcw,Save,Search,ShieldCheck,Star,TerminalSquare,Trash2,Workflow,X
+  FileJson,GripVertical,Network,Plus,RadioTower,RotateCcw,Save,Search,ShieldCheck,Star,Tag,TerminalSquare,Trash2,Upload,Workflow,X
 } from 'lucide-react';
 import {commands} from './data/commands';
 import './styles.css';
@@ -45,9 +45,10 @@ const parseRoute=()=>{
 function App(){
  const initial=parseRoute();
  const [page,setPage]=useState(initial.page);
- const [query,setQuery]=useState('');
- const [platform,setPlatform]=useState('All');
- const [tool,setTool]=useState('All');
+ const initialParams=new URLSearchParams(location.search);
+ const [query,setQuery]=useState(initialParams.get('q')||'');
+ const [platform,setPlatform]=useState(initialParams.get('platform')||'All');
+ const [tool,setTool]=useState(initialParams.get('tool')||'All');
  const [selected,setSelected]=useState(initial.command||commands[0]);
  const [mobile,setMobile]=useState(false);
  const [tab,setTab]=useState('Explain');
@@ -77,6 +78,8 @@ function App(){
    setPage(p);setMobile(false);window.scrollTo(0,0);
  };
  const toggleFavorite=id=>setFavorites(current=>current.includes(id)?current.filter(x=>x!==id):[...current,id]);
+ const removeRecent=id=>setRecent(current=>current.filter(x=>x!==id));
+ const clearRecent=()=>setRecent([]);
  const openCommand=c=>{
    setSelected(c);
    setTab('Explain');
@@ -91,7 +94,7 @@ function App(){
    <a className="notes" href="https://notes.asifnawazminhas.com/">Notes <ExternalLink size={14}/></a>
    <button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button>
   </header>
-  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v1.6</div></aside>
+  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v1.7</div></aside>
   <main>
    {page==='dashboard'?<Dashboard go={go} favorites={favorites} recent={recent}/>:
     page==='library'?<LibraryPage query={query} setQuery={setQuery} platform={platform} setPlatform={setPlatform} tool={tool} setTool={setTool} openCommand={openCommand} favorites={favorites} toggleFavorite={toggleFavorite}/>:
@@ -100,7 +103,7 @@ function App(){
     page==='privesc'?<PrivEscExplorer openCommand={openCommand}/>:
     page==='attack'?<AttackExplorer openCommand={openCommand}/>:
     page==='attack-path'?<AttackPathExplorer openCommand={openCommand}/>:
-    page==='workspace'?<WorkspacePage favorites={favorites} recent={recent} toggleFavorite={toggleFavorite} openCommand={openCommand}/>: 
+    page==='workspace'?<WorkspacePage favorites={favorites} recent={recent} toggleFavorite={toggleFavorite} openCommand={openCommand} removeRecent={removeRecent} clearRecent={clearRecent}/>: 
     page==='workflow'?<WorkflowBuilder/>:
     page==='detection'?<Detection/>:
     page==='purple'?<Purple/>:<NotFound/>}
@@ -123,50 +126,89 @@ function CommandPalette({close,openCommand,go}){
 }
 
 function LibraryPage({query,setQuery,platform,setPlatform,tool,setTool,openCommand,favorites,toggleFavorite}){
- const [sort,setSort]=useState('Title');
- const [onlyFavorites,setOnlyFavorites]=useState(false);
+ const params=new URLSearchParams(location.search);
+ const [sort,setSort]=useState(params.get('sort')||'Title');
+ const [category,setCategory]=useState(params.get('category')||'All');
+ const [tag,setTag]=useState(params.get('tag')||'All');
+ const [onlyFavorites,setOnlyFavorites]=useState(params.get('favorites')==='1');
+
  const platforms=['All',...new Set(commands.map(c=>c.platform))];
  const tools=['All',...new Set(commands.map(c=>c.tool))];
+ const categories=['All',...new Set(commands.map(c=>c.category))].sort();
+ const tags=['All',...new Set(commands.flatMap(c=>c.tags))].sort();
+
+ useEffect(()=>{
+   const p=new URLSearchParams();
+   if(query)p.set('q',query);
+   if(platform!=='All')p.set('platform',platform);
+   if(tool!=='All')p.set('tool',tool);
+   if(category!=='All')p.set('category',category);
+   if(tag!=='All')p.set('tag',tag);
+   if(sort!=='Title')p.set('sort',sort);
+   if(onlyFavorites)p.set('favorites','1');
+   const qs=p.toString();
+   history.replaceState(null,'',`${location.pathname}${qs?`?${qs}`:''}${location.hash||'#/library'}`);
+ },[query,platform,tool,category,tag,sort,onlyFavorites]);
+
  const filtered=useMemo(()=>{
    const rows=commands.filter(c=>
      (platform==='All'||c.platform===platform) &&
      (tool==='All'||c.tool===tool) &&
+     (category==='All'||c.category===category) &&
+     (tag==='All'||c.tags.includes(tag)) &&
      (!onlyFavorites||favorites.includes(c.id)) &&
      `${c.title} ${c.platform} ${c.tool} ${c.category} ${c.tags.join(' ')} ${c.command}`.toLowerCase().includes(query.toLowerCase())
    );
    return [...rows].sort((a,b)=>{
      if(sort==='Platform')return a.platform.localeCompare(b.platform)||a.title.localeCompare(b.title);
      if(sort==='Tool')return a.tool.localeCompare(b.tool)||a.title.localeCompare(b.title);
+     if(sort==='Category')return a.category.localeCompare(b.category)||a.title.localeCompare(b.title);
      return a.title.localeCompare(b.title);
    });
- },[query,platform,tool,onlyFavorites,favorites,sort]);
+ },[query,platform,tool,category,tag,onlyFavorites,favorites,sort]);
 
+ const count=(key,value)=>commands.filter(c=>value==='All'||(key==='tags'?c.tags.includes(value):c[key]===value)).length;
  const copy=(e,c)=>{e.stopPropagation();navigator.clipboard?.writeText(c.command)};
  const fav=(e,c)=>{e.stopPropagation();toggleFavorite(c.id)};
+ const copyLink=()=>navigator.clipboard?.writeText(location.href);
+ const resetFilters=()=>{
+   setQuery('');setPlatform('All');setTool('All');setCategory('All');setTag('All');setSort('Title');setOnlyFavorites(false);
+ };
 
- return <><PageTitle kicker="COMMANDS" title="Command Library" text="Search reusable security commands by platform, tool and security context."/>
- <div className="librarytools">
-  <div className="librarysearch"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search commands, tools, categories..."/></div>
-  <div className="filterrow"><Filter size={16}/><b>Platform</b>{platforms.map(p=><button className={platform===p?'selected':''} onClick={()=>setPlatform(p)} key={p}>{p}</button>)}</div>
-  <div className="filterrow"><Filter size={16}/><b>Tool</b>{tools.map(p=><button className={tool===p?'selected':''} onClick={()=>setTool(p)} key={p}>{p}</button>)}</div>
-  <div className="libraryOptions">
-   <button className={onlyFavorites?'optionActive':''} onClick={()=>setOnlyFavorites(!onlyFavorites)}><Star size={14} fill={onlyFavorites?'currentColor':'none'}/> Favourites</button>
-   <label>Sort<select value={sort} onChange={e=>setSort(e.target.value)}><option>Title</option><option>Platform</option><option>Tool</option></select></label>
+ return <>
+  <PageTitle kicker="COMMANDS" title="Command Library" text="Search reusable security commands by platform, tool, category and tag."/>
+  <div className="librarytools">
+   <div className="librarysearch"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search commands, tools, categories..."/></div>
+   <div className="filterrow"><Filter size={16}/><b>Platform</b>{platforms.map(p=><button className={platform===p?'selected':''} onClick={()=>setPlatform(p)} key={p}>{p}<small>{count('platform',p)}</small></button>)}</div>
+   <div className="filterrow"><Filter size={16}/><b>Tool</b>{tools.slice(0,22).map(p=><button className={tool===p?'selected':''} onClick={()=>setTool(p)} key={p}>{p}<small>{count('tool',p)}</small></button>)}</div>
+   <div className="libraryAdvancedFilters">
+    <label>Category<select value={category} onChange={e=>setCategory(e.target.value)}>{categories.map(x=><option key={x}>{x}</option>)}</select></label>
+    <label>Tag<select value={tag} onChange={e=>setTag(e.target.value)}>{tags.map(x=><option key={x}>{x}</option>)}</select></label>
+    <label>Sort<select value={sort} onChange={e=>setSort(e.target.value)}><option>Title</option><option>Platform</option><option>Tool</option><option>Category</option></select></label>
+   </div>
+   <div className="libraryOptions">
+    <div className="optionGroup">
+     <button className={onlyFavorites?'optionActive':''} onClick={()=>setOnlyFavorites(!onlyFavorites)}><Star size={14} fill={onlyFavorites?'currentColor':'none'}/> Favourites</button>
+     <button onClick={resetFilters}><RotateCcw size={14}/> Reset filters</button>
+    </div>
+    <button onClick={copyLink}><Copy size={14}/> Copy filtered link</button>
+   </div>
   </div>
- </div>
- <div className="resultline"><b>{filtered.length}</b> commands</div>
- <div className="commandgrid">{filtered.map(c=><article className="commandcard" key={c.id}>
-  <div className="badges"><span>{c.platform}</span><span>{c.tool}</span><small>{c.risk}</small></div>
-  <h3>{c.title}</h3><p>{c.description}</p><code>{c.command}</code>
-  <div className="tags">{c.tags.map(t=><small key={t}>{t}</small>)}</div>
-  <div className="cardActions">
-   <button onClick={e=>fav(e,c)} className={favorites.includes(c.id)?'favOn':''}><Star size={14} fill={favorites.includes(c.id)?'currentColor':'none'}/> {favorites.includes(c.id)?'Saved':'Save'}</button>
-   <button onClick={e=>copy(e,c)}><Copy size={14}/> Copy</button>
-   <a href={c.notes} onClick={e=>e.stopPropagation()}><BookOpen size={14}/> Notes</a>
-   <button className="openBtn" onClick={()=>openCommand(c)}>Open in Studio <ChevronRight size={14}/></button>
-  </div>
- </article>)}</div>
- {!filtered.length&&<div className="empty">No commands match the current search and filters.</div>}</>
+
+  <div className="resultline"><b>{filtered.length}</b> commands match current filters</div>
+  <div className="commandgrid">{filtered.map(c=><article className="commandcard" key={c.id}>
+   <div className="badges"><span>{c.platform}</span><span>{c.tool}</span><small>{c.risk}</small></div>
+   <h3>{c.title}</h3><p>{c.description}</p><code>{c.command}</code>
+   <div className="tags">{c.tags.map(t=><small key={t}>{t}</small>)}</div>
+   <div className="cardActions">
+    <button onClick={e=>fav(e,c)} className={favorites.includes(c.id)?'favOn':''}><Star size={14} fill={favorites.includes(c.id)?'currentColor':'none'}/> {favorites.includes(c.id)?'Saved':'Save'}</button>
+    <button onClick={e=>copy(e,c)}><Copy size={14}/> Copy</button>
+    <a href={c.notes} onClick={e=>e.stopPropagation()}><BookOpen size={14}/> Notes</a>
+    <button className="openBtn" onClick={()=>openCommand(c)}>Open in Studio <ChevronRight size={14}/></button>
+   </div>
+  </article>)}</div>
+  {!filtered.length&&<div className="empty">No commands match the current search and filters.</div>}
+ </>
 }
 
 function CommandStudio({c,tab,setTab,go,favorites,toggleFavorite}){
@@ -479,84 +521,180 @@ function Visualiser({c}){
  </>
 }
 
-function WorkspacePage({favorites,recent,toggleFavorite,openCommand}){
+function WorkspacePage({favorites,recent,toggleFavorite,openCommand,removeRecent,clearRecent}){
  const saved=favorites.map(id=>commands.find(c=>c.id===id)).filter(Boolean);
  const viewed=recent.map(id=>commands.find(c=>c.id===id)).filter(Boolean);
- const render=(list,emptyText)=>list.length?<div className="workspaceList">{list.map(c=><div className="workspaceItem" key={c.id}><div><span>{c.platform} · {c.tool}</span><b>{c.title}</b><code>{c.command}</code></div><div><button onClick={()=>toggleFavorite(c.id)} title="Toggle favourite"><Star size={15} fill={favorites.includes(c.id)?'currentColor':'none'}/></button><a href={c.notes} title="Open Notes"><BookOpen size={15}/></a><button onClick={()=>openCommand(c)}>Open <ChevronRight size={14}/></button></div></div>)}</div>:<div className="empty">{emptyText}</div>;
- return <><PageTitle kicker="WORKSPACE" title="Saved Workspace" text="Keep useful commands close and return to recently viewed material."/><div className="workspaceStats"><div><Star/><b>{saved.length}</b><span>Saved commands</span></div><div><Clock3/><b>{viewed.length}</b><span>Recent commands</span></div><div><Library/><b>{commands.length}</b><span>Total catalogue</span></div></div><div className="workspaceColumns"><Panel title="Favourites">{render(saved,'No saved commands yet. Use the star button in the Command Library or Command Studio.')}</Panel><Panel title="Recently viewed">{render(viewed,'Open commands in Studio and they will appear here.')}</Panel></div></>
+
+ const savedList=saved.length?<div className="workspaceList">{saved.map(c=>
+  <div className="workspaceItem" key={c.id}>
+   <div><span>{c.platform} · {c.tool}</span><b>{c.title}</b><code>{c.command}</code></div>
+   <div>
+    <button onClick={()=>toggleFavorite(c.id)} title="Remove favourite"><Star size={15} fill="currentColor"/></button>
+    <a href={c.notes} title="Open Notes"><BookOpen size={15}/></a>
+    <button onClick={()=>openCommand(c)}>Open <ChevronRight size={14}/></button>
+   </div>
+  </div>)}</div>:<div className="empty">No saved commands yet. Use the star button in the Command Library or Command Studio.</div>;
+
+ const recentList=viewed.length?<div className="workspaceList">{viewed.map(c=>
+  <div className="workspaceItem" key={c.id}>
+   <div><span>{c.platform} · {c.tool}</span><b>{c.title}</b><code>{c.command}</code></div>
+   <div>
+    <button onClick={()=>toggleFavorite(c.id)} title="Toggle favourite"><Star size={15} fill={favorites.includes(c.id)?'currentColor':'none'}/></button>
+    <a href={c.notes} title="Open Notes"><BookOpen size={15}/></a>
+    <button onClick={()=>openCommand(c)}>Open <ChevronRight size={14}/></button>
+    <button className="recentDelete" onClick={()=>removeRecent(c.id)} title="Remove from recently viewed"><X size={15}/></button>
+   </div>
+  </div>)}</div>:<div className="empty">Open commands in Studio and they will appear here.</div>;
+
+ return <>
+  <PageTitle kicker="WORKSPACE" title="Saved Workspace" text="Keep useful commands close and manage recently viewed material."/>
+  <div className="workspaceStats">
+   <div><Star/><b>{saved.length}</b><span>Saved commands</span></div>
+   <div><Clock3/><b>{viewed.length}</b><span>Recent commands</span></div>
+   <div><Library/><b>{commands.length}</b><span>Total catalogue</span></div>
+  </div>
+  <div className="workspaceColumns">
+   <Panel title="Favourites">{savedList}</Panel>
+   <div className="panel">
+    <div className="panelTitleActions">
+     <h3>Recently viewed</h3>
+     <button className="secondarySmall dangerOutline compact" disabled={!viewed.length} onClick={clearRecent}><Trash2 size={14}/> Clear recent</button>
+    </div>
+    {recentList}
+   </div>
+  </div>
+ </>
 }
 
 function WorkflowBuilder(){
- const defaultNodes=[
-  {id:1,title:'Define scope',kind:'Planning'},
-  {id:2,title:'Run validation',kind:'Validation'},
-  {id:3,title:'Review telemetry',kind:'Detection'},
-  {id:4,title:'Capture learning',kind:'Learning'}
- ];
+ const visualRef=useRef(null);
+ const fileRef=useRef(null);
+ const templates={
+  'Assessment':[
+   {title:'Define scope',kind:'Planning',commandId:'',notes:''},
+   {title:'Collect baseline',kind:'Validation',commandId:'windows-computer-info',notes:'https://notes.asifnawazminhas.com/windows/'},
+   {title:'Review telemetry',kind:'Detection',commandId:'',notes:''},
+   {title:'Capture learning',kind:'Learning',commandId:'',notes:''}
+  ],
+  'Purple validation':[
+   {title:'Choose ATT&CK technique',kind:'Planning',commandId:'',notes:''},
+   {title:'Execute authorised validation',kind:'Validation',commandId:'nmap-service',notes:'https://notes.asifnawazminhas.com/purple-teaming/'},
+   {title:'Was expected telemetry observed?',kind:'Decision',commandId:'',notes:''},
+   {title:'Review detection result',kind:'Detection',commandId:'',notes:''},
+   {title:'Document learning outcome',kind:'Learning',commandId:'',notes:''}
+  ],
+  'Web review':[
+   {title:'Inspect response headers',kind:'Validation',commandId:'curl-head',notes:'https://notes.asifnawazminhas.com/web/'},
+   {title:'Inspect redirects',kind:'Validation',commandId:'curl-follow',notes:'https://notes.asifnawazminhas.com/web/'},
+   {title:'Review security headers',kind:'Detection',commandId:'web-security-headers',notes:'https://notes.asifnawazminhas.com/web/'},
+   {title:'Capture observations',kind:'Learning',commandId:'',notes:''}
+  ]
+ };
+ const createNodes=rows=>rows.map((x,i)=>({id:Date.now()+i,...x,yesLabel:x.yesLabel||'Yes',noLabel:x.noLabel||'No'}));
+ const defaultNodes=createNodes(templates['Assessment']);
+
  const [nodes,setNodes]=useState(()=>{
    try{
-     const saved=localStorage.getItem('security-studio-workflow');
-     return saved?JSON.parse(saved):defaultNodes;
+    const saved=localStorage.getItem('security-studio-workflow');
+    return saved?JSON.parse(saved):defaultNodes;
    }catch{return defaultNodes}
  });
+ const [template,setTemplate]=useState('Assessment');
+ const [dragIndex,setDragIndex]=useState(null);
  useEffect(()=>localStorage.setItem('security-studio-workflow',JSON.stringify(nodes)),[nodes]);
 
  const update=(id,patch)=>setNodes(nodes.map(n=>n.id===id?{...n,...patch}:n));
- const move=(index,direction)=>{
-   const target=index+direction;
-   if(target<0||target>=nodes.length)return;
+ const add=(kind='Validation')=>setNodes([...nodes,{id:Date.now(),title:kind==='Decision'?'Decision point':'New step',kind,commandId:'',notes:'',yesLabel:'Yes',noLabel:'No'}]);
+ const loadTemplate=()=>setNodes(createNodes(templates[template]));
+ const move=(from,to)=>{
+   if(from===to||from<0||to<0||from>=nodes.length||to>=nodes.length)return;
    const next=[...nodes];
-   [next[index],next[target]]=[next[target],next[index]];
+   const [item]=next.splice(from,1);
+   next.splice(to,0,item);
    setNodes(next);
  };
- const add=()=>setNodes([...nodes,{id:Date.now(),title:'New step',kind:'Validation'}]);
- const reset=()=>setNodes(defaultNodes);
+ const reset=()=>setNodes(createNodes(templates['Assessment']));
+
  const exportJson=()=>{
-   const blob=new Blob([JSON.stringify({name:'Security Studio Workflow',version:'1.4',steps:nodes},null,2)],{type:'application/json'});
-   const a=document.createElement('a');
-   a.href=URL.createObjectURL(blob);
-   a.download='security-studio-workflow.json';
-   a.click();
-   URL.revokeObjectURL(a.href);
+   const blob=new Blob([JSON.stringify({name:'Security Studio Workflow',version:'1.7',steps:nodes},null,2)],{type:'application/json'});
+   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='security-studio-workflow.json';a.click();URL.revokeObjectURL(a.href);
+ };
+ const importJson=e=>{
+   const file=e.target.files?.[0]; if(!file)return;
+   const reader=new FileReader();
+   reader.onload=()=>{
+    try{
+     const parsed=JSON.parse(reader.result);
+     const rows=Array.isArray(parsed)?parsed:parsed.steps;
+     if(!Array.isArray(rows))throw new Error('Invalid workflow');
+     setNodes(rows.map((x,i)=>({id:x.id||Date.now()+i,title:x.title||'Imported step',kind:x.kind||'Validation',commandId:x.commandId||'',notes:x.notes||'',yesLabel:x.yesLabel||'Yes',noLabel:x.noLabel||'No'})));
+    }catch{alert('This file does not contain a valid Security Studio workflow.')}
+   };
+   reader.readAsText(file); e.target.value='';
+ };
+ const exportImage=async type=>{
+   if(!visualRef.current)return;
+   const fn=type==='png'?toPng:toSvg;
+   const data=await fn(visualRef.current,{pixelRatio:2,cacheBust:true,backgroundColor:'#061018'});
+   const a=document.createElement('a');a.href=data;a.download=`security-studio-workflow.${type}`;a.click();
  };
 
  return <>
-  <PageTitle kicker="BUILDERS" title="Workflow Builder" text="Arrange assessment and validation steps into a reusable visual workflow."/>
-  <div className="workflowShell">
-   <div className="workflowToolbar">
-    <div className="toolbarButtons">
-     <button className="primarySmall" onClick={add}><Plus size={15}/> Add step</button>
-     <button className="secondarySmall" onClick={exportJson}><Download size={15}/> Export JSON</button>
-     <button className="secondarySmall" onClick={reset}><RotateCcw size={15}/> Reset workflow</button>
-    </div>
-    <span>Saved locally in your browser</span>
+  <PageTitle kicker="BUILDERS" title="Workflow Builder" text="Build reusable assessment flows with drag-and-drop steps, decisions, commands and Notes links."/>
+
+  <div className="studioToolbar">
+   <div className="toolbarPrimary">
+    <button className="primarySmall" onClick={()=>add('Validation')}><Plus size={15}/> Add step</button>
+    <button className="secondarySmall" onClick={()=>add('Decision')}><GitCompareArrows size={15}/> Add decision</button>
+    <select value={template} onChange={e=>setTemplate(e.target.value)}>{Object.keys(templates).map(x=><option key={x}>{x}</option>)}</select>
+    <button className="secondarySmall" onClick={loadTemplate}><Workflow size={15}/> Load template</button>
    </div>
-   <div className="workflow">
-    {nodes.map((n,i)=><React.Fragment key={n.id}>
-     <div className="worknode advanced">
-      <span className="worknumber">{i+1}</span>
-      <div className="workfields">
-       <input value={n.title} onChange={e=>update(n.id,{title:e.target.value})}/>
-       <select value={n.kind} onChange={e=>update(n.id,{kind:e.target.value})}>
-        <option>Planning</option>
-        <option>Validation</option>
-        <option>Detection</option>
-        <option>Response</option>
-        <option>Learning</option>
-       </select>
-      </div>
-      <div className="workactions">
-       <button disabled={i===0} onClick={()=>move(i,-1)} title="Move up">↑ <span>Up</span></button>
-       <button disabled={i===nodes.length-1} onClick={()=>move(i,1)} title="Move down">↓ <span>Down</span></button>
-       <button className="dangerAction" onClick={()=>setNodes(nodes.filter(x=>x.id!==n.id))} title="Delete"><Trash2 size={14}/><span>Delete</span></button>
-      </div>
-     </div>
-     {i<nodes.length-1&&<div className="connector">↓</div>}
-    </React.Fragment>)}
-    {!nodes.length&&<div className="empty">No workflow steps yet. Add a step to begin.</div>}
+   <div className="toolbarSecondary">
+    <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={importJson}/>
+    <button className="secondarySmall" onClick={()=>fileRef.current?.click()}><Upload size={15}/> Import JSON</button>
+    <button className="secondarySmall" onClick={exportJson}><FileJson size={15}/> Export JSON</button>
+    <button className="secondarySmall" onClick={()=>exportImage('png')}><Download size={15}/> PNG</button>
+    <button className="secondarySmall" onClick={()=>exportImage('svg')}><Download size={15}/> SVG</button>
+    <button className="secondarySmall dangerOutline" onClick={reset}><RotateCcw size={15}/> Reset</button>
    </div>
   </div>
- </>;
+
+  <div className="workflowCanvas" ref={visualRef}>
+   {nodes.map((n,i)=><React.Fragment key={n.id}>
+    <div
+     className={`worknode pro ${dragIndex===i?'dragging':''}`}
+     draggable
+     onDragStart={()=>setDragIndex(i)}
+     onDragOver={e=>e.preventDefault()}
+     onDrop={()=>{move(dragIndex,i);setDragIndex(null)}}
+     onDragEnd={()=>setDragIndex(null)}
+    >
+     <button className="dragHandle" title="Drag to reorder"><GripVertical size={18}/></button>
+     <span className="worknumber">{i+1}</span>
+     <div className="workflowFields">
+      <input value={n.title} onChange={e=>update(n.id,{title:e.target.value})}/>
+      <select value={n.kind} onChange={e=>update(n.id,{kind:e.target.value})}>
+       <option>Planning</option><option>Validation</option><option>Decision</option><option>Detection</option><option>Response</option><option>Learning</option>
+      </select>
+      <select value={n.commandId||''} onChange={e=>update(n.id,{commandId:e.target.value})}>
+       <option value="">No command attached</option>
+       {commands.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}
+      </select>
+      <input placeholder="Notes URL (optional)" value={n.notes||''} onChange={e=>update(n.id,{notes:e.target.value})}/>
+      {n.kind==='Decision'&&<div className="decisionLabels">
+       <input placeholder="Yes branch" value={n.yesLabel||''} onChange={e=>update(n.id,{yesLabel:e.target.value})}/>
+       <input placeholder="No branch" value={n.noLabel||''} onChange={e=>update(n.id,{noLabel:e.target.value})}/>
+      </div>}
+     </div>
+     <button className="dangerAction iconOnly" onClick={()=>setNodes(nodes.filter(x=>x.id!==n.id))} title="Delete"><Trash2 size={16}/></button>
+    </div>
+    {i<nodes.length-1&&<div className={`workflowConnector ${n.kind==='Decision'?'decision':''}`}>
+     {n.kind==='Decision'?<><span>{n.yesLabel||'Yes'}</span><span>{n.noLabel||'No'}</span></>:<span>↓</span>}
+    </div>}
+   </React.Fragment>)}
+   {!nodes.length&&<div className="empty">No workflow steps yet. Add a step or load a template.</div>}
+  </div>
+ </>
 }
 
 function Detection(){
@@ -568,111 +706,66 @@ function Detection(){
 function Purple(){
  const defaults=[
   {id:1,title:'Validation action',hint:'Authorised assessment step',value:''},
-  {id:2,title:'Expected signal',hint:'What should become observable',value:''},
-  {id:3,title:'Telemetry source',hint:'Where the signal should appear',value:''},
-  {id:4,title:'Detection',hint:'How the activity is identified',value:''},
-  {id:5,title:'Response',hint:'Expected defensive action',value:''},
-  {id:6,title:'Learning outcome',hint:'What should improve next',value:''}
+  {id:2,title:'Expected telemetry',hint:'What should become observable',value:''},
+  {id:3,title:'Actual telemetry observed',hint:'What was actually observed during validation',value:''},
+  {id:4,title:'Telemetry source',hint:'Where the signal appeared',value:''},
+  {id:5,title:'Detection',hint:'How the activity was identified',value:''},
+  {id:6,title:'Response',hint:'Expected or actual defensive action',value:''},
+  {id:7,title:'Learning outcome',hint:'What should improve next',value:''}
  ];
- const [items,setItems]=useState(()=>{
-   try{
-     const saved=localStorage.getItem('security-studio-purple-map');
-     return saved?JSON.parse(saved):defaults;
-   }catch{return defaults}
- });
- const [technique,setTechnique]=useState(()=>{
-   try{return localStorage.getItem('security-studio-purple-technique')||''}catch{return ''}
- });
- const [commandId,setCommandId]=useState(()=>{
-   try{return localStorage.getItem('security-studio-purple-command')||''}catch{return ''}
- });
- const [statuses,setStatuses]=useState(()=>{
-   try{
-     return JSON.parse(localStorage.getItem('security-studio-purple-status')||'{"telemetry":"Not tested","detection":"Not tested","response":"Not tested"}')
-   }catch{return {telemetry:'Not tested',detection:'Not tested',response:'Not tested'}}
- });
- const [exerciseName,setExerciseName]=useState(()=>{
-   try{return localStorage.getItem('security-studio-purple-name')||'Purple Team Validation'}catch{return 'Purple Team Validation'}
- });
+ const [items,setItems]=useState(()=>{try{const s=localStorage.getItem('security-studio-purple-map');const p=s?JSON.parse(s):null;return Array.isArray(p)&&p.length===7?p:defaults}catch{return defaults}});
+ const [technique,setTechnique]=useState(()=>localStorage.getItem('security-studio-purple-technique')||'');
+ const [commandId,setCommandId]=useState(()=>localStorage.getItem('security-studio-purple-command')||'');
+ const [exerciseName,setExerciseName]=useState(()=>localStorage.getItem('security-studio-purple-name')||'Purple Team Validation');
+ const [statuses,setStatuses]=useState(()=>{try{return JSON.parse(localStorage.getItem('security-studio-purple-status')||'{"telemetry":"Not tested","detection":"Not tested","response":"Not tested","overall":"Not tested"}')}catch{return {telemetry:'Not tested',detection:'Not tested',response:'Not tested',overall:'Not tested'}}});
 
  useEffect(()=>localStorage.setItem('security-studio-purple-map',JSON.stringify(items)),[items]);
  useEffect(()=>localStorage.setItem('security-studio-purple-technique',technique),[technique]);
  useEffect(()=>localStorage.setItem('security-studio-purple-command',commandId),[commandId]);
- useEffect(()=>localStorage.setItem('security-studio-purple-status',JSON.stringify(statuses)),[statuses]);
  useEffect(()=>localStorage.setItem('security-studio-purple-name',exerciseName),[exerciseName]);
+ useEffect(()=>localStorage.setItem('security-studio-purple-status',JSON.stringify(statuses)),[statuses]);
 
- const setValue=(id,value)=>setItems(items.map(x=>x.id===id?{...x,value}:x));
  const selectedCommand=commands.find(c=>c.id===commandId);
- const techniques=[...new Set(commands.flatMap(c=>c.attack))].sort();
+ const techniques=[...new Set(commands.flatMap(c=>c.attack))].filter(Boolean).sort();
+ const setValue=(id,value)=>setItems(items.map(x=>x.id===id?{...x,value}:x));
+ const statusClass=v=>['Observed','Detected','Successful','Passed'].includes(v)?'good':v==='Partial'?'partial':['Missed','Failed'].includes(v)?'bad':'neutral';
 
  const clear=()=>{
-   setItems(defaults);
-   setTechnique('');
-   setCommandId('');
-   setStatuses({telemetry:'Not tested',detection:'Not tested',response:'Not tested'});
-   setExerciseName('Purple Team Validation');
+  setItems(defaults);setTechnique('');setCommandId('');setExerciseName('Purple Team Validation');
+  setStatuses({telemetry:'Not tested',detection:'Not tested',response:'Not tested',overall:'Not tested'});
  };
-
  const payload=()=>({
-   name:exerciseName,
-   version:'1.6',
-   technique,
-   command:selectedCommand?{id:selectedCommand.id,title:selectedCommand.title,command:selectedCommand.command}:null,
-   statuses,
-   mapping:items
+  name:exerciseName,version:'1.7',technique,
+  command:selectedCommand?{id:selectedCommand.id,title:selectedCommand.title,command:selectedCommand.command}:null,
+  statuses,mapping:items
  });
-
- const exportJson=()=>{
-   const blob=new Blob([JSON.stringify(payload(),null,2)],{type:'application/json'});
-   const a=document.createElement('a');
-   a.href=URL.createObjectURL(blob);
-   a.download='purple-team-validation.json';
-   a.click();
-   URL.revokeObjectURL(a.href);
+ const downloadBlob=(content,type,name)=>{
+  const blob=new Blob([content],{type});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href);
  };
-
+ const exportJson=()=>downloadBlob(JSON.stringify(payload(),null,2),'application/json','purple-team-exercise.json');
  const exportMarkdown=()=>{
-   const p=payload();
-   const md=[
-    `# ${p.name}`,
-    '',
-    `- Technique: ${p.technique||'Not selected'}`,
-    `- Command: ${p.command?.title||'Not selected'}`,
-    `- Telemetry: ${p.statuses.telemetry}`,
-    `- Detection: ${p.statuses.detection}`,
-    `- Response: ${p.statuses.response}`,
-    '',
-    '## Validation Mapping',
-    '',
-    ...p.mapping.flatMap(x=>[`### ${x.id}. ${x.title}`,x.value||'_Not documented_',''])
-   ].join('\n');
-   const blob=new Blob([md],{type:'text/markdown'});
-   const a=document.createElement('a');
-   a.href=URL.createObjectURL(blob);
-   a.download='purple-team-validation.md';
-   a.click();
-   URL.revokeObjectURL(a.href);
+  const p=payload();
+  const md=[
+   `# ${p.name}`,'',
+   `- ATT&CK technique: ${p.technique||'Not selected'}`,
+   `- Validation command: ${p.command?.title||'Not selected'}`,
+   `- Telemetry status: ${p.statuses.telemetry}`,
+   `- Detection status: ${p.statuses.detection}`,
+   `- Response status: ${p.statuses.response}`,
+   `- Overall status: ${p.statuses.overall}`,'',
+   '## Exercise mapping','',
+   ...p.mapping.flatMap(x=>[`### ${x.id}. ${x.title}`,x.value||'_Not documented_',''])
+  ].join('\n');
+  downloadBlob(md,'text/markdown','purple-team-exercise-summary.md');
  };
-
- const statusClass=v=>v==='Observed'||v==='Detected'||v==='Successful'?'good':v==='Partial'?'partial':v==='Missed'||v==='Failed'?'bad':'neutral';
 
  return <>
-  <PageTitle kicker="DEFENCE" title="Purple Team Validation Workspace" text="Map an authorised validation action to expected telemetry, detection, response and learning outcomes." />
+  <PageTitle kicker="DEFENCE" title="Purple Team Validation Workspace" text="Connect an authorised validation action to expected and observed telemetry, detection, response and learning outcomes."/>
 
   <div className="purpleSetup">
    <label>Exercise name<input value={exerciseName} onChange={e=>setExerciseName(e.target.value)}/></label>
-   <label>ATT&CK technique
-    <select value={technique} onChange={e=>setTechnique(e.target.value)}>
-     <option value="">Select technique</option>
-     {techniques.map(t=><option key={t}>{t}</option>)}
-    </select>
-   </label>
-   <label>Validation command
-    <select value={commandId} onChange={e=>setCommandId(e.target.value)}>
-     <option value="">Select command</option>
-     {commands.filter(c=>!technique||c.attack.includes(technique)).map(c=><option key={c.id} value={c.id}>{c.title}</option>)}
-    </select>
-   </label>
+   <label>ATT&CK technique<select value={technique} onChange={e=>setTechnique(e.target.value)}><option value="">Select technique</option>{techniques.map(t=><option key={t}>{t}</option>)}</select></label>
+   <label>Validation command<select value={commandId} onChange={e=>setCommandId(e.target.value)}><option value="">Select command</option>{commands.filter(c=>!technique||c.attack.includes(technique)).map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label>
   </div>
 
   {selectedCommand&&<div className="purpleCommandPreview">
@@ -680,54 +773,44 @@ function Purple(){
    <a href={selectedCommand.notes}>Open Notes <ExternalLink size={13}/></a>
   </div>}
 
-  <div className="purpleStatuses">
-   <label>Telemetry
-    <select className={statusClass(statuses.telemetry)} value={statuses.telemetry} onChange={e=>setStatuses({...statuses,telemetry:e.target.value})}>
-     <option>Not tested</option><option>Observed</option><option>Partial</option><option>Missed</option>
-    </select>
-   </label>
-   <label>Detection
-    <select className={statusClass(statuses.detection)} value={statuses.detection} onChange={e=>setStatuses({...statuses,detection:e.target.value})}>
-     <option>Not tested</option><option>Detected</option><option>Partial</option><option>Missed</option>
-    </select>
-   </label>
-   <label>Response
-    <select className={statusClass(statuses.response)} value={statuses.response} onChange={e=>setStatuses({...statuses,response:e.target.value})}>
-     <option>Not tested</option><option>Successful</option><option>Partial</option><option>Failed</option>
-    </select>
-   </label>
+  <div className="purpleStatuses four">
+   <label>Telemetry<select className={statusClass(statuses.telemetry)} value={statuses.telemetry} onChange={e=>setStatuses({...statuses,telemetry:e.target.value})}><option>Not tested</option><option>Observed</option><option>Partial</option><option>Missed</option></select></label>
+   <label>Detection<select className={statusClass(statuses.detection)} value={statuses.detection} onChange={e=>setStatuses({...statuses,detection:e.target.value})}><option>Not tested</option><option>Detected</option><option>Partial</option><option>Missed</option></select></label>
+   <label>Response<select className={statusClass(statuses.response)} value={statuses.response} onChange={e=>setStatuses({...statuses,response:e.target.value})}><option>Not tested</option><option>Successful</option><option>Partial</option><option>Failed</option></select></label>
+   <label>Overall<select className={statusClass(statuses.overall)} value={statuses.overall} onChange={e=>setStatuses({...statuses,overall:e.target.value})}><option>Not tested</option><option>Passed</option><option>Partial</option><option>Failed</option></select></label>
   </div>
 
-  <div className="mappingToolbar">
-   <div className="toolbarButtons">
-    <button className="primarySmall" onClick={exportJson}><Download size={15}/> Export JSON</button>
-    <button className="secondarySmall" onClick={exportMarkdown}><Download size={15}/> Export Markdown</button>
+  <div className="studioToolbar purpleToolbar">
+   <div className="toolbarPrimary">
+    <button className="primarySmall" onClick={exportJson}><FileJson size={15}/> Export JSON</button>
+    <button className="secondarySmall" onClick={exportMarkdown}><Download size={15}/> Export summary</button>
+   </div>
+   <div className="toolbarSecondary">
+    <span>Saved locally in your browser</span>
     <button className="secondarySmall dangerOutline" onClick={clear}><Trash2 size={15}/> Clear validation</button>
    </div>
-   <span>Saved locally in your browser</span>
   </div>
 
-  <div className="purpleflow editable">
+  <div className="purpleflow signature">
    {items.map((x,i)=><React.Fragment key={x.id}>
     <div>
-     <span>{x.id}</span>
-     <b>{x.title}</b>
-     <small>{x.hint}</small>
+     <span>{x.id}</span><b>{x.title}</b><small>{x.hint}</small>
      <textarea value={x.value} onChange={e=>setValue(x.id,e.target.value)} placeholder={`Add ${x.title.toLowerCase()}...`}/>
     </div>
     {i<items.length-1&&<ChevronRight/>}
    </React.Fragment>)}
   </div>
 
-  <Panel title="Validation summary">
-   <div className="summaryStrip">
+  <Panel title="Exercise summary">
+   <div className="summaryStrip five">
     <span>Technique <b>{technique||'Not selected'}</b></span>
     <span>Telemetry <b className={statusClass(statuses.telemetry)}>{statuses.telemetry}</b></span>
     <span>Detection <b className={statusClass(statuses.detection)}>{statuses.detection}</b></span>
     <span>Response <b className={statusClass(statuses.response)}>{statuses.response}</b></span>
+    <span>Overall <b className={statusClass(statuses.overall)}>{statuses.overall}</b></span>
    </div>
   </Panel>
- </>;
+ </>
 }
 
 function NotFound(){return <PageTitle kicker="STUDIO" title="Not found" text="This Studio route does not exist."/>}

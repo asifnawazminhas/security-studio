@@ -242,3 +242,59 @@
  .visualActionBar>button{width:100%}
  .summaryStrip{grid-template-columns:1fr}
 }
+
+/* v1.7 - mature catalogue, advanced library, workflows and purple validation */
+
+.filterrow button small{margin-left:5px;color:#64889a;font-size:9px}
+.libraryAdvancedFilters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.libraryAdvancedFilters label{font-size:10px;color:#7899ac}
+.libraryAdvancedFilters select{display:block;width:100%;margin-top:5px;background:#050d13;border:1px solid #294e60;color:#dce8f2;border-radius:5px;padding:8px}
+.optionGroup{display:flex;gap:7px;flex-wrap:wrap}
+.libraryOptions>button,.optionGroup button{display:inline-flex;align-items:center;gap:6px;border:1px solid #294e60;background:#07131b;color:#a4bbc7;border-radius:5px;padding:8px 11px}
+
+.panelTitleActions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}
+.panelTitleActions h3{margin:0}
+.secondarySmall.compact{min-height:34px;padding:7px 9px;font-size:10px}
+.recentDelete{border-color:#633844!important;color:#ff91a0!important}
+
+.studioToolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 18px}
+.toolbarPrimary,.toolbarSecondary{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.studioToolbar select{min-height:40px;background:#07131b;border:1px solid #315063;color:#dce8f2;border-radius:5px;padding:0 10px}
+.toolbarSecondary>span{color:#6f91a3;font-size:10px;margin-right:3px}
+
+.workflowCanvas{max-width:1180px;border:1px solid #173f51;background:#061018;border-radius:9px;padding:20px}
+.worknode.pro{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:10px;align-items:start;border:1px solid #1c6579;background:#07151e;border-radius:8px;padding:12px}
+.worknode.pro.dragging{opacity:.45;border-style:dashed}
+.dragHandle{width:30px;height:38px;display:grid;place-items:center;border:0;background:transparent;color:#668da0;cursor:grab}
+.dragHandle:active{cursor:grabbing}
+.workflowFields{display:grid;grid-template-columns:1.3fr .55fr 1.2fr 1fr;gap:8px}
+.workflowFields input,.workflowFields select{min-width:0;background:#050d13;border:1px solid #294e60;border-radius:5px;color:#e9f1f6;padding:9px}
+.decisionLabels{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.iconOnly{width:38px!important;min-width:38px!important;height:38px!important;padding:0!important;display:grid!important;place-items:center!important}
+.workflowConnector{min-height:34px;display:flex;justify-content:center;align-items:center;color:#00e5ff}
+.workflowConnector.decision{justify-content:center;gap:80px}
+.workflowConnector.decision span{border:1px solid #28556a;background:#07151e;border-radius:14px;color:#8fc4d3;padding:4px 11px;font-size:10px}
+
+.purpleStatuses.four{grid-template-columns:repeat(4,1fr)}
+.purpleflow.signature{display:flex;align-items:stretch;gap:8px;overflow-x:auto;padding-bottom:8px}
+.purpleflow.signature>div{flex:1 0 185px;min-height:245px}
+.purpleflow.signature>svg{flex:0 0 18px;align-self:center}
+.summaryStrip.five{grid-template-columns:repeat(5,1fr)}
+
+@media(max-width:1100px){
+ .workflowFields{grid-template-columns:1fr 1fr}
+ .purpleStatuses.four{grid-template-columns:1fr 1fr}
+ .summaryStrip.five{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:800px){
+ .libraryAdvancedFilters{grid-template-columns:1fr}
+ .studioToolbar{align-items:stretch;flex-direction:column}
+ .toolbarPrimary,.toolbarSecondary{display:grid;grid-template-columns:1fr}
+ .studioToolbar select,.toolbarPrimary button,.toolbarSecondary button{width:100%}
+ .worknode.pro{grid-template-columns:auto auto 1fr}
+ .workflowFields{grid-column:1/-1;grid-template-columns:1fr}
+ .worknode.pro>.iconOnly{grid-column:3;grid-row:1}
+ .decisionLabels{grid-template-columns:1fr}
+ .purpleStatuses.four{grid-template-columns:1fr}
+ .summaryStrip.five{grid-template-columns:1fr}
+}

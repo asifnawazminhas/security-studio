@@ -415,3 +415,102 @@
  .visualActionBar>button{margin-left:0!important}
  .workspaceToolbar .toolbarSecondary{margin-left:0}
 }
+
+/* v1.9 - Command Packs, Reporting, Notes Integration and polish */
+
+.catalogHealth{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.catalogHealth>div{border:1px solid #1c4355;background:#07151e;border-radius:8px;padding:16px;display:grid;grid-template-columns:auto 1fr;gap:5px 12px}
+.catalogHealth svg{grid-row:1/3;color:#00e5ff}
+.catalogHealth b{font-size:22px}
+.catalogHealth span{color:#7899ac;font-size:11px}
+.catalogHealth .healthGood svg{color:#2de18c}
+.catalogHealth .healthWarn svg{color:#ffbf59}
+
+/* Command Packs */
+.packsLayout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px}
+.packSidebar{border:1px solid #1c4355;background:#07151e;border-radius:8px;padding:12px;align-self:start}
+.packSidebar>.eyebrow{display:block;margin:6px 8px 9px}
+.packSidebar .customLabel{margin-top:18px}
+.packSidebar button{width:100%;display:flex;align-items:center;gap:10px;border:1px solid transparent;background:transparent;color:#aac0cc;border-radius:6px;padding:11px;text-align:left}
+.packSidebar button>svg{color:#00e5ff;flex:0 0 auto}
+.packSidebar button b,.packSidebar button span{display:block}
+.packSidebar button span{color:#6f91a3;font-size:10px;margin-top:3px}
+.packSidebar button.active{border-color:#1d6074;background:#082b37;color:#fff}
+.packMain{border:1px solid #1c4355;background:#07151e;border-radius:8px;padding:18px}
+.packHero{display:flex;justify-content:space-between;gap:18px;border-bottom:1px solid #173443;padding-bottom:16px}
+.packHero h2{margin:6px 0}
+.packHero p{color:#84a2b2;max-width:650px}
+.packActions{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap}
+.packCommandList{display:grid;gap:8px;margin-top:16px}
+.packCommandList>button{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:12px;align-items:center;border:1px solid #1c4355;background:#061018;color:#dce8f2;border-radius:6px;padding:12px;text-align:left}
+.packCommandList>button>span{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#08303d;color:#00e5ff}
+.packCommandList b,.packCommandList small,.packCommandList code{display:block}
+.packCommandList small{color:#7494a6;margin:3px 0}
+.packCommandList code{color:#68dff0;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.customPackBuilder{margin-top:28px}
+.customPackTop{display:grid;grid-template-columns:260px minmax(0,1fr) auto;gap:10px;align-items:center}
+.customPackTop>input{height:42px;background:#050d13;border:1px solid #315063;border-radius:5px;color:#eaf2f7;padding:0 11px}
+.packPicker{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.packPicker label{display:flex;gap:9px;border:1px solid #1c4355;background:#07151e;border-radius:6px;padding:11px;cursor:pointer}
+.packPicker label.selected{border-color:#00bfd5;background:#082530}
+.packPicker b,.packPicker span{display:block}
+.packPicker span{color:#6f91a3;font-size:10px;margin-top:3px}
+
+/* Report Builder */
+.reportGrid{display:grid;grid-template-columns:.9fr 1.1fr;gap:16px}
+.reportForm label{display:block;color:#89a5b4;font-size:11px;margin:13px 0}
+.reportForm input,.reportForm textarea{display:block;width:100%;margin-top:6px;background:#050d13;border:1px solid #315063;border-radius:5px;color:#eaf2f7;padding:10px}
+.reportForm textarea{min-height:120px;resize:vertical}
+.reportActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+.reportPreview>h2{font-size:27px;margin:7px 0 15px}
+.reportMeta{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.reportMeta span{border:1px solid #1c4355;background:#061018;border-radius:6px;padding:10px;color:#7191a3;font-size:10px}
+.reportMeta b{display:block;color:#dce8f2;font-size:12px;margin-top:4px}
+.reportPreview h3{margin-top:20px}
+.reportPreview p{color:#8ca7b6;line-height:1.6}
+.reportCode{display:block;border:1px solid #1c4355;background:#050d13;color:#68dff0;border-radius:5px;padding:12px;overflow:auto}
+.reportMapping{display:grid;gap:7px}
+.reportMapping>div{border-left:2px solid #1d6a7f;padding:6px 10px;background:#061018}
+.reportMapping b{font-size:12px}
+.reportMapping p{margin:4px 0;font-size:11px}
+
+/* Notes Link Builder */
+.notesBuilder{max-width:1000px}
+.notesBuilder>label{display:block;color:#89a5b4;font-size:11px}
+.notesBuilder>label select{display:block;width:100%;margin-top:6px;height:42px;background:#050d13;border:1px solid #315063;color:#eaf2f7;border-radius:5px;padding:0 10px}
+.notesCommandPreview{margin:14px 0;border:1px solid #1c4355;background:#061018;border-radius:6px;padding:13px}
+.notesCommandPreview b,.notesCommandPreview span,.notesCommandPreview code{display:block}
+.notesCommandPreview span{color:#6f91a3;font-size:10px;margin:3px 0 8px}
+.notesCommandPreview code{color:#68dff0}
+.linkOutput{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:8px;align-items:center;margin:9px 0}
+.linkOutput label{color:#8da9b8;font-size:11px}
+.linkOutput input,.linkOutput textarea{width:100%;background:#050d13;border:1px solid #315063;border-radius:5px;color:#dce8f2;padding:10px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px}
+.linkOutput textarea{min-height:100px;resize:vertical}
+.notesBuilderActions{display:flex;gap:8px;margin-top:16px}
+.notesBuilderActions a{text-decoration:none}
+
+/* Toast */
+.studioToast{position:fixed;z-index:200;right:22px;bottom:22px;display:flex;align-items:center;gap:8px;background:#0a2934;border:1px solid #1f7a90;color:#e8f8fb;border-radius:7px;padding:11px 14px;box-shadow:0 16px 45px #0009;font-size:12px}
+.studioToast svg{color:#36e494}
+
+/* toolbar polish */
+.reportActions .primarySmall,.reportActions .secondarySmall,.packActions .primarySmall,.packActions .secondarySmall,.notesBuilderActions .primarySmall,.notesBuilderActions .secondarySmall{height:42px!important;min-height:42px!important}
+
+/* responsive */
+@media(max-width:1050px){
+ .packsLayout,.reportGrid{grid-template-columns:1fr}
+ .packSidebar{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+ .packSidebar>.eyebrow{grid-column:1/-1}
+ .customPackTop{grid-template-columns:1fr}
+ .packPicker{grid-template-columns:repeat(2,1fr)}
+ .catalogHealth{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:760px){
+ .packHero{flex-direction:column}
+ .packSidebar,.packPicker,.catalogHealth{grid-template-columns:1fr}
+ .linkOutput{grid-template-columns:1fr}
+ .notesBuilderActions{flex-direction:column}
+ .notesBuilderActions a{width:100%}
+ .reportActions{display:grid;grid-template-columns:1fr}
+ .reportActions button{width:100%}
+}

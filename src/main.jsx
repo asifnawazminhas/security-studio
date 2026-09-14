@@ -4,19 +4,32 @@ import {toPng,toSvg} from 'html-to-image';
 import {
   Activity,ArrowLeft,BookOpen,CheckCircle2,ChevronDown,ChevronRight,Copy,Download,
   Clock3,ExternalLink,Filter,GitCompareArrows,Image,Layers3,LayoutDashboard,Library,Menu,
-  FileJson,GripVertical,Network,Plus,RadioTower,RotateCcw,Save,Search,ShieldCheck,Star,Tag,TerminalSquare,Trash2,Upload,Workflow,X
+  Check,FileJson,FileText,GripVertical,Link2,Network,Package,Plus,RadioTower,RotateCcw,Save,Search,ShieldCheck,Star,Tag,TerminalSquare,Trash2,Upload,Workflow,X
 } from 'lucide-react';
 import {commands} from './data/commands';
 import './styles.css';
 
 const sections=[
  {title:'',items:[['Dashboard','dashboard',LayoutDashboard]]},
- {title:'COMMANDS',items:[['Command Library','library',Library],['Command Studio','command-studio',TerminalSquare],['Command Visualiser','visualiser',Image]]},
+ {title:'COMMANDS',items:[['Command Library','library',Library],['Command Studio','command-studio',TerminalSquare],['Command Visualiser','visualiser',Image],['Command Packs','packs',Package]]},
  {title:'EXPLORERS',items:[['PrivEsc Explorer','privesc',ShieldCheck],['ATT&CK Explorer','attack',Network],['Attack Path Explorer','attack-path',GitCompareArrows]]},
- {title:'WORKSPACE',items:[['Saved Workspace','workspace',Star]]},
+ {title:'WORKSPACE',items:[['Saved Workspace','workspace',Star],['Report Builder','reports',FileText],['Notes Link Builder','notes-links',Link2]]},
  {title:'BUILDERS',items:[['Workflow Builder','workflow',Workflow]]},
  {title:'DEFENCE',items:[['Detection & Telemetry','detection',RadioTower],['Purple Team Mapping','purple',Layers3]]}
 ];
+
+
+const studioToast=(message)=>window.dispatchEvent(new CustomEvent('studio-toast',{detail:message}));
+
+const catalogHealth=()=>{
+ const ids=commands.map(c=>c.id);
+ const duplicateIds=[...new Set(ids.filter((id,i)=>ids.indexOf(id)!==i))];
+ const missingNotes=commands.filter(c=>!c.notes).length;
+ const mapped=commands.filter(c=>c.attack?.length).length;
+ const withTelemetry=commands.filter(c=>c.telemetry?.length).length;
+ const withExplanation=commands.filter(c=>c.explanation?.length).length;
+ return {duplicateIds,missingNotes,mapped,withTelemetry,withExplanation};
+};
 
 const attackCatalog=[
  ['T1082','System Information Discovery','Discovery'],
@@ -94,27 +107,91 @@ function App(){
    <a className="notes" href="https://notes.asifnawazminhas.com/">Notes <ExternalLink size={14}/></a>
    <button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button>
   </header>
-  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v1.8</div></aside>
+  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v1.9</div></aside>
   <main>
    {page==='dashboard'?<Dashboard go={go} favorites={favorites} recent={recent}/>:
     page==='library'?<LibraryPage query={query} setQuery={setQuery} platform={platform} setPlatform={setPlatform} tool={tool} setTool={setTool} openCommand={openCommand} favorites={favorites} toggleFavorite={toggleFavorite}/>:
     page==='command-studio'?<CommandStudio c={selected} tab={tab} setTab={setTab} go={go} favorites={favorites} toggleFavorite={toggleFavorite}/>:
-    page==='visualiser'?<Visualiser c={selected}/>:
+    page==='visualiser'?<Visualiser c={selected}/>: 
+    page==='packs'?<CommandPacks openCommand={openCommand}/>:
     page==='privesc'?<PrivEscExplorer openCommand={openCommand}/>:
     page==='attack'?<AttackExplorer openCommand={openCommand}/>:
     page==='attack-path'?<AttackPathExplorer openCommand={openCommand}/>:
     page==='workspace'?<WorkspacePage favorites={favorites} recent={recent} toggleFavorite={toggleFavorite} openCommand={openCommand} removeRecent={removeRecent} clearRecent={clearRecent}/>: 
+    page==='reports'?<ReportBuilder/>:
+    page==='notes-links'?<NotesLinkBuilder/>:
     page==='workflow'?<WorkflowBuilder/>:
     page==='detection'?<Detection/>:
     page==='purple'?<Purple/>:<NotFound/>}
   </main>
   {palette&&<CommandPalette close={()=>setPalette(false)} openCommand={c=>{setPalette(false);openCommand(c)}} go={p=>{setPalette(false);go(p)}}/>}
+  <ToastHost/>
  </div>
 }
 
 function Dashboard({go,favorites,recent}){
- const quick=[['Command Library','library',Library,'Search structured security commands'],['Command Studio','command-studio',TerminalSquare,'Explain, modify and contextualise commands'],['Saved Workspace','workspace',Star,'Return to favourites and recent commands'],['PrivEsc Explorer','privesc',ShieldCheck,'Explore privilege-boundary checks'],['ATT&CK Explorer','attack',Network,'Map techniques to commands and telemetry'],['Purple Team Mapping','purple',Layers3,'Connect validation to defence']];
- return <><div className="hero"><div><span className="eyebrow">ASIF'S SECURITY STUDIO</span><h1>Security knowledge,<br/><em>made interactive.</em></h1><p>Explore commands, understand context, map telemetry and turn security notes into practical workflows.</p><div className="heroactions"><button onClick={()=>go('library')}>Explore Commands <ChevronRight size={16}/></button><a href="https://notes.asifnawazminhas.com/"><BookOpen size={16}/> Open Security Notes</a></div><div className="heroStats"><span><b>{commands.length}</b> commands</span><span><b>{favorites.length}</b> favourites</span><span><b>{recent.length}</b> recent</span></div></div><div className="terminal"><div className="termbar"><i/><i/><i/><span>security-studio</span></div><code><b>$</b> knowledge --interactive<br/><span>✓ {commands.length} commands indexed</span><br/><span>✓ Notes integration ready</span><br/><span>✓ Saved workspace enabled</span><br/><span>✓ ATT&CK mappings loaded</span><br/><span>✓ Detection context ready</span><br/><br/><b>$</b> explore <u>security</u><br/><strong>Ready.</strong></code></div></div><section><div className="sectionhead"><div><span className="eyebrow">WORKSPACE</span><h2>Choose where to start</h2></div></div><div className="grid">{quick.map(([n,id,I,d])=><button className="featurecard" onClick={()=>go(id)} key={id}><I/><div><h3>{n}</h3><p>{d}</p></div><ChevronRight className="arrow"/></button>)}</div></section><section><div className="banner"><Activity/><div><b>Built to connect Notes and Studio</b><span>Read methodology in Security Notes, open commands in Studio, then save useful references to your workspace.</span></div></div></section></>
+ const quick=[
+  ['Command Library','library',Library,'Search structured security commands'],
+  ['Command Studio','command-studio',TerminalSquare,'Explain, modify and contextualise commands'],
+  ['Command Packs','packs',Package,'Open reusable command collections'],
+  ['Saved Workspace','workspace',Star,'Return to favourites and recent commands'],
+  ['Report Builder','reports',FileText,'Turn validation work into a finished report'],
+  ['Purple Team Mapping','purple',Layers3,'Connect validation to defence']
+ ];
+ const health=catalogHealth();
+ return <>
+  <div className="hero">
+   <div>
+    <span className="eyebrow">ASIF'S SECURITY STUDIO</span>
+    <h1>Security knowledge,<br/><em>made interactive.</em></h1>
+    <p>Explore commands, understand context, map telemetry and turn security notes into practical workflows and finished reports.</p>
+    <div className="heroactions">
+     <button onClick={()=>go('library')}>Explore Commands <ChevronRight size={16}/></button>
+     <a href="https://notes.asifnawazminhas.com/"><BookOpen size={16}/> Open Security Notes</a>
+    </div>
+    <div className="heroStats">
+     <span><b>{commands.length}</b> commands</span>
+     <span><b>{favorites.length}</b> favourites</span>
+     <span><b>{recent.length}</b> recent</span>
+     <span><b>{health.mapped}</b> ATT&CK mapped</span>
+    </div>
+   </div>
+   <div className="terminal">
+    <div className="termbar"><i/><i/><i/><span>security-studio</span></div>
+    <code>
+     <b>$</b> knowledge --interactive<br/>
+     <span>✓ {commands.length} commands indexed</span><br/>
+     <span>✓ Command packs ready</span><br/>
+     <span>✓ Report Builder ready</span><br/>
+     <span>✓ Notes integration ready</span><br/>
+     <span>✓ Workspace backup enabled</span><br/>
+     <br/><b>$</b> explore <u>security</u><br/><strong>Ready.</strong>
+    </code>
+   </div>
+  </div>
+
+  <section>
+   <div className="sectionhead"><div><span className="eyebrow">WORKSPACE</span><h2>Choose where to start</h2></div></div>
+   <div className="grid">{quick.map(([n,id,I,d])=>
+    <button className="featurecard" onClick={()=>go(id)} key={id}>
+     <I/><div><h3>{n}</h3><p>{d}</p></div><ChevronRight className="arrow"/>
+    </button>)}
+   </div>
+  </section>
+
+  <section>
+   <div className="catalogHealth">
+    <div><Check/><b>{health.withExplanation}</b><span>Commands with explanation</span></div>
+    <div><RadioTower/><b>{health.withTelemetry}</b><span>Commands with telemetry</span></div>
+    <div><Network/><b>{health.mapped}</b><span>ATT&CK mapped</span></div>
+    <div className={health.duplicateIds.length?'healthWarn':'healthGood'}><ShieldCheck/><b>{health.duplicateIds.length}</b><span>Duplicate IDs</span></div>
+   </div>
+  </section>
+
+  <section>
+   <div className="banner"><Activity/><div><b>Built to connect Notes, Studio and reporting</b><span>Learn in Security Notes, open commands in Studio, organise validation work, then export a report.</span></div></div>
+  </section>
+ </>
 }
 
 function CommandPalette({close,openCommand,go}){
@@ -168,9 +245,9 @@ function LibraryPage({query,setQuery,platform,setPlatform,tool,setTool,openComma
  },[query,platform,tool,category,tag,onlyFavorites,favorites,sort]);
 
  const count=(key,value)=>commands.filter(c=>value==='All'||(key==='tags'?c.tags.includes(value):c[key]===value)).length;
- const copy=(e,c)=>{e.stopPropagation();navigator.clipboard?.writeText(c.command)};
+ const copy=(e,c)=>{e.stopPropagation();navigator.clipboard?.writeText(c.command);studioToast('Command copied');};
  const fav=(e,c)=>{e.stopPropagation();toggleFavorite(c.id)};
- const copyLink=()=>navigator.clipboard?.writeText(location.href);
+ const copyLink=()=>{navigator.clipboard?.writeText(location.href);studioToast('Filtered Command Library link copied');};
  const resetFilters=()=>{
    setQuery('');setPlatform('All');setTool('All');setCategory('All');setTag('All');setSort('Title');setOnlyFavorites(false);
  };
@@ -519,6 +596,259 @@ function Visualiser({c}){
   </div>
   <VisualPreview c={chosen}/>
  </>
+}
+
+const builtInPacks=[
+ {
+  id:'windows-baseline',name:'Windows Baseline',platform:'Windows',
+  description:'Read-only Windows system, identity, network and control baseline.',
+  commandIds:['windows-identity','windows-groups','windows-privileges','windows-computer-info','windows-processes','windows-services','windows-ip-config','windows-firewall-profiles','windows-defender-status','applocker-effective']
+ },
+ {
+  id:'linux-baseline',name:'Linux Baseline',platform:'Linux',
+  description:'Read-only Linux identity, system, process, network and filesystem baseline.',
+  commandIds:['linux-identity','linux-system','linux-kernel','linux-cpu','linux-memory','linux-processes','linux-services','linux-ip','linux-routes','linux-listeners','linux-mounts']
+ },
+ {
+  id:'network-discovery',name:'Network Discovery',platform:'Network',
+  description:'Authorised host, port, DNS and TLS inspection references.',
+  commandIds:['network-ping','network-traceroute','dns-dig','network-dig-a','network-dig-mx','nmap-ping','nmap-selected-ports','nmap-service','network-tls-inspect']
+ },
+ {
+  id:'web-assessment',name:'Web Assessment',platform:'Web',
+  description:'HTTP metadata, redirects, security headers and basic technology context.',
+  commandIds:['curl-head','curl-verbose','curl-follow','curl-timing','web-security-headers','web-cors-origin','web-robots','httpx-basic']
+ },
+ {
+  id:'ad-context',name:'Active Directory Context',platform:'Active Directory',
+  description:'Current identity, domain, forest, Kerberos and DNS context.',
+  commandIds:['ad-user','ad-whoami-upn','ad-domain','ad-domain-info','ad-forest-info','ad-domain-controller','ad-klist','ad-dns-srv']
+ },
+ {
+  id:'packet-analysis',name:'Packet Analysis',platform:'Network',
+  description:'Capture-interface discovery and PCAP review with tcpdump and tshark.',
+  commandIds:['tshark-interfaces','tshark-read-file','tshark-http','tshark-dns','tshark-fields','tcpdump-interface','tcpdump-read']
+ },
+ {
+  id:'repo-review',name:'Repository Review',platform:'Tools',
+  description:'Safe Git and ripgrep references for repository inspection.',
+  commandIds:['git-status','git-status-short','git-current-branch','git-remotes','git-log','git-show','git-diff-stat','git-diff-name','rg-files','rg-ignore-case','rg-filetype']
+ }
+];
+
+function CommandPacks({openCommand}){
+ const [selectedPack,setSelectedPack]=useState(builtInPacks[0].id);
+ const [customName,setCustomName]=useState('My Command Pack');
+ const [customSearch,setCustomSearch]=useState('');
+ const [selectedIds,setSelectedIds]=useState([]);
+ const [customPacks,setCustomPacks]=useState(()=>{
+  try{return JSON.parse(localStorage.getItem('security-studio-custom-packs')||'[]')}catch{return []}
+ });
+ useEffect(()=>localStorage.setItem('security-studio-custom-packs',JSON.stringify(customPacks)),[customPacks]);
+
+ const allPacks=[...builtInPacks,...customPacks];
+ const active=allPacks.find(p=>p.id===selectedPack)||allPacks[0];
+ const activeCommands=active.commandIds.map(id=>commands.find(c=>c.id===id)).filter(Boolean);
+ const matches=commands.filter(c=>`${c.title} ${c.platform} ${c.tool} ${c.category}`.toLowerCase().includes(customSearch.toLowerCase())).slice(0,24);
+
+ const addPackToWorkflow=()=>{
+  const steps=activeCommands.map((c,i)=>({
+   id:Date.now()+i,title:c.title,kind:'Validation',commandId:c.id,notes:c.notes,yesLabel:'Yes',noLabel:'No'
+  }));
+  localStorage.setItem('security-studio-workflow',JSON.stringify(steps));
+  studioToast(`${active.name} added to Workflow Builder`);
+ };
+
+ const exportPack=()=>{
+  const blob=new Blob([JSON.stringify(active,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${active.id}.json`;a.click();URL.revokeObjectURL(a.href);
+  studioToast('Command pack exported');
+ };
+
+ const saveCustom=()=>{
+  if(!customName.trim()||!selectedIds.length)return;
+  const pack={id:`custom-${Date.now()}`,name:customName.trim(),platform:'Custom',description:'Custom Security Studio command pack.',commandIds:selectedIds};
+  setCustomPacks([...customPacks,pack]);setSelectedPack(pack.id);setSelectedIds([]);studioToast('Custom command pack saved');
+ };
+
+ return <>
+  <PageTitle kicker="COMMANDS" title="Command Packs" text="Open reusable command collections, add them to workflows, or build your own pack."/>
+
+  <div className="packsLayout">
+   <div className="packSidebar">
+    <span className="eyebrow">BUILT-IN PACKS</span>
+    {builtInPacks.map(p=><button className={selectedPack===p.id?'active':''} onClick={()=>setSelectedPack(p.id)} key={p.id}><Package size={16}/><div><b>{p.name}</b><span>{p.commandIds.length} commands</span></div></button>)}
+    {customPacks.length>0&&<>
+     <span className="eyebrow customLabel">CUSTOM PACKS</span>
+     {customPacks.map(p=><button className={selectedPack===p.id?'active':''} onClick={()=>setSelectedPack(p.id)} key={p.id}><Star size={16}/><div><b>{p.name}</b><span>{p.commandIds.length} commands</span></div></button>)}
+    </>}
+   </div>
+
+   <div className="packMain">
+    <div className="packHero">
+     <div><span className="eyebrow">{active.platform.toUpperCase()}</span><h2>{active.name}</h2><p>{active.description}</p></div>
+     <div className="packActions">
+      <button className="primarySmall" onClick={addPackToWorkflow}><Workflow size={15}/> Add to workflow</button>
+      <button className="secondarySmall" onClick={exportPack}><Download size={15}/> Export pack</button>
+      {active.id.startsWith('custom-')&&<button className="secondarySmall dangerOutline" onClick={()=>{setCustomPacks(customPacks.filter(p=>p.id!==active.id));setSelectedPack(builtInPacks[0].id)}}><Trash2 size={15}/> Delete pack</button>}
+     </div>
+    </div>
+    <div className="packCommandList">
+     {activeCommands.map((c,i)=><button key={c.id} onClick={()=>openCommand(c)}><span>{i+1}</span><div><b>{c.title}</b><small>{c.platform} · {c.tool} · {c.category}</small><code>{c.command}</code></div><ChevronRight/></button>)}
+    </div>
+   </div>
+  </div>
+
+  <section className="customPackBuilder">
+   <div className="sectionhead"><div><span className="eyebrow">CUSTOM PACK</span><h2>Build your own command pack</h2></div></div>
+   <div className="customPackTop">
+    <input value={customName} onChange={e=>setCustomName(e.target.value)} placeholder="Pack name"/>
+    <div className="librarysearch"><Search size={16}/><input value={customSearch} onChange={e=>setCustomSearch(e.target.value)} placeholder="Search catalogue..."/></div>
+    <button className="primarySmall" disabled={!selectedIds.length} onClick={saveCustom}><Save size={15}/> Save pack ({selectedIds.length})</button>
+   </div>
+   <div className="packPicker">{matches.map(c=><label key={c.id} className={selectedIds.includes(c.id)?'selected':''}><input type="checkbox" checked={selectedIds.includes(c.id)} onChange={()=>setSelectedIds(ids=>ids.includes(c.id)?ids.filter(x=>x!==c.id):[...ids,c.id])}/><div><b>{c.title}</b><span>{c.platform} · {c.tool}</span></div></label>)}</div>
+  </section>
+ </>
+}
+
+function ReportBuilder(){
+ const [author,setAuthor]=useState(localStorage.getItem('security-studio-report-author')||'');
+ const [scope,setScope]=useState(localStorage.getItem('security-studio-report-scope')||'');
+ const [executive,setExecutive]=useState(localStorage.getItem('security-studio-report-executive')||'');
+ const [recommendations,setRecommendations]=useState(localStorage.getItem('security-studio-report-recommendations')||'');
+ const purpleMap=(()=>{try{return JSON.parse(localStorage.getItem('security-studio-purple-map')||'[]')}catch{return []}})();
+ const purpleStatus=(()=>{try{return JSON.parse(localStorage.getItem('security-studio-purple-status')||'{}')}catch{return {}}})();
+ const technique=localStorage.getItem('security-studio-purple-technique')||'';
+ const commandId=localStorage.getItem('security-studio-purple-command')||'';
+ const exerciseName=localStorage.getItem('security-studio-purple-name')||'Purple Team Validation';
+ const selectedCommand=commands.find(c=>c.id===commandId);
+
+ useEffect(()=>localStorage.setItem('security-studio-report-author',author),[author]);
+ useEffect(()=>localStorage.setItem('security-studio-report-scope',scope),[scope]);
+ useEffect(()=>localStorage.setItem('security-studio-report-executive',executive),[executive]);
+ useEffect(()=>localStorage.setItem('security-studio-report-recommendations',recommendations),[recommendations]);
+
+ const reportData=()=>({
+  title:exerciseName,author,scope,executiveSummary:executive,recommendations,
+  technique,
+  command:selectedCommand?{title:selectedCommand.title,command:selectedCommand.command,notes:selectedCommand.notes}:null,
+  statuses:purpleStatus,
+  mapping:purpleMap,
+  generatedAt:new Date().toISOString()
+ });
+
+ const markdown=()=>{
+  const r=reportData();
+  return [
+   `# ${r.title}`,'',
+   author?`**Author:** ${author}`:'',
+   scope?`**Scope:** ${scope}`:'',
+   `**ATT&CK technique:** ${r.technique||'Not selected'}`,
+   `**Validation command:** ${r.command?.title||'Not selected'}`,'',
+   '## Executive Summary','',r.executiveSummary||'_Not provided_','',
+   '## Validation Status','',
+   `- Telemetry: ${r.statuses.telemetry||'Not tested'}`,
+   `- Detection: ${r.statuses.detection||'Not tested'}`,
+   `- Response: ${r.statuses.response||'Not tested'}`,
+   `- Overall: ${r.statuses.overall||'Not tested'}`,'',
+   '## Technical Mapping','',
+   ...(r.mapping.length?r.mapping.flatMap(x=>[`### ${x.id}. ${x.title}`,x.value||'_Not documented_','']):['_No Purple Team mapping data available._','']),
+   '## Recommendations','',r.recommendations||'_Not provided_',''
+  ].filter(x=>x!==undefined).join('\n');
+ };
+
+ const html=()=>{
+  const r=reportData();
+  const mapping=(r.mapping||[]).map(x=>`<section><h3>${x.id}. ${x.title}</h3><p>${escapeHtml(x.value||'Not documented')}</p></section>`).join('');
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(r.title)}</title><style>body{font:16px system-ui;max-width:980px;margin:48px auto;padding:0 24px;color:#17212b}h1,h2{color:#0a5060}code{background:#eef3f5;padding:3px 6px;border-radius:4px}.meta{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;background:#f4f8f9;padding:16px;border-radius:8px}.status{display:flex;gap:10px;flex-wrap:wrap}.status span{border:1px solid #ccd9df;padding:8px 12px;border-radius:6px}section{border-top:1px solid #dde6ea;padding:14px 0}</style></head><body><h1>${escapeHtml(r.title)}</h1><div class="meta"><div><b>Author</b><br>${escapeHtml(r.author||'Not provided')}</div><div><b>Scope</b><br>${escapeHtml(r.scope||'Not provided')}</div><div><b>ATT&CK</b><br>${escapeHtml(r.technique||'Not selected')}</div><div><b>Command</b><br>${escapeHtml(r.command?.title||'Not selected')}</div></div><h2>Executive Summary</h2><p>${escapeHtml(r.executiveSummary||'Not provided')}</p><h2>Validation Status</h2><div class="status"><span>Telemetry: ${escapeHtml(r.statuses.telemetry||'Not tested')}</span><span>Detection: ${escapeHtml(r.statuses.detection||'Not tested')}</span><span>Response: ${escapeHtml(r.statuses.response||'Not tested')}</span><span>Overall: ${escapeHtml(r.statuses.overall||'Not tested')}</span></div><h2>Technical Mapping</h2>${mapping||'<p>No Purple Team mapping data available.</p>'}<h2>Recommendations</h2><p>${escapeHtml(r.recommendations||'Not provided')}</p></body></html>`;
+ };
+
+ const download=(content,type,name)=>{
+  const blob=new Blob([content],{type});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href);studioToast(`${name} exported`);
+ };
+
+ return <>
+  <PageTitle kicker="WORKSPACE" title="Report Builder" text="Turn Purple Team validation data into a clean executive and technical report."/>
+
+  <div className="reportGrid">
+   <div className="reportForm panel">
+    <h3>Report details</h3>
+    <label>Author<input value={author} onChange={e=>setAuthor(e.target.value)} placeholder="Name or team"/></label>
+    <label>Scope<input value={scope} onChange={e=>setScope(e.target.value)} placeholder="Assessment scope"/></label>
+    <label>Executive summary<textarea value={executive} onChange={e=>setExecutive(e.target.value)} placeholder="Summarise what was validated, what was observed and the overall result."/></label>
+    <label>Recommendations<textarea value={recommendations} onChange={e=>setRecommendations(e.target.value)} placeholder="Document practical improvements and next actions."/></label>
+    <div className="reportActions">
+     <button className="primarySmall" onClick={()=>download(markdown(),'text/markdown','security-studio-report.md')}><Download size={15}/> Markdown</button>
+     <button className="secondarySmall" onClick={()=>download(html(),'text/html','security-studio-report.html')}><Download size={15}/> HTML</button>
+     <button className="secondarySmall" onClick={()=>download(JSON.stringify(reportData(),null,2),'application/json','security-studio-report.json')}><FileJson size={15}/> JSON</button>
+    </div>
+   </div>
+
+   <div className="reportPreview panel">
+    <span className="eyebrow">LIVE PREVIEW</span>
+    <h2>{exerciseName}</h2>
+    <div className="reportMeta">
+     <span>ATT&CK <b>{technique||'Not selected'}</b></span>
+     <span>Overall <b>{purpleStatus.overall||'Not tested'}</b></span>
+     <span>Detection <b>{purpleStatus.detection||'Not tested'}</b></span>
+     <span>Response <b>{purpleStatus.response||'Not tested'}</b></span>
+    </div>
+    <h3>Executive Summary</h3><p>{executive||'Add an executive summary on the left.'}</p>
+    <h3>Validation command</h3>
+    {selectedCommand?<code className="reportCode">{selectedCommand.command}</code>:<p>No validation command selected in Purple Team Mapping.</p>}
+    <h3>Technical Mapping</h3>
+    <div className="reportMapping">{purpleMap.length?purpleMap.map(x=><div key={x.id}><b>{x.id}. {x.title}</b><p>{x.value||'Not documented'}</p></div>):<p>No Purple Team mapping data available.</p>}</div>
+   </div>
+  </div>
+ </>
+}
+
+function escapeHtml(value=''){
+ return String(value).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+
+function NotesLinkBuilder(){
+ const [commandId,setCommandId]=useState(commands[0]?.id||'');
+ const c=commands.find(x=>x.id===commandId)||commands[0];
+ const studioUrl=`https://studio.asifnawazminhas.com/#/command/${c.id}`;
+ const markdown=`[Open in Security Studio](${studioUrl})`;
+ const mkdocs=`[Open in Security Studio](${studioUrl}){ target="_blank" rel="noopener noreferrer" }`;
+ const related=`## Related Interactive Material\n\n- [Open ${c.title} in Security Studio](${studioUrl}){ target="_blank" rel="noopener noreferrer" }\n- [Security Notes documentation](${c.notes})`;
+ const copy=(value,label)=>{navigator.clipboard?.writeText(value);studioToast(`${label} copied`);};
+
+ return <>
+  <PageTitle kicker="WORKSPACE" title="Notes Link Builder" text="Generate exact Notes ↔ Studio links for your MkDocs pages."/>
+
+  <div className="notesBuilder panel">
+   <label>Command<select value={commandId} onChange={e=>setCommandId(e.target.value)}>{commands.map(x=><option key={x.id} value={x.id}>{x.title}</option>)}</select></label>
+   <div className="notesCommandPreview"><b>{c.title}</b><span>{c.platform} · {c.tool} · {c.category}</span><code>{c.command}</code></div>
+
+   <LinkOutput title="Studio URL" value={studioUrl} onCopy={()=>copy(studioUrl,'Studio URL')}/>
+   <LinkOutput title="Markdown link" value={markdown} onCopy={()=>copy(markdown,'Markdown link')}/>
+   <LinkOutput title="MkDocs external link" value={mkdocs} onCopy={()=>copy(mkdocs,'MkDocs link')}/>
+   <LinkOutput title="Related Material block" value={related} multiline onCopy={()=>copy(related,'Related Material block')}/>
+
+   <div className="notesBuilderActions">
+    <a className="primarySmall" href={studioUrl}>Open command <ExternalLink size={15}/></a>
+    <a className="secondarySmall" href={c.notes}>Open Notes page <BookOpen size={15}/></a>
+   </div>
+  </div>
+ </>
+}
+
+function LinkOutput({title,value,onCopy,multiline=false}){
+ return <div className="linkOutput"><label>{title}</label>{multiline?<textarea readOnly value={value}/>:<input readOnly value={value}/>}<button className="secondarySmall" onClick={onCopy}><Copy size={14}/> Copy</button></div>
+}
+
+function ToastHost(){
+ const [message,setMessage]=useState('');
+ useEffect(()=>{
+  let timer;
+  const handler=e=>{setMessage(e.detail||'Done');clearTimeout(timer);timer=setTimeout(()=>setMessage(''),2200)};
+  addEventListener('studio-toast',handler);
+  return()=>{removeEventListener('studio-toast',handler);clearTimeout(timer)};
+ },[]);
+ return message?<div className="studioToast"><Check size={16}/>{message}</div>:null;
 }
 
 function WorkspacePage({favorites,recent,toggleFavorite,openCommand,removeRecent,clearRecent}){

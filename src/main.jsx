@@ -413,6 +413,11 @@ function App(){
  const [tool,setTool]=useState(initialParams.get('tool')||'All');
  const [selected,setSelected]=useState(initial.command||commands[0]);
  const [mobile,setMobile]=useState(false);
+ const [collapsedGroups,setCollapsedGroups]=useState(()=>{
+  try{return JSON.parse(localStorage.getItem('security-studio-collapsed-groups')||'{}')}catch{return {}}
+ });
+ useEffect(()=>localStorage.setItem('security-studio-collapsed-groups',JSON.stringify(collapsedGroups)),[collapsedGroups]);
+ const toggleGroup=title=>setCollapsedGroups(v=>({...v,[title]:!v[title]}));
  const [tab,setTab]=useState('Explain');
  const [palette,setPalette]=useState(false);
  const [help,setHelp]=useState(false);
@@ -475,7 +480,7 @@ function App(){
    </div>
    <button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button>
   </header>
-  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v1.1</div></aside>
+  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className={`navgroup ${s.title&&collapsedGroups[s.title]?'collapsed':''}`} key={i}>{s.title?<button className="navGroupTitle" onClick={()=>toggleGroup(s.title)}><span>{s.title}</span><ChevronDown size={13}/></button>:null}<div className="navGroupItems">{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><span className="navIcon"><Icon size={18}/></span><span className="navText">{name}</span></button>)}</div></div>)}<div className="sidefoot"><span className="dot"/> Studio v1.2</div></aside>
   <main>
    {page==='dashboard'?<Dashboard go={go} favorites={favorites} recent={recent}/>:
     page==='catalogue'?<CatalogueOverview go={go} openCommand={openCommand}/>:
@@ -536,7 +541,7 @@ function Dashboard({go,favorites,recent}){
  return <>
   <div className="hero assessmentHeroHome">
    <div>
-    <span className="eyebrow">ASIF'S SECURITY STUDIO 1.0</span>
+    <span className="eyebrow">ASIF'S SECURITY STUDIO 1.2</span>
     <h1>Assessment intelligence,<br/><em>made practical.</em></h1>
     <p>Run structured assessments, track findings, connect commands to ATT&CK and telemetry, and turn technical observations into finished reports.</p>
     <div className="heroactions">
@@ -745,7 +750,7 @@ function LibraryPage({query,setQuery,platform,setPlatform,tool,setTool,openComma
   <div className="libraryContextBar"><div><span>CATALOGUE</span><b>{platform==='All'?'All platforms':platform}</b></div><div><span>VISIBLE</span><b>{filtered.length}</b></div><div><span>TOTAL</span><b>{commands.length}</b></div></div><div className="librarytools premiumLibrary">
    <div className="librarysearch"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search title, tool, ATT&CK, category, tag or command..."/><kbd>/</kbd></div>
    <div className="filterrow scrollable"><Filter size={16}/><b>Platform</b>{platforms.map(p=><button className={platform===p?'selected':''} onClick={()=>setPlatform(p)} key={p}>{p}<small>{count('platform',p)}</small></button>)}</div>
-   <div className="filterrow scrollable"><Filter size={16}/><b>Tool</b>{tools.slice(0,24).map(p=><button className={tool===p?'selected':''} onClick={()=>setTool(p)} key={p}>{p}<small>{count('tool',p)}</small></button>)}</div>
+   <div className="filterrow toolFilterRow"><Filter size={16}/><b>Tool</b>{tools.slice(0,11).map(p=><button className={tool===p?'selected':''} onClick={()=>setTool(p)} key={p}>{p}<small>{count('tool',p)}</small></button>)}<select className="moreToolsSelect" value={tools.slice(0,11).includes(tool)?'More tools':tool} onChange={e=>e.target.value!=='More tools'&&setTool(e.target.value)}><option>More tools</option>{tools.slice(11).map(p=><option key={p} value={p}>{p} ({count('tool',p)})</option>)}</select></div>
 
    <div className="libraryFacetGrid">
     <label>Category<select value={category} onChange={e=>setCategory(e.target.value)}>{categories.map(x=><option key={x}>{x}</option>)}</select></label>
@@ -763,19 +768,19 @@ function LibraryPage({query,setQuery,platform,setPlatform,tool,setTool,openComma
     </div>
     <div className="optionGroup">
      {pinned&&<button onClick={applyPinned}><Check size={14}/> Apply pinned</button>}
-     <button onClick={pinFilters}><Save size={14}/> Pin filters</button>
+     <button onClick={pinFilters}><Save size={14}/> Save view</button>
      <button onClick={resetFilters}><RotateCcw size={14}/> Reset</button>
      <button onClick={()=>studioCopy(location.href,'Filtered Command Library link')}><Copy size={14}/> Share view</button>
     </div>
    </div>
   </div>
 
-  <div className="libraryResultBar"><div><b>{filtered.length}</b><span>commands match</span></div><div className="activeFacetSummary">{platform!=='All'&&<span>{platform}</span>}{category!=='All'&&<span>{category}</span>}{risk!=='All'&&<span>{risk}</span>}{withAttack&&<span>ATT&CK</span>}{withTelemetry&&<span>Telemetry</span>}{withParameters&&<span>Parameters</span>}</div></div>
+  <div className="libraryResultBar"><div><b>{filtered.length}</b><span>results</span></div><div className="activeFacetSummary">{platform!=='All'&&<button onClick={()=>setPlatform('All')}>{platform}<X size={11}/></button>}{tool!=='All'&&<button onClick={()=>setTool('All')}>{tool}<X size={11}/></button>}{category!=='All'&&<button onClick={()=>setCategory('All')}>{category}<X size={11}/></button>}{risk!=='All'&&<button onClick={()=>setRisk('All')}>{risk}<X size={11}/></button>}{withAttack&&<button onClick={()=>setWithAttack(false)}>ATT&CK<X size={11}/></button>}{withTelemetry&&<button onClick={()=>setWithTelemetry(false)}>Telemetry<X size={11}/></button>}{withParameters&&<button onClick={()=>setWithParameters(false)}>Parameters<X size={11}/></button>}</div></div>
 
   <div className="commandgrid premiumGrid">{filtered.map(c=>{const maturity=commandMaturity(c);return <article className="commandcard premiumCard" key={c.id}>
    {recentlyExpandedIds.has(c.id)&&<span className="newBadge">NEW</span>}
    <div className="badges"><span>{c.platform}</span><span>{c.tool}</span><small>{c.risk}</small></div>
-   <h3>{c.title}</h3><p>{c.description}</p><code>{c.command}</code>
+   <h3>{c.title}</h3><p>{c.description}</p><div className="librarySyntax"><SyntaxCode code={c.command} language={inferLanguage(c)} /></div>
    <div className="commandCoverage">
     <span className={c.attack?.length?'covered':''}><Network size={12}/> {c.attack?.length||0} ATT&CK</span>
     <span className={c.telemetry?.length?'covered':''}><RadioTower size={12}/> {c.telemetry?.length||0} telemetry</span>
@@ -783,7 +788,7 @@ function LibraryPage({query,setQuery,platform,setPlatform,tool,setTool,openComma
     <span className={`maturity ${maturity.score>=90?'good':maturity.score>=75?'strong':'review'}`}>{maturity.score}%</span>
    </div>
    <div className="tags">{c.tags.slice(0,5).map(t=><small key={t}>{t}</small>)}</div>
-   <div className="cardActions"><button onClick={e=>fav(e,c)} className={favorites.includes(c.id)?'favOn':''}><Star size={14} fill={favorites.includes(c.id)?'currentColor':'none'}/> {favorites.includes(c.id)?'Saved':'Save'}</button><button onClick={e=>copy(e,c)}><Copy size={14}/> Copy</button><a href={c.notes} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()}><BookOpen size={14}/> Notes</a><button className="openBtn" onClick={()=>openCommand(c)}>Open <ChevronRight size={14}/></button></div>
+   <div className="cardActions refined"><div className="cardIconActions"><button title={favorites.includes(c.id)?'Remove from saved':'Save command'} aria-label={favorites.includes(c.id)?'Remove from saved':'Save command'} onClick={e=>fav(e,c)} className={favorites.includes(c.id)?'favOn':''}><Star size={14} fill={favorites.includes(c.id)?'currentColor':'none'}/></button><a title="Open Security Notes" aria-label="Open Security Notes" href={c.notes} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()}><BookOpen size={14}/></a></div><div className="cardPrimaryActions"><button onClick={e=>copy(e,c)}><Copy size={14}/> Copy</button><button className="openBtn" onClick={()=>openCommand(c)}>Open <ChevronRight size={14}/></button></div></div>
   </article>})}</div>
   {!filtered.length&&<div className="empty">No commands match the current search and filters.</div>}
  </>
@@ -1443,7 +1448,7 @@ function Diagnostics(){
   <PageTitle kicker="SETTINGS" title="Diagnostics & Recovery" text="Run local health checks and recover the Studio if browser data becomes corrupted."/>
   <div className="diagnosticGrid">
    <Panel title="Application health">
-    <div className="diagnosticMeta"><span>Studio version</span><b>v1.1</b><span>Storage schema</span><b>v{STORAGE_VERSION}</b><span>Last migration</span><b>{storageMigration.migrated?`v${storageMigration.from} → v${storageMigration.to}`:'Current'}</b></div>
+    <div className="diagnosticMeta"><span>Studio version</span><b>v1.2</b><span>Storage schema</span><b>v{STORAGE_VERSION}</b><span>Last migration</span><b>{storageMigration.migrated?`v${storageMigration.from} → v${storageMigration.to}`:'Current'}</b></div>
     <button className="primarySmall" onClick={check}><ShieldCheck size={15}/> Run health checks</button>
     {result&&<div className="diagnosticResults">{rows.map(([label,ok])=><div key={label}><span>{label}</span><b className={ok?'ok':'warn'}>{ok?'Pass':'Review'}</b></div>)}</div>}
    </Panel>

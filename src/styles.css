@@ -1992,3 +1992,442 @@ html[data-theme="light"] .libraryContextBar b{color:#17323d!important}
 @media(max-width:1450px){.commandgrid.premiumGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:920px){main{padding-left:20px!important;padding-right:20px!important}.libraryContextBar{justify-content:flex-start}.commandgrid.premiumGrid{grid-template-columns:1fr!important}}
 @media(max-width:640px){.libraryContextBar{display:grid;grid-template-columns:repeat(3,1fr)}.libraryContextBar>div{min-width:0}.premiumLibrary{padding:12px!important}}
+
+/* ============================================================
+   Security Studio 1.2 - 10/10 UI refinement release
+   ============================================================ */
+
+:root{
+ --studio-bg:#050d13;
+ --studio-surface:#07151e;
+ --studio-surface-2:#081b25;
+ --studio-border:#1a4252;
+ --studio-muted:#7897a6;
+ --studio-text:#e8f0f4;
+ --studio-radius:12px;
+ --studio-ease:160ms cubic-bezier(.2,.8,.2,1);
+}
+
+/* 1. HEADER - clearer hierarchy, less visual competition */
+header{
+ height:92px!important;
+ min-height:92px!important;
+ grid-template-columns:minmax(250px,var(--sidebar-width,202px)) minmax(400px,1fr) auto!important;
+ border-bottom:1px solid #173947!important;
+ background:rgba(5,16,23,.94)!important;
+ backdrop-filter:blur(22px) saturate(120%)!important;
+ box-shadow:0 14px 40px rgba(0,0,0,.16)!important;
+}
+header::after{
+ content:'';
+ position:absolute;
+ left:0;right:0;bottom:-1px;
+ height:1px;
+ background:linear-gradient(90deg,transparent,var(--user-accent) 28%,transparent 68%);
+ opacity:.18;
+ pointer-events:none;
+}
+.brand{gap:11px!important}
+.brand .mark{
+ width:40px!important;height:40px!important;
+ border-radius:10px!important;
+ background:linear-gradient(145deg,#082733,#06151e)!important;
+ box-shadow:inset 0 1px 0 #ffffff08,0 10px 28px #0002!important;
+}
+.brand b{font-size:15px!important}
+.brand span{font-size:9.5px!important;color:#69b9ca!important}
+.topsearch{
+ max-width:650px!important;
+ justify-self:center;
+ height:48px!important;
+ border:1px solid #255365!important;
+ background:linear-gradient(180deg,#081923,#06131b)!important;
+}
+.topsearch:hover{border-color:#34778a!important}
+.topsearch span{color:#89a6b4!important}
+.topsearch kbd{
+ background:#06131b!important;
+ border:1px solid #315a6b!important;
+ border-bottom-color:#173845!important;
+ color:#9db4be!important;
+ box-shadow:inset 0 -1px 0 #0006!important;
+}
+.topActions{gap:6px!important}
+.topActions>*{min-height:36px!important}
+.contextIndicator{background:#07151e!important}
+.notes{font-weight:650!important}
+
+/* 2. SIDEBAR - collapsible, cleaner alignment */
+aside{
+ width:var(--sidebar-width,202px)!important;
+ padding:108px 8px 42px!important;
+ overflow-y:auto!important;
+ scrollbar-width:thin;
+ scrollbar-color:#204858 transparent;
+}
+.navgroup{margin:0 0 9px!important}
+.navGroupTitle{
+ width:100%;
+ display:flex!important;
+ align-items:center!important;
+ justify-content:space-between!important;
+ min-height:28px!important;
+ border:0!important;
+ background:transparent!important;
+ color:#608395!important;
+ padding:4px 10px!important;
+ border-radius:7px!important;
+ font-size:8px!important;
+ font-weight:800!important;
+ letter-spacing:1.25px!important;
+ text-transform:uppercase!important;
+}
+.navGroupTitle:hover{color:#91afbd!important;background:#081a23!important;transform:none!important}
+.navGroupTitle svg{transition:transform var(--studio-ease)}
+.navgroup.collapsed .navGroupTitle svg{transform:rotate(-90deg)}
+.navGroupItems{
+ display:grid;
+ gap:1px;
+ overflow:hidden;
+ max-height:900px;
+ opacity:1;
+ transition:max-height 220ms ease,opacity 160ms ease,margin 160ms ease;
+}
+.navgroup.collapsed .navGroupItems{max-height:0;opacity:0;margin:0}
+.navgroup .navGroupItems>button{
+ display:grid!important;
+ grid-template-columns:24px minmax(0,1fr)!important;
+ gap:7px!important;
+ align-items:center!important;
+ min-height:39px!important;
+ margin:1px 0!important;
+ padding:8px 10px!important;
+ border-radius:8px!important;
+}
+.navIcon{width:20px;height:20px;display:grid;place-items:center;color:#87a5b4}
+.navText{
+ white-space:nowrap;
+ overflow:hidden;
+ text-overflow:ellipsis;
+ text-align:left;
+ line-height:1.2;
+}
+.navgroup .navGroupItems>button:hover .navIcon,
+.navgroup .navGroupItems>button.active .navIcon{color:var(--user-accent)}
+.navgroup .navGroupItems>button.active{
+ box-shadow:inset 2px 0 0 var(--user-accent),0 7px 18px rgba(0,0,0,.14)!important
+}
+.sidefoot{
+ left:12px!important;
+ right:12px!important;
+ bottom:10px!important;
+ padding-top:8px!important;
+ background:linear-gradient(180deg,transparent,#06131c 35%)!important;
+}
+
+/* 3. PAGE BACKGROUND - quieter behind dense content */
+main{
+ background:
+  linear-gradient(rgba(5,13,19,.30),rgba(5,13,19,.30)),
+  radial-gradient(circle at 70% 0%,rgba(0,229,255,.028),transparent 26%)!important;
+}
+main::before{
+ content:'';
+ position:fixed;
+ inset:92px 0 0 var(--sidebar-width,202px);
+ pointer-events:none;
+ background-image:radial-gradient(#1551642e 1px,transparent 1px);
+ background-size:20px 20px;
+ mask-image:linear-gradient(to bottom,black 0%,rgba(0,0,0,.7) 28%,transparent 68%);
+ z-index:-1;
+}
+
+/* 4. TITLE / BREADCRUMB - tighter vertical rhythm */
+.libraryHeading{margin-bottom:8px!important}
+.catalogueBreadcrumb{margin-bottom:7px!important}
+.libraryHeading .pagetitle{margin-bottom:10px!important}
+.pagetitle h1,.libraryHeading h1{
+ font-size:clamp(36px,3vw,46px)!important;
+ margin-top:5px!important;
+ margin-bottom:8px!important;
+}
+.pagetitle p,.libraryHeading p{margin-top:0!important;line-height:1.55!important}
+.libraryContextBar{margin:-2px 0 9px!important}
+.libraryContextBar>div{
+ min-width:96px!important;
+ padding:7px 9px!important;
+}
+
+/* 5. FILTER PANEL - compact, premium, less noisy */
+.premiumLibrary{
+ padding:14px 14px 12px!important;
+ border-radius:15px!important;
+ margin-top:0!important;
+}
+.premiumLibrary .librarysearch{
+ height:50px!important;
+ margin-bottom:4px!important;
+}
+.filterrow{
+ min-height:44px!important;
+ padding:6px 0!important;
+}
+.filterrow>svg{color:#7a99a8;flex:0 0 auto}
+.filterrow>b{min-width:52px!important}
+.filterrow button{
+ height:34px!important;
+ border-radius:17px!important;
+ padding:0 10px!important;
+ font-size:9px!important;
+}
+.filterrow button small{
+ font-size:7px!important;
+ opacity:.55!important;
+}
+.toolFilterRow{
+ display:flex!important;
+ flex-wrap:wrap!important;
+ align-items:center!important;
+ overflow:visible!important;
+}
+.moreToolsSelect{
+ height:34px;
+ min-width:118px;
+ border:1px solid #244b5c;
+ background:#07151e;
+ color:#8da8b5;
+ border-radius:17px;
+ padding:0 28px 0 11px;
+ font-size:9px;
+}
+.moreToolsSelect:hover{border-color:#367287;color:#dce8ee}
+.libraryFacetGrid{margin-top:8px!important}
+.libraryFacetGrid select{height:40px!important}
+.libraryOptions.modern{
+ margin-top:10px!important;
+ padding-top:10px!important;
+}
+.optionGroup button{min-height:35px!important;font-size:9px!important}
+
+/* 6. RESULT BAR + removable chips */
+.libraryResultBar{
+ min-height:44px;
+ margin:13px 2px 9px!important;
+}
+.libraryResultBar>div:first-child{
+ gap:6px!important;
+}
+.libraryResultBar b{font-size:25px!important}
+.libraryResultBar>div:first-child span{
+ font-size:11px!important;
+ color:#819dac!important;
+}
+.activeFacetSummary{
+ gap:5px!important;
+}
+.activeFacetSummary button{
+ display:inline-flex;
+ align-items:center;
+ gap:5px;
+ min-height:28px;
+ border:1px solid #1d5b6e;
+ background:#082732;
+ color:#70d9e9;
+ border-radius:14px;
+ padding:0 8px;
+ font-size:8px;
+}
+.activeFacetSummary button:hover{
+ background:#0a3340;
+ border-color:#2693aa;
+ color:#fff;
+}
+
+/* 7. COMMAND CARDS - command is the focal point */
+.commandgrid.premiumGrid{
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:12px!important;
+ align-items:stretch;
+}
+.premiumCard{
+ min-height:272px!important;
+ display:flex!important;
+ flex-direction:column!important;
+ padding:17px!important;
+ border-radius:13px!important;
+}
+.premiumCard .badges{padding-right:50px}
+.premiumCard h3{
+ margin:12px 0 6px!important;
+ font-size:16px!important;
+}
+.premiumCard p{
+ min-height:38px!important;
+ margin:0 0 10px!important;
+ font-size:10.5px!important;
+}
+.librarySyntax{
+ border:1px solid #173d4c;
+ background:linear-gradient(180deg,#040c12,#051017);
+ border-radius:8px;
+ padding:10px 11px;
+ min-height:48px;
+ display:flex;
+ align-items:center;
+ overflow:auto;
+ box-shadow:inset 0 1px 0 #ffffff03;
+}
+.librarySyntax .syntaxCode{
+ font-size:10px!important;
+ line-height:1.5!important;
+ white-space:pre!important;
+}
+.commandCoverage{
+ margin-top:9px!important;
+}
+.commandCoverage>span{
+ padding:3px 6px!important;
+ font-size:7.5px!important;
+}
+.premiumCard .tags{
+ margin-top:9px!important;
+ max-height:24px;
+ overflow:hidden;
+}
+.premiumCard .tags small{
+ font-size:7.5px!important;
+}
+.cardActions.refined{
+ display:flex!important;
+ align-items:center!important;
+ justify-content:space-between!important;
+ gap:8px!important;
+ margin-top:auto!important;
+ padding-top:12px!important;
+ border-top:1px solid #143441;
+}
+.cardIconActions,.cardPrimaryActions{
+ display:flex;
+ gap:6px;
+ align-items:center;
+}
+.cardActions.refined button,
+.cardActions.refined a{
+ min-height:34px!important;
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ gap:5px!important;
+}
+.cardIconActions button,.cardIconActions a{
+ width:34px!important;
+ padding:0!important;
+}
+.cardPrimaryActions .openBtn{
+ color:#001015!important;
+ background:var(--user-accent)!important;
+ border-color:var(--user-accent)!important;
+ font-weight:800!important;
+}
+.cardPrimaryActions .openBtn:hover{filter:brightness(1.04)}
+.newBadge{top:12px!important;right:12px!important}
+
+/* 8. TYPOGRAPHY - more legible microcopy */
+.eyebrow{font-size:9px!important;letter-spacing:1.2px!important}
+.panel p,.featurecard p,.assessmentCheckHead p,.findingCard span{font-size:max(10px,inherit)}
+small{line-height:1.35}
+
+/* 9. PANELS - one coherent visual language */
+.panel,.featurecard,.workspaceItem,.reportForm,.reportPreview,
+.assessmentMain,.assessmentNav,.assessmentTimeline,.homeAssessmentCard,
+.privescWorkspace,.privescTree,.topicCard,.runtimeCard{
+ border-radius:13px!important;
+ border-color:#1a4252!important;
+ background:linear-gradient(150deg,#081720,#06131b)!important;
+ box-shadow:0 12px 38px rgba(0,0,0,.16),inset 0 1px 0 #ffffff04!important;
+}
+
+/* 10. MOTION / FOCUS */
+button,a,.premiumCard,.featurecard,.topicCard{
+ transition:
+  transform var(--studio-ease),
+  border-color var(--studio-ease),
+  color var(--studio-ease),
+  background var(--studio-ease),
+  box-shadow var(--studio-ease),
+  filter var(--studio-ease)!important;
+}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+ outline:2px solid var(--user-accent)!important;
+ outline-offset:2px!important;
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{transition-duration:.001ms!important;animation-duration:.001ms!important}
+}
+
+/* Light mode parity */
+html[data-theme="light"] main{
+ background:linear-gradient(rgba(245,249,250,.76),rgba(245,249,250,.76)),radial-gradient(circle at 70% 0%,rgba(0,145,165,.04),transparent 26%)!important;
+}
+html[data-theme="light"] main::before{
+ background-image:radial-gradient(#6094a526 1px,transparent 1px)!important;
+}
+html[data-theme="light"] .librarySyntax{
+ background:linear-gradient(180deg,#f6fbfc,#eef7f9)!important;
+ border-color:#c9dfe6!important;
+}
+html[data-theme="light"] .moreToolsSelect{
+ background:#fff!important;
+ border-color:#bdd2db!important;
+ color:#365866!important;
+}
+html[data-theme="light"] .activeFacetSummary button{
+ background:#e7f8fb!important;
+ border-color:#9fd2dd!important;
+ color:#006f81!important;
+}
+html[data-theme="light"] .panel,
+html[data-theme="light"] .featurecard,
+html[data-theme="light"] .workspaceItem,
+html[data-theme="light"] .reportForm,
+html[data-theme="light"] .reportPreview,
+html[data-theme="light"] .assessmentMain,
+html[data-theme="light"] .assessmentNav,
+html[data-theme="light"] .assessmentTimeline,
+html[data-theme="light"] .homeAssessmentCard,
+html[data-theme="light"] .privescWorkspace,
+html[data-theme="light"] .privescTree,
+html[data-theme="light"] .topicCard,
+html[data-theme="light"] .runtimeCard{
+ background:linear-gradient(150deg,#fff,#f8fbfc)!important;
+ border-color:#c9dbe2!important;
+ box-shadow:0 12px 35px rgba(28,67,82,.06),inset 0 1px 0 #fff!important;
+}
+
+/* Responsive: drawer-like sidebar and filter compression */
+@media(max-width:1200px){
+ .commandgrid.premiumGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:900px){
+ aside{
+  display:block!important;
+  transform:translateX(-105%)!important;
+  transition:transform 180ms ease!important;
+  box-shadow:20px 0 60px #0008!important;
+  z-index:60!important;
+ }
+ aside.open{transform:translateX(0)!important;pointer-events:auto!important}
+ main::before{left:0!important}
+}
+@media(max-width:700px){
+ .commandgrid.premiumGrid{grid-template-columns:1fr!important}
+ .toolFilterRow button:nth-of-type(n+7){display:none}
+ .libraryFacetGrid{grid-template-columns:1fr 1fr!important}
+}
+@media(max-width:520px){
+ .libraryFacetGrid{grid-template-columns:1fr!important}
+ .libraryContextBar{grid-template-columns:1fr 1fr 1fr!important}
+ .cardActions.refined{align-items:stretch!important;flex-direction:column!important}
+ .cardIconActions,.cardPrimaryActions{width:100%}
+ .cardPrimaryActions>*{flex:1}
+}

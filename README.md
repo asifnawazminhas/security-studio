@@ -1,6 +1,6 @@
 # Asif's Security Studio
 
-## 1.1 - Premium UI Polish + Assessment Intelligence
+## 1.2 - UI Refinement Release
 
 Security Studio 1.0 is the first product milestone where the existing command, ATT&CK, telemetry, privilege-escalation, notes and reporting features operate as one integrated assessment workbench.
 
@@ -129,3 +129,24 @@ Security Studio adapts the organisational ideas rather than copying exploit payl
 - stronger dark/light parity
 - improved responsive layout
 - catalogue context strip
+
+### 1.2 UI assessment fixes
+- collapsible sidebar groups with local persistence
+- consistent icon/text alignment in navigation
+- quieter dotted background behind dense content
+- tighter breadcrumb/title spacing
+- shorter, denser filter area
+- top tools plus More tools overflow selector
+- removable active-filter chips
+- syntax-highlighted commands in Library cards
+- command-first card hierarchy
+- icon-only Save and Notes actions
+- clearer primary Open action
+- stronger typography and microcopy legibility
+- unified panel/card surface language
+- stronger keyboard focus states
+- improved reduced-motion handling
+- mobile sidebar drawer behaviour
+- dark/light visual parity pass
+
+No new security feature area was added in this release.

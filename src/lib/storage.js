@@ -1,4 +1,4 @@
-export const STORAGE_VERSION = 26;
+export const STORAGE_VERSION = 100;
 
 export const safeParse = (value, fallback) => {
   try {
@@ -72,7 +72,7 @@ export const safeFilename = (value, fallback = 'security-studio') => {
 };
 
 const migrations = {
-  26: () => {
+  100: () => {
     // v2.6 central schema marker. Earlier v2.x data is intentionally retained.
     writeText('security-studio-storage-version', String(STORAGE_VERSION));
   }

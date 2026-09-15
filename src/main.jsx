@@ -21,7 +21,8 @@ const sections=[
  {title:'',items:[['Dashboard','dashboard',LayoutDashboard]]},
  {title:'COMMANDS',items:[['Catalogue Overview','catalogue',Layers3],['Command Library','library',Library],['Command Studio','command-studio',TerminalSquare],['Command Visualiser','visualiser',Image],['Command Compare','compare',Columns3],['Command Packs','packs',Package],['Runtime Library','runtimes',Code2],['Custom Commands','custom-commands',Braces]]},
  {title:'EXPLORERS',items:[['PrivEsc Explorer','privesc',ShieldCheck],['ATT&CK Explorer','attack',Network],['Attack Path Explorer','attack-path',GitCompareArrows],['Knowledge Graph','graph',GitBranch]]},
- {title:'WORKSPACE',items:[['Saved Workspace','workspace',Star],['Context Profiles','contexts',Braces],['Quick Notes','quick-notes',NotebookPen],['Copy History','copy-history',History],['Engagement Timer','timer',TimerReset],['Report Builder','reports',FileText],['Notes Link Builder','notes-links',Link2]]},
+ {title:'ASSESSMENT',items:[['Assessment Workspace','assessment-workspace',ListChecks],['Findings','findings',FileText],['Report Builder','reports',FileText]]},
+ {title:'WORKSPACE',items:[['Saved Workspace','workspace',Star],['Context Profiles','contexts',Braces],['Quick Notes','quick-notes',NotebookPen],['Copy History','copy-history',History],['Engagement Timer','timer',TimerReset],['Notes Link Builder','notes-links',Link2]]},
  {title:'BUILDERS',items:[['Workflow Builder','workflow',Workflow],['Assessment Sequences','assessments',ListChecks]]},
  {title:'DEFENCE',items:[['Coverage Intelligence','coverage',BarChart3],['Detection & Telemetry','detection',RadioTower],['Purple Team Mapping','purple',Layers3]]},
  {title:'SETTINGS',items:[['Appearance','appearance',Palette],['Diagnostics','diagnostics',ShieldCheck]]}
@@ -69,6 +70,141 @@ const attackCatalog=[
  ['T1069.001','Permission Groups Discovery: Local Groups','Discovery'],
  ['T1595.002','Active Scanning: Vulnerability Scanning','Reconnaissance']
 ];
+
+
+const ASSESSMENT_STORAGE_KEY='security-studio-assessment-workspace-v1';
+const FINDINGS_STORAGE_KEY='security-studio-findings-v1';
+const TIMELINE_STORAGE_KEY='security-studio-assessment-timeline-v1';
+
+const assessmentBlueprints={
+ 'Windows Host Review':[
+  ['Identity & Privileges',['windows-identity','windows-groups','windows-privileges','win-integrity-level','win-local-admin-members']],
+  ['Operating System',['win-os-details','win-computer-system','win-hotfixes-detailed']],
+  ['Application Control',['applocker-effective','win-applocker-collections','win-codeintegrity-files','win-language-mode','win-defender-summary']],
+  ['Services & Processes',['win-service-binary-paths','windows-process-paths','win-running-services-detailed']],
+  ['Scheduled Tasks',['win-scheduled-tasks-detailed','win-scheduled-task-actions']],
+  ['Filesystem & Permissions',['win-programfiles-acl','win-programdata-acl','win-temp-acl','win-logical-disks']],
+  ['Installed Software',['win-installed-software-uninstall','runtime-powershell-version']],
+  ['Network Context',['win-netadapters','win-routes-detailed','win-dns-servers','win-listening-tcp-detailed','windows-firewall-profiles']],
+  ['Environment',['win-path-entries','windows-env','runtime-powershell-path']],
+  ['Registry & Policy',['win-uac-policy','win-always-install-elevated','win-cmdkey-list']],
+  ['Code Signing',['win-authenticode-signature','windows-cert-store']]
+ ],
+ 'Linux Host Review':[
+  ['Identity & Groups',['linux-identity','linux-current-groups','linux-users-getent','linux-groups-getent']],
+  ['Kernel & Distribution',['linux-os-release-detailed','linux-kernel-detailed','linux-lscpu','linux-memory-detailed']],
+  ['sudo',['linux-sudo-list']],
+  ['SUID / SGID / Capabilities',['linux-suid-files','linux-sgid-files','linux-file-capabilities']],
+  ['Scheduled Execution',['linux-user-crontab','linux-cron','linux-systemd-timers']],
+  ['Services & Processes',['linux-running-services','linux-enabled-services','linux-process-tree','linux-top-memory-processes']],
+  ['Filesystem & Permissions',['linux-mounts-detailed','linux-filesystems','linux-fstab','linux-world-writable-dirs','linux-block-devices']],
+  ['Environment & PATH',['linux-path-entries','linux-current-shell-env','runtime-bash-options','bash-command-type']],
+  ['Packages & Software',['linux-debian-packages','linux-rpm-packages','runtime-bash-version']],
+  ['Network Context',['linux-ip-brief','linux-routes-detailed','linux-neighbor-cache','linux-listening-sockets','linux-established-tcp','linux-dns-resolver-status']],
+  ['Containers',['linux-container-indicators','linux-docker-context']],
+  ['Logs & Recent Activity',['linux-journal-warnings','linux-last-logins']]
+ ],
+ 'Active Directory Review':[
+  ['Domain & Forest',['ad-domain-details','ad-forest-details','ad-domain-controllers-all']],
+  ['Users & Groups',['ad-enabled-users','ad-domain-groups']],
+  ['Computers & OUs',['ad-domain-computers','ad-organizational-units']],
+  ['Trusts',['ad-domain-trusts']],
+  ['Password Policy',['ad-password-policy','ad-fine-grained-password-policies']],
+  ['Sites & Subnets',['ad-site-inventory','ad-subnet-inventory']],
+  ['Group Policy',['ad-gpresult-summary']],
+  ['Kerberos Context',['ad-klist-summary']]
+ ],
+ 'Web Application Review':[
+  ['HTTP Baseline',['curl-response-headers','curl-status-code','curl-follow-details','curl-timing-detailed']],
+  ['Methods & Protocols',['curl-options','curl-http1','curl-http2']],
+  ['CORS / Origin',['curl-origin-header']],
+  ['Metadata',['curl-security-txt','curl-robots-detailed','curl-sitemap']],
+  ['TLS',['curl-server-certificate','curl-content-type','curl-cookie-headers']]
+ ],
+ 'Network Review':[
+  ['Host Discovery',['nmap-ping','network-ping-count','network-traceroute-numeric']],
+  ['Service Discovery',['nmap-top-ports','nmap-connect-scan','nmap-version-selected']],
+  ['UDP',['nmap-udp-top20']],
+  ['DNS',['dns-dig-a','dns-dig-aaaa','dns-dig-ns','dns-dig-txt','dns-dig-srv','dns-trace']],
+  ['TLS',['tls-openssl-certificate','tls-openssl-san','nmap-ssl-cert']],
+  ['Local Network Context',['network-arp-table','network-listening-linux','network-listening-windows']]
+ ],
+ 'Purple Team Validation':[
+  ['Technique Selection',['network-service-discovery']],
+  ['Validation Command',['nmap-service']],
+  ['Telemetry Review',['tshark-protocol-hierarchy']],
+  ['Detection Review',['windows-eventlog-list']],
+  ['Learning Outcome',['git-log-graph']]
+ ]
+};
+
+const readAssessmentWorkspace=()=>{
+ try{
+  const saved=JSON.parse(localStorage.getItem(ASSESSMENT_STORAGE_KEY)||'null');
+  return saved&&saved.template? saved : null;
+ }catch{return null}
+};
+
+const writeAssessmentWorkspace=value=>{
+ localStorage.setItem(ASSESSMENT_STORAGE_KEY,JSON.stringify(value));
+ window.dispatchEvent(new Event('security-studio-assessment-change'));
+};
+
+const readFindings=()=>{
+ try{return JSON.parse(localStorage.getItem(FINDINGS_STORAGE_KEY)||'[]')}catch{return []}
+};
+
+const writeFindings=value=>{
+ localStorage.setItem(FINDINGS_STORAGE_KEY,JSON.stringify(value));
+ window.dispatchEvent(new Event('security-studio-findings-change'));
+};
+
+const appendTimeline=(type,message,meta={})=>{
+ try{
+  const current=JSON.parse(localStorage.getItem(TIMELINE_STORAGE_KEY)||'[]');
+  const next=[...current,{id:`${Date.now()}-${Math.random().toString(16).slice(2)}`,type,message,meta,at:new Date().toISOString()}].slice(-300);
+  localStorage.setItem(TIMELINE_STORAGE_KEY,JSON.stringify(next));
+  window.dispatchEvent(new Event('security-studio-timeline-change'));
+ }catch{}
+};
+
+const createAssessmentFromTemplate=(template,contextProfile='Default')=>{
+ const blueprint=assessmentBlueprints[template]||assessmentBlueprints['Windows Host Review'];
+ return {
+  id:`assessment-${Date.now()}`,
+  name:template,
+  template,
+  contextProfile,
+  startedAt:new Date().toISOString(),
+  updatedAt:new Date().toISOString(),
+  status:'In progress',
+  sections:blueprint.map(([title,ids],si)=>({
+   id:`section-${si}`,
+   title,
+   checks:ids.map((commandId,ci)=>({
+    id:`check-${si}-${ci}`,
+    commandId,
+    status:'Not tested',
+    observation:'',
+    expected:'',
+    evidence:''
+   }))
+  }))
+ };
+};
+
+const assessmentStats=a=>{
+ const checks=(a?.sections||[]).flatMap(s=>s.checks||[]);
+ const tested=checks.filter(x=>x.status&&x.status!=='Not tested').length;
+ return {
+  total:checks.length,
+  tested,
+  coverage:checks.length?Math.round(tested/checks.length*100):0,
+  pass:checks.filter(x=>x.status==='Pass').length,
+  review:checks.filter(x=>x.status==='Review').length,
+  fail:checks.filter(x=>x.status==='Fail').length
+ };
+};
 
 const commandSearchScore=(c,q)=>{
  const s=q.trim().toLowerCase();
@@ -339,7 +475,7 @@ function App(){
    </div>
    <button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button>
   </header>
-  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v2.9</div></aside>
+  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v1.0</div></aside>
   <main>
    {page==='dashboard'?<Dashboard go={go} favorites={favorites} recent={recent}/>:
     page==='catalogue'?<CatalogueOverview go={go} openCommand={openCommand}/>:
@@ -354,6 +490,8 @@ function App(){
     page==='attack'?<AttackExplorer openCommand={openCommand}/>:
     page==='attack-path'?<AttackPathExplorer openCommand={openCommand}/>: 
     page==='graph'?<KnowledgeGraph openCommand={openCommand}/>:
+    page==='assessment-workspace'?<AssessmentWorkspace openCommand={openCommand} go={go}/>:
+    page==='findings'?<FindingsWorkspace go={go} openCommand={openCommand}/>:
     page==='workspace'?<WorkspacePage favorites={favorites} recent={recent} toggleFavorite={toggleFavorite} openCommand={openCommand} removeRecent={removeRecent} clearRecent={clearRecent}/>: 
     page==='contexts'?<ContextProfiles context={context} setContext={setContext} active={contextProfile} setActive={setContextProfile}/>: 
     page==='quick-notes'?<QuickNotes activeProfile={contextProfile}/>:
@@ -375,66 +513,62 @@ function App(){
 }
 
 function Dashboard({go,favorites,recent}){
- const quick=[
-  ['Catalogue Overview','catalogue',Layers3,'Browse the knowledge catalogue by platform and topic'],
-  ['Command Studio','command-studio',TerminalSquare,'Explain, modify and contextualise commands'],
-  ['Command Visualiser','visualiser',Image,'Create syntax-highlighted documentation cards'],
-  ['Knowledge Graph','graph',GitBranch,'Connect commands, telemetry, ATT&CK and Notes'],
-  ['Quick Notes','quick-notes',NotebookPen,'Keep local engagement notes close'],
-  ['Appearance','appearance',Palette,'Personalise theme, density and workspace']
- ];
+ const [assessment,setAssessment]=useState(readAssessmentWorkspace());
+ const [findings,setFindings]=useState(readFindings());
+ useEffect(()=>{
+  const a=()=>setAssessment(readAssessmentWorkspace());
+  const f=()=>setFindings(readFindings());
+  addEventListener('security-studio-assessment-change',a);
+  addEventListener('security-studio-findings-change',f);
+  return()=>{removeEventListener('security-studio-assessment-change',a);removeEventListener('security-studio-findings-change',f)}
+ },[]);
  const health=catalogHealth();
+ const stats=assessmentStats(assessment);
+ const openFindings=findings.filter(x=>x.status!=='Closed');
+ const quick=[
+  ['Assessment Workspace','assessment-workspace',ListChecks,'Start or resume a structured security assessment'],
+  ['Findings','findings',FileText,'Capture risks, evidence references and recommendations'],
+  ['Catalogue Overview','catalogue',Layers3,'Browse the full security knowledge catalogue'],
+  ['Command Studio','command-studio',TerminalSquare,'Explain, modify and contextualise commands'],
+  ['Knowledge Graph','graph',GitBranch,'Connect commands, telemetry, ATT&CK and Notes'],
+  ['Report Builder','reports',FileText,'Turn assessment work into a finished report']
+ ];
  return <>
-  <div className="hero">
+  <div className="hero assessmentHeroHome">
    <div>
-    <span className="eyebrow">ASIF'S SECURITY STUDIO</span>
-    <h1>Security knowledge,<br/><em>made interactive.</em></h1>
-    <p>Explore detailed security commands, understand context, map telemetry and turn security notes into practical workflows and finished reports.</p>
+    <span className="eyebrow">ASIF'S SECURITY STUDIO 1.0</span>
+    <h1>Assessment intelligence,<br/><em>made practical.</em></h1>
+    <p>Run structured assessments, track findings, connect commands to ATT&CK and telemetry, and turn technical observations into finished reports.</p>
     <div className="heroactions">
-     <button onClick={()=>go('library')}>Explore Commands <ChevronRight size={16}/></button>
+     <button onClick={()=>go('assessment-workspace')}>{assessment?'Resume Assessment':'Start Assessment'} <ChevronRight size={16}/></button>
      <a className="heroSecondary" href="https://notes.asifnawazminhas.com/" target="_blank" rel="noopener noreferrer"><BookOpen size={16}/> Open Security Notes</a>
     </div>
     <div className="heroStats">
      <span><b>{commands.length}</b> commands</span>
-     <span><b>{favorites.length}</b> favourites</span>
-     <span><b>{recent.length}</b> recent</span>
+     <span><b>{assessment?`${stats.coverage}%`:'—'}</b> assessment</span>
+     <span><b>{openFindings.length}</b> open findings</span>
      <span><b>{health.mapped}</b> ATT&CK mapped</span>
     </div>
    </div>
-   <div className="terminal">
-    <div className="termbar"><i/><i/><i/><span>security-studio</span></div>
-    <code>
-     <b>›</b> knowledge --interactive<br/>
-     <span>✓ {commands.length} commands indexed</span><br/>
-     <span>✓ Command packs ready</span><br/>
-     <span>✓ Report Builder ready</span><br/>
-     <span>✓ Notes integration ready</span><br/>
-     <span>✓ Workspace backup enabled</span><br/>
-     <br/><b>$</b> explore <u>security</u><br/><strong>Ready.</strong>
-    </code>
+
+   <div className="homeAssessmentCard">
+    <div className="homeAssessmentTop"><span>ACTIVE ASSESSMENT</span>{assessment&&<b>{assessment.status}</b>}</div>
+    {assessment?<><h3>{assessment.name}</h3><p>Context: {assessment.contextProfile}</p><div className="homeProgress"><i style={{width:`${stats.coverage}%`}}/></div><div className="homeAssessmentMetrics"><span><b>{stats.coverage}%</b>coverage</span><span><b>{stats.tested}</b>reviewed</span><span><b>{stats.fail}</b>fail</span><span><b>{openFindings.length}</b>findings</span></div><button onClick={()=>go('assessment-workspace')}>Continue assessment <ChevronRight size={15}/></button></>:<><h3>No active assessment</h3><p>Choose a Windows, Linux, Active Directory, Web, Network or Purple Team template.</p><button onClick={()=>go('assessment-workspace')}>Create assessment <ChevronRight size={15}/></button></>}
    </div>
   </div>
 
   <section>
-   <div className="sectionhead"><div><span className="eyebrow">WORKSPACE</span><h2>Choose where to start</h2></div></div>
-   <div className="grid">{quick.map(([n,id,I,d])=>
-    <button className="featurecard" onClick={()=>go(id)} key={id}>
-     <I/><div><h3>{n}</h3><p>{d}</p></div><ChevronRight className="arrow"/>
-    </button>)}
-   </div>
+   <div className="sectionhead"><div><span className="eyebrow">WORKBENCH</span><h2>Everything in one assessment flow</h2></div></div>
+   <div className="grid">{quick.map(([n,id,I,d])=><button className="featurecard" onClick={()=>go(id)} key={id}><I/><div><h3>{n}</h3><p>{d}</p></div><ChevronRight className="arrow"/></button>)}</div>
   </section>
 
-  <section>
-   <div className="catalogHealth">
-    <div><Check/><b>{health.withExplanation}</b><span>Commands with explanation</span></div>
-    <div><RadioTower/><b>{health.withTelemetry}</b><span>Commands with telemetry</span></div>
-    <div><Network/><b>{health.mapped}</b><span>ATT&CK mapped</span></div>
-    <div className={health.duplicateIds.length?'healthWarn':'healthGood'}><ShieldCheck/><b>{health.duplicateIds.length}</b><span>Duplicate IDs</span></div>
-   </div>
-  </section>
+  {assessment&&<section>
+   <div className="sectionhead"><div><span className="eyebrow">ASSESSMENT COVERAGE</span><h2>{assessment.name}</h2></div><button className="secondarySmall" onClick={()=>go('assessment-workspace')}>Open workspace <ChevronRight size={14}/></button></div>
+   <div className="homeHeatmap">{assessment.sections.map(s=>{const done=s.checks.filter(x=>x.status!=='Not tested').length;const pct=Math.round(done/Math.max(s.checks.length,1)*100);return <button key={s.id} onClick={()=>go('assessment-workspace')}><span>{s.title}</span><div><i style={{width:`${pct}%`}}/></div><b>{pct}%</b></button>})}</div>
+  </section>}
 
   <section>
-   <div className="banner"><Activity/><div><b>Built to connect Notes, Studio and reporting</b><span>Learn in Security Notes, open commands in Studio, organise validation work, then export a report.</span></div></div>
+   <div className="catalogHealth"><div><Check/><b>{health.withExplanation}</b><span>With explanation</span></div><div><RadioTower/><b>{health.withTelemetry}</b><span>With telemetry</span></div><div><Network/><b>{health.mapped}</b><span>ATT&CK mapped</span></div><div><ShieldCheck/><b>{health.duplicateIds.length}</b><span>Duplicate IDs</span></div></div>
   </section>
  </>
 }
@@ -444,28 +578,36 @@ function CommandPalette({close,openCommand,go}){
  const [active,setActive]=useState(0);
  const input=useRef(null);
  useEffect(()=>input.current?.focus(),[]);
- const results=commands
-  .map(c=>({c,score:commandSearchScore(c,q)}))
-  .filter(x=>x.score>0)
-  .sort((a,b)=>b.score-a.score||a.c.title.localeCompare(b.c.title))
-  .slice(0,9)
-  .map(x=>x.c);
+ const pageItems=sections.flatMap(s=>s.items).map(([name,id,Icon])=>({type:'Page',name,id,Icon,subtitle:'Security Studio page'}));
+ const findingItems=readFindings().map(f=>({type:'Finding',name:f.title,id:f.id,subtitle:`${f.severity} · ${f.status}`}));
+ const commandItems=commands.map(c=>({type:'Command',name:c.title,id:c.id,c,subtitle:`${c.platform} · ${c.tool} · ${c.category}`,score:commandSearchScore(c,q)}));
+ const needle=q.trim().toLowerCase();
+ const other=[...pageItems,...findingItems]
+  .filter(x=>!needle||`${x.name} ${x.subtitle} ${x.type}`.toLowerCase().includes(needle))
+  .map(x=>({...x,score:needle?(x.name.toLowerCase().includes(needle)?20:8):3}));
+ const results=[...commandItems.filter(x=>x.score>0),...other].sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name)).slice(0,10);
  useEffect(()=>setActive(0),[q]);
+
+ const open=item=>{
+  if(item.type==='Command')openCommand(item.c);
+  else if(item.type==='Finding')go('findings');
+  else go(item.id);
+ };
  const key=e=>{
   if(e.key==='ArrowDown'){e.preventDefault();setActive(x=>Math.min(x+1,results.length-1))}
   if(e.key==='ArrowUp'){e.preventDefault();setActive(x=>Math.max(x-1,0))}
-  if(e.key==='Enter'&&results[active]){e.preventDefault();openCommand(results[active])}
-  if(e.key.toLowerCase()==='c'&&e.altKey&&results[active]){e.preventDefault();studioCopy(results[active].command,results[active].title)}
+  if(e.key==='Enter'&&results[active]){e.preventDefault();open(results[active])}
+  if(e.key.toLowerCase()==='c'&&e.altKey&&results[active]?.type==='Command'){e.preventDefault();studioCopy(results[active].c.command,results[active].c.title)}
  };
+
  return <div className="paletteback" onMouseDown={e=>e.target===e.currentTarget&&close()}>
-  <div className="palette">
-   <div className="paletteinput"><Search/><input ref={input} value={q} onChange={e=>setQ(e.target.value)} onKeyDown={key} placeholder="Search commands, ATT&CK IDs, tools, tags..."/><kbd>Esc</kbd></div>
-   <div className="paletteresults">{results.map((c,i)=><button className={i===active?'active':''} key={c.id} onMouseEnter={()=>setActive(i)} onClick={()=>openCommand(c)}><TerminalSquare/><div><b>{c.title}</b><span>{c.platform} · {c.tool} · {c.category}</span></div><ChevronRight/></button>)}{!results.length&&<div className="empty">No matching commands.</div>}</div>
-   <div className="palettefoot"><button onClick={()=>go('library')}>Open Command Library</button><span>↑↓ navigate · Enter open · Alt+C copy</span></div>
+  <div className="palette universalPalette">
+   <div className="paletteinput"><Search/><input ref={input} value={q} onChange={e=>setQ(e.target.value)} onKeyDown={key} placeholder="Search commands, pages, findings, ATT&CK, tools..."/><kbd>Esc</kbd></div>
+   <div className="paletteresults">{results.map((item,i)=><button className={i===active?'active':''} key={`${item.type}-${item.id}`} onMouseEnter={()=>setActive(i)} onClick={()=>open(item)}>{item.type==='Command'?<TerminalSquare/>:item.type==='Finding'?<FileText/>:<LayoutDashboard/>}<div><span className="paletteType">{item.type}</span><b>{item.name}</b><span>{item.subtitle}</span></div><ChevronRight/></button>)}{!results.length&&<div className="empty">No matching Studio content.</div>}</div>
+   <div className="palettefoot"><button onClick={()=>go('catalogue')}>Open Catalogue</button><span>↑↓ navigate · Enter open · Alt+C copy command</span></div>
   </div>
  </div>
 }
-
 
 function CatalogueOverview({go,openCommand}){
  const [platform,setPlatform]=useState('All');
@@ -854,7 +996,7 @@ function PrivEscExplorer({openCommand}){
 
  return <>
   <div className="privescHero">
-   <div><span className="eyebrow">PRIVILEGE BOUNDARY ASSESSMENT</span><h1>{os} PrivEsc Explorer</h1><p>Structured enumeration, validation and defensive context for authorised privilege-boundary reviews.</p></div>
+   <div><span className="eyebrow">PRIVILEGE BOUNDARY ASSESSMENT</span><h1>{os} PrivEsc Explorer</h1><p>Structured enumeration, validation and defensive context for authorised privilege-boundary reviews. The review taxonomy is informed by common manual-enumeration methodologies while Security Studio keeps the workflow focused on safe validation and documentation.</p><div className="methodLinks"><a href="https://morgan-bin-bash.gitbook.io/linux-privilege-escalation" target="_blank" rel="noopener noreferrer">Linux reference <ExternalLink size={11}/></a><a href="https://kabaneridev.gitbook.io/pentesting-notes/core-knowledge-areas/windows-privilege-escalation" target="_blank" rel="noopener noreferrer">Windows reference <ExternalLink size={11}/></a></div></div>
    <div className="privescCoverage"><div><b>{coverage}%</b><span>assessment coverage</span></div><div className="coverageRing" style={{'--coverage':`${coverage*3.6}deg`}}><span>{completed}/{flat.length}</span></div></div>
   </div>
 
@@ -1301,7 +1443,7 @@ function Diagnostics(){
   <PageTitle kicker="SETTINGS" title="Diagnostics & Recovery" text="Run local health checks and recover the Studio if browser data becomes corrupted."/>
   <div className="diagnosticGrid">
    <Panel title="Application health">
-    <div className="diagnosticMeta"><span>Studio version</span><b>v2.9</b><span>Storage schema</span><b>v{STORAGE_VERSION}</b><span>Last migration</span><b>{storageMigration.migrated?`v${storageMigration.from} → v${storageMigration.to}`:'Current'}</b></div>
+    <div className="diagnosticMeta"><span>Studio version</span><b>v1.0</b><span>Storage schema</span><b>v{STORAGE_VERSION}</b><span>Last migration</span><b>{storageMigration.migrated?`v${storageMigration.from} → v${storageMigration.to}`:'Current'}</b></div>
     <button className="primarySmall" onClick={check}><ShieldCheck size={15}/> Run health checks</button>
     {result&&<div className="diagnosticResults">{rows.map(([label,ok])=><div key={label}><span>{label}</span><b className={ok?'ok':'warn'}>{ok?'Pass':'Review'}</b></div>)}</div>}
    </Panel>
@@ -1524,12 +1666,9 @@ function ReportBuilder(){
  const [scope,setScope]=useState(localStorage.getItem('security-studio-report-scope')||'');
  const [executive,setExecutive]=useState(localStorage.getItem('security-studio-report-executive')||'');
  const [recommendations,setRecommendations]=useState(localStorage.getItem('security-studio-report-recommendations')||'');
- const purpleMap=(()=>{try{return JSON.parse(localStorage.getItem('security-studio-purple-map')||'[]')}catch{return []}})();
- const purpleStatus=(()=>{try{return JSON.parse(localStorage.getItem('security-studio-purple-status')||'{}')}catch{return {}}})();
- const technique=localStorage.getItem('security-studio-purple-technique')||'';
- const commandId=localStorage.getItem('security-studio-purple-command')||'';
- const exerciseName=localStorage.getItem('security-studio-purple-name')||'Purple Team Validation';
- const selectedCommand=commands.find(c=>c.id===commandId);
+ const assessment=readAssessmentWorkspace();
+ const findings=readFindings();
+ const stats=assessmentStats(assessment);
 
  useEffect(()=>localStorage.setItem('security-studio-report-author',author),[author]);
  useEffect(()=>localStorage.setItem('security-studio-report-scope',scope),[scope]);
@@ -1537,82 +1676,63 @@ function ReportBuilder(){
  useEffect(()=>localStorage.setItem('security-studio-report-recommendations',recommendations),[recommendations]);
 
  const reportData=()=>({
-  title:exerciseName,author,scope,executiveSummary:executive,recommendations,
-  technique,
-  command:selectedCommand?{title:selectedCommand.title,command:selectedCommand.command,notes:selectedCommand.notes}:null,
-  statuses:purpleStatus,
-  mapping:purpleMap,
+  title:assessment?.name||'Security Assessment',
+  author,scope,executiveSummary:executive,recommendations,
+  assessment:assessment?{id:assessment.id,name:assessment.name,contextProfile:assessment.contextProfile,status:assessment.status,coverage:stats.coverage,tested:stats.tested,total:stats.total}:null,
+  findings,
   generatedAt:new Date().toISOString()
  });
 
  const markdown=()=>{
   const r=reportData();
+  const findingLines=r.findings.length?r.findings.flatMap((f,i)=>[
+   `### ${i+1}. ${f.title}`,'',
+   `- Severity: **${f.severity}**`,
+   `- Status: ${f.status}`,
+   `- Area: ${f.area||'Not specified'}`,
+   f.commandId?`- Related command: ${commands.find(c=>c.id===f.commandId)?.title||f.commandId}`:'',
+   '',
+   '**Description**','',f.description||'_Not provided_','',
+   '**Risk**','',f.risk||'_Not provided_','',
+   '**Recommendation**','',f.recommendation||'_Not provided_','',
+   f.evidence?'**Evidence reference**':'',f.evidence||'',''
+  ]):['_No findings recorded._',''];
+  const coverageLines=assessment?.sections?.flatMap(s=>{const done=s.checks.filter(c=>c.status!=='Not tested').length;return [`- ${s.title}: ${Math.round(done/Math.max(s.checks.length,1)*100)}% (${done}/${s.checks.length})`]})||[];
   return [
    `# ${r.title}`,'',
    author?`**Author:** ${author}`:'',
    scope?`**Scope:** ${scope}`:'',
-   `**ATT&CK technique:** ${r.technique||'Not selected'}`,
-   `**Validation command:** ${r.command?.title||'Not selected'}`,'',
+   assessment?`**Context profile:** ${assessment.contextProfile}`:'',
+   assessment?`**Assessment coverage:** ${stats.coverage}% (${stats.tested}/${stats.total})`:'',
+   '',
    '## Executive Summary','',r.executiveSummary||'_Not provided_','',
-   '## Validation Status','',
-   `- Telemetry: ${r.statuses.telemetry||'Not tested'}`,
-   `- Detection: ${r.statuses.detection||'Not tested'}`,
-   `- Response: ${r.statuses.response||'Not tested'}`,
-   `- Overall: ${r.statuses.overall||'Not tested'}`,'',
-   '## Technical Mapping','',
-   ...(r.mapping.length?r.mapping.flatMap(x=>[`### ${x.id}. ${x.title}`,x.value||'_Not documented_','']):['_No Purple Team mapping data available._','']),
-   '## Recommendations','',r.recommendations||'_Not provided_',''
+   '## Assessment Coverage','',...coverageLines,'',
+   '## Findings','',...findingLines,
+   '## Recommendations','',r.recommendations||'_Not provided_','',
+   `---`,`Generated by Asif's Security Studio 1.0 on ${new Date().toLocaleString()}`
   ].filter(x=>x!==undefined).join('\n');
  };
 
- const html=()=>{
-  const r=reportData();
-  const mapping=(r.mapping||[]).map(x=>`<section><h3>${x.id}. ${x.title}</h3><p>${escapeHtml(x.value||'Not documented')}</p></section>`).join('');
-  return `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(r.title)}</title><style>body{font:16px system-ui;max-width:980px;margin:48px auto;padding:0 24px;color:#17212b}h1,h2{color:#0a5060}code{background:#eef3f5;padding:3px 6px;border-radius:4px}.meta{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;background:#f4f8f9;padding:16px;border-radius:8px}.status{display:flex;gap:10px;flex-wrap:wrap}.status span{border:1px solid #ccd9df;padding:8px 12px;border-radius:6px}section{border-top:1px solid #dde6ea;padding:14px 0}</style></head><body><h1>${escapeHtml(r.title)}</h1><div class="meta"><div><b>Author</b><br>${escapeHtml(r.author||'Not provided')}</div><div><b>Scope</b><br>${escapeHtml(r.scope||'Not provided')}</div><div><b>ATT&CK</b><br>${escapeHtml(r.technique||'Not selected')}</div><div><b>Command</b><br>${escapeHtml(r.command?.title||'Not selected')}</div></div><h2>Executive Summary</h2><p>${escapeHtml(r.executiveSummary||'Not provided')}</p><h2>Validation Status</h2><div class="status"><span>Telemetry: ${escapeHtml(r.statuses.telemetry||'Not tested')}</span><span>Detection: ${escapeHtml(r.statuses.detection||'Not tested')}</span><span>Response: ${escapeHtml(r.statuses.response||'Not tested')}</span><span>Overall: ${escapeHtml(r.statuses.overall||'Not tested')}</span></div><h2>Technical Mapping</h2>${mapping||'<p>No Purple Team mapping data available.</p>'}<h2>Recommendations</h2><p>${escapeHtml(r.recommendations||'Not provided')}</p></body></html>`;
- };
-
- const download=(content,type,name)=>{
-  const blob=new Blob([content],{type});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href);studioToast(`${name} exported`);
+ const download=(type)=>{
+  const data=type==='json'?JSON.stringify(reportData(),null,2):markdown();
+  const mime=type==='json'?'application/json':'text/markdown';
+  const blob=new Blob([data],{type:mime});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`security-studio-assessment-report.${type==='json'?'json':'md'}`;a.click();URL.revokeObjectURL(a.href);studioToast(`Report ${type.toUpperCase()} exported`);
  };
 
  return <>
-  <PageTitle kicker="WORKSPACE" title="Report Builder" text="Turn Purple Team validation data into a clean executive and technical report."/>
-
-  <div className="reportGrid">
-   <div className="reportForm panel">
-    <h3>Report details</h3>
-    <label>Author<input value={author} onChange={e=>setAuthor(e.target.value)} placeholder="Name or team"/></label>
+  <PageTitle kicker="ASSESSMENT" title="Report Builder" text="Build a report directly from the active assessment, findings and analyst-written narrative."/>
+  <div className="reportWorkspace">
+   <div className="reportForm">
+    <label>Author<input value={author} onChange={e=>setAuthor(e.target.value)}/></label>
     <label>Scope<input value={scope} onChange={e=>setScope(e.target.value)} placeholder="Assessment scope"/></label>
-    <label>Executive summary<textarea value={executive} onChange={e=>setExecutive(e.target.value)} placeholder="Summarise what was validated, what was observed and the overall result."/></label>
-    <label>Recommendations<textarea value={recommendations} onChange={e=>setRecommendations(e.target.value)} placeholder="Document practical improvements and next actions."/></label>
-    <div className="reportActions">
-     <button className="primarySmall" onClick={()=>download(markdown(),'text/markdown','security-studio-report.md')}><Download size={15}/> Markdown</button>
-     <button className="secondarySmall" onClick={()=>download(html(),'text/html','security-studio-report.html')}><Download size={15}/> HTML</button>
-     <button className="secondarySmall" onClick={()=>download(JSON.stringify(reportData(),null,2),'application/json','security-studio-report.json')}><FileJson size={15}/> JSON</button>
-    </div>
+    <label>Executive summary<textarea value={executive} onChange={e=>setExecutive(e.target.value)}/></label>
+    <label>Overall recommendations<textarea value={recommendations} onChange={e=>setRecommendations(e.target.value)}/></label>
+    <div className="reportSourceSummary"><div><span>Assessment</span><b>{assessment?.name||'None active'}</b></div><div><span>Coverage</span><b>{assessment?`${stats.coverage}%`:'—'}</b></div><div><span>Findings</span><b>{findings.length}</b></div></div>
+    <div className="studioToolbar"><button className="primarySmall" onClick={()=>download('md')}><FileText size={15}/> Export Markdown</button><button className="secondarySmall" onClick={()=>download('json')}><FileJson size={15}/> Export JSON</button></div>
    </div>
-
-   <div className="reportPreview panel">
-    <span className="eyebrow">LIVE PREVIEW</span>
-    <h2>{exerciseName}</h2>
-    <div className="reportMeta">
-     <span>ATT&CK <b>{technique||'Not selected'}</b></span>
-     <span>Overall <b>{purpleStatus.overall||'Not tested'}</b></span>
-     <span>Detection <b>{purpleStatus.detection||'Not tested'}</b></span>
-     <span>Response <b>{purpleStatus.response||'Not tested'}</b></span>
-    </div>
-    <h3>Executive Summary</h3><p>{executive||'Add an executive summary on the left.'}</p>
-    <h3>Validation command</h3>
-    {selectedCommand?<code className="reportCode">{selectedCommand.command}</code>:<p>No validation command selected in Purple Team Mapping.</p>}
-    <h3>Technical Mapping</h3>
-    <div className="reportMapping">{purpleMap.length?purpleMap.map(x=><div key={x.id}><b>{x.id}. {x.title}</b><p>{x.value||'Not documented'}</p></div>):<p>No Purple Team mapping data available.</p>}</div>
-   </div>
+   <div className="reportPreview"><span className="eyebrow">LIVE PREVIEW</span><pre>{markdown()}</pre></div>
   </div>
  </>
-}
-
-function escapeHtml(value=''){
- return String(value).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
 }
 
 function NotesLinkBuilder(){
@@ -1659,6 +1779,119 @@ function ToastHost(){
  return message?<div className="studioToast"><Check size={16}/>{message}</div>:null;
 }
 
+
+function AssessmentWorkspace({openCommand,go}){
+ const activeProfile=localStorage.getItem('security-studio-context-profile')||'Default';
+ const [template,setTemplate]=useState('Windows Host Review');
+ const [assessment,setAssessment]=useState(readAssessmentWorkspace());
+ const [timeline,setTimeline]=useState(()=>{try{return JSON.parse(localStorage.getItem(TIMELINE_STORAGE_KEY)||'[]')}catch{return []}});
+ const [selectedSection,setSelectedSection]=useState(assessment?.sections?.[0]?.id||null);
+
+ useEffect(()=>{
+  const handler=()=>setTimeline((()=>{try{return JSON.parse(localStorage.getItem(TIMELINE_STORAGE_KEY)||'[]')}catch{return []}})());
+  addEventListener('security-studio-timeline-change',handler);
+  return()=>removeEventListener('security-studio-timeline-change',handler)
+ },[]);
+
+ const startAssessment=()=>{
+  const next=createAssessmentFromTemplate(template,activeProfile);
+  writeAssessmentWorkspace(next);
+  setAssessment(next);setSelectedSection(next.sections[0]?.id||null);
+  appendTimeline('assessment',`Started ${template}`,{assessmentId:next.id,contextProfile:activeProfile});
+  studioToast('Assessment started');
+ };
+ const updateAssessment=next=>{const withTime={...next,updatedAt:new Date().toISOString()};writeAssessmentWorkspace(withTime);setAssessment(withTime)};
+ const updateCheck=(sectionId,checkId,patch)=>{
+  const next={...assessment,sections:assessment.sections.map(s=>s.id!==sectionId?s:{...s,checks:s.checks.map(c=>c.id!==checkId?c:{...c,...patch})})};
+  updateAssessment(next);
+  if(patch.status)appendTimeline('check',`${sectionId}: ${patch.status}`,{checkId,status:patch.status});
+ };
+ const finish=()=>{const next={...assessment,status:'Completed',completedAt:new Date().toISOString()};updateAssessment(next);appendTimeline('assessment',`Completed ${assessment.name}`,{assessmentId:assessment.id});studioToast('Assessment marked completed')};
+ const reset=()=>{if(!confirm('Start a new assessment? The current workspace will be replaced.'))return;localStorage.removeItem(ASSESSMENT_STORAGE_KEY);setAssessment(null);setSelectedSection(null);appendTimeline('assessment','Assessment workspace reset')};
+
+ if(!assessment)return <>
+  <PageTitle kicker="ASSESSMENT" title="Assessment Workspace" text="Start a structured assessment that connects commands, observations, findings, coverage and reporting."/>
+  <div className="assessmentStart">
+   <div><span className="eyebrow">NEW ASSESSMENT</span><h2>Choose a review template</h2><p>The assessment stays in your browser. Security Studio does not execute commands or upload evidence.</p></div>
+   <div className="assessmentTemplateGrid">{Object.keys(assessmentBlueprints).map(name=><button className={template===name?'active':''} onClick={()=>setTemplate(name)} key={name}><ListChecks/><div><b>{name}</b><span>{assessmentBlueprints[name].length} review areas</span></div><ChevronRight/></button>)}</div>
+   <div className="assessmentStartFooter"><div><span>Context profile</span><b>{activeProfile}</b></div><button className="primarySmall" onClick={startAssessment}><Play size={15}/> Start {template}</button></div>
+  </div>
+ </>;
+
+ const stats=assessmentStats(assessment);
+ const section=assessment.sections.find(s=>s.id===selectedSection)||assessment.sections[0];
+ const findings=readFindings().filter(f=>f.assessmentId===assessment.id);
+ return <>
+  <div className="assessmentHeader">
+   <div><span className="eyebrow">ACTIVE ASSESSMENT</span><h1>{assessment.name}</h1><p>{assessment.contextProfile} · Started {new Date(assessment.startedAt).toLocaleString()}</p></div>
+   <div className="assessmentHeaderActions"><button className="secondarySmall" onClick={()=>go('findings')}><FileText size={14}/> Findings ({findings.length})</button><button className="secondarySmall" onClick={finish}><Check size={14}/> Complete</button><button className="secondarySmall dangerOutline" onClick={reset}><RotateCcw size={14}/> New assessment</button></div>
+  </div>
+
+  <div className="assessmentMetrics premium">
+   <div><span>COVERAGE</span><b>{stats.coverage}%</b><small>{stats.tested}/{stats.total} reviewed</small></div>
+   <div><span>PASS</span><b>{stats.pass}</b><small>validated</small></div>
+   <div><span>REVIEW</span><b>{stats.review}</b><small>needs attention</small></div>
+   <div><span>FAIL</span><b>{stats.fail}</b><small>potential findings</small></div>
+   <div><span>FINDINGS</span><b>{findings.length}</b><small>recorded</small></div>
+  </div>
+
+  <div className="assessmentWorkbench">
+   <aside className="assessmentNav">
+    <span className="eyebrow">REVIEW AREAS</span>
+    {assessment.sections.map(s=>{const done=s.checks.filter(c=>c.status!=='Not tested').length;const pct=Math.round(done/Math.max(s.checks.length,1)*100);return <button className={section.id===s.id?'active':''} key={s.id} onClick={()=>setSelectedSection(s.id)}><div><b>{s.title}</b><small>{done}/{s.checks.length} reviewed</small></div><span>{pct}%</span><div className="miniBar"><i style={{width:`${pct}%`}}/></div></button>})}
+    <button className="assessmentNavReport" onClick={()=>go('reports')}><FileText/><div><b>Build report</b><small>Use findings and assessment data</small></div><ChevronRight/></button>
+   </aside>
+
+   <section className="assessmentMain">
+    <div className="assessmentSectionTitle"><div><span className="eyebrow">REVIEW AREA</span><h2>{section.title}</h2></div><span>{section.checks.length} checks</span></div>
+    <div className="assessmentChecks">{section.checks.map((check,i)=>{const c=commands.find(x=>x.id===check.commandId);return <article key={check.id} className={`assessmentCheck status-${check.status.toLowerCase().replaceAll(' ','-')}`}>
+     <div className="assessmentCheckHead"><span>{String(i+1).padStart(2,'0')}</span><div><h3>{c?.title||check.commandId}</h3><p>{c?.description||'Structured assessment check'}</p></div><select value={check.status} onChange={e=>updateCheck(section.id,check.id,{status:e.target.value})}><option>Not tested</option><option>Pass</option><option>Review</option><option>Fail</option></select></div>
+     {c&&<div className="assessmentCheckCommand"><code>{c.command}</code><div><button onClick={()=>studioCopy(c.command,c.title)}><Copy size={13}/> Copy</button><button onClick={()=>openCommand(c)}>Open Studio <ChevronRight size={13}/></button></div></div>}
+     <div className="assessmentCheckFields"><label>Expected<input value={check.expected} onChange={e=>updateCheck(section.id,check.id,{expected:e.target.value})} placeholder="Expected condition or secure baseline"/></label><label>Observation<textarea value={check.observation} onChange={e=>updateCheck(section.id,check.id,{observation:e.target.value})} placeholder="What was observed?"/></label><label>Evidence reference<input value={check.evidence} onChange={e=>updateCheck(section.id,check.id,{evidence:e.target.value})} placeholder="Screenshot name, timestamp, ticket or note reference"/></label></div>
+     {check.status==='Fail'&&<button className="createFindingButton" onClick={()=>{localStorage.setItem('security-studio-finding-seed',JSON.stringify({assessmentId:assessment.id,area:section.title,title:c?.title||'Assessment finding',commandId:c?.id||'',observation:check.observation,evidence:check.evidence}));go('findings')}}><FileText size={14}/> Create finding from this check</button>}
+    </article>})}</div>
+   </section>
+
+   <aside className="assessmentTimeline">
+    <span className="eyebrow">TIMELINE</span>
+    <div>{timeline.slice().reverse().slice(0,12).map(e=><article key={e.id}><i/><div><b>{e.message}</b><span>{new Date(e.at).toLocaleString()}</span></div></article>)}{!timeline.length&&<p>No assessment activity yet.</p>}</div>
+   </aside>
+  </div>
+
+  <section>
+   <div className="sectionhead"><div><span className="eyebrow">COVERAGE HEATMAP</span><h2>Assessment progress</h2></div></div>
+   <div className="assessmentHeatmap">{assessment.sections.map(s=>{const done=s.checks.filter(c=>c.status!=='Not tested').length;const fail=s.checks.filter(c=>c.status==='Fail').length;const pct=Math.round(done/Math.max(s.checks.length,1)*100);return <button key={s.id} onClick={()=>setSelectedSection(s.id)}><span>{s.title}</span><div className={`heatCell ${fail?'hasFail':''}`} style={{'--heat':`${pct}%`}}><b>{pct}%</b></div><small>{fail?`${fail} fail`:`${done}/${s.checks.length}`}</small></button>})}</div>
+  </section>
+ </>
+}
+
+function FindingsWorkspace({go,openCommand}){
+ const seed=(()=>{try{return JSON.parse(localStorage.getItem('security-studio-finding-seed')||'null')}catch{return null}})();
+ const assessment=readAssessmentWorkspace();
+ const [items,setItems]=useState(readFindings());
+ const blank={assessmentId:seed?.assessmentId||assessment?.id||'',title:seed?.title||'',severity:'Medium',area:seed?.area||'',status:'Open',description:seed?.observation||'',risk:'',recommendation:'',evidence:seed?.evidence||'',commandId:seed?.commandId||'',notesUrl:''};
+ const [form,setForm]=useState(blank);
+ useEffect(()=>{localStorage.removeItem('security-studio-finding-seed')},[]);
+ const persist=next=>{setItems(next);writeFindings(next)};
+ const add=()=>{
+  if(!form.title.trim()){studioToast('Finding title is required');return}
+  const item={...form,id:`finding-${Date.now()}`,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+  persist([item,...items]);appendTimeline('finding',`Finding created: ${item.title}`,{findingId:item.id,severity:item.severity});setForm({...blank,title:'',description:'',risk:'',recommendation:'',evidence:'',commandId:'',notesUrl:''});studioToast('Finding created');
+ };
+ const update=(id,patch)=>persist(items.map(x=>x.id===id?{...x,...patch,updatedAt:new Date().toISOString()}:x));
+ const remove=id=>{if(!confirm('Delete this finding?'))return;persist(items.filter(x=>x.id!==id));studioToast('Finding deleted')};
+ const severityRank={Critical:4,High:3,Medium:2,Low:1,Informational:0};
+ const sorted=[...items].sort((a,b)=>severityRank[b.severity]-severityRank[a.severity]||a.title.localeCompare(b.title));
+ return <>
+  <PageTitle kicker="ASSESSMENT" title="Findings Workspace" text="Turn technical observations into structured findings without uploading evidence files."/>
+  <div className="findingStats">{['Critical','High','Medium','Low','Informational'].map(s=><div key={s} className={`sev-${s.toLowerCase()}`}><span>{s}</span><b>{items.filter(x=>x.severity===s&&x.status!=='Closed').length}</b></div>)}</div>
+  <div className="findingsLayout">
+   <div className="findingForm panel"><h3>New finding</h3><div className="findingFields"><label>Title<input value={form.title} onChange={e=>setForm({...form,title:e.target.value})}/></label><label>Severity<select value={form.severity} onChange={e=>setForm({...form,severity:e.target.value})}><option>Critical</option><option>High</option><option>Medium</option><option>Low</option><option>Informational</option></select></label><label>Affected area<input value={form.area} onChange={e=>setForm({...form,area:e.target.value})}/></label><label>Status<select value={form.status} onChange={e=>setForm({...form,status:e.target.value})}><option>Open</option><option>Accepted</option><option>Remediated</option><option>Closed</option></select></label><label className="full">Description<textarea value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/></label><label className="full">Risk<textarea value={form.risk} onChange={e=>setForm({...form,risk:e.target.value})}/></label><label className="full">Recommendation<textarea value={form.recommendation} onChange={e=>setForm({...form,recommendation:e.target.value})}/></label><label className="full">Evidence reference<input value={form.evidence} onChange={e=>setForm({...form,evidence:e.target.value})} placeholder="Screenshot name, timestamp, observation or ticket reference"/></label><label>Related command<select value={form.commandId} onChange={e=>setForm({...form,commandId:e.target.value})}><option value="">No command</option>{commands.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label><label>Security Notes URL<input value={form.notesUrl} onChange={e=>setForm({...form,notesUrl:e.target.value})} placeholder="https://notes.asifnawazminhas.com/..."/></label></div><button className="primarySmall" onClick={add}><Plus size={14}/> Create finding</button></div>
+   <div className="findingList">{sorted.length?sorted.map(f=>{const c=commands.find(x=>x.id===f.commandId);return <article key={f.id} className={`findingCard sev-${f.severity.toLowerCase()}`}><div className="findingCardTop"><span>{f.severity}</span><select value={f.status} onChange={e=>update(f.id,{status:e.target.value})}><option>Open</option><option>Accepted</option><option>Remediated</option><option>Closed</option></select></div><h3>{f.title}</h3><p>{f.area||'Uncategorised'}</p>{f.description&&<div><b>Description</b><span>{f.description}</span></div>}{f.risk&&<div><b>Risk</b><span>{f.risk}</span></div>}{f.recommendation&&<div><b>Recommendation</b><span>{f.recommendation}</span></div>}{f.evidence&&<div><b>Evidence</b><code>{f.evidence}</code></div>}<div className="findingActions">{c&&<button onClick={()=>openCommand(c)}>Open command</button>}{f.notesUrl&&safeExternalUrl(f.notesUrl)&&<a href={safeExternalUrl(f.notesUrl)} target="_blank" rel="noopener noreferrer">Notes <ExternalLink size={12}/></a>}<button className="dangerAction" onClick={()=>remove(f.id)}><Trash2 size={13}/> Delete</button></div></article>}):<div className="empty">No findings recorded yet.</div>}</div>
+  </div>
+ </>
+}
+
 function WorkspacePage({favorites,recent,toggleFavorite,openCommand,removeRecent,clearRecent}){
  const saved=favorites.map(id=>commands.find(c=>c.id===id)).filter(Boolean);
  const viewed=recent.map(id=>commands.find(c=>c.id===id)).filter(Boolean);
@@ -1678,7 +1911,10 @@ function WorkspacePage({favorites,recent,toggleFavorite,openCommand,removeRecent
    quickNotes:Object.fromEntries(Object.keys(localStorage).filter(k=>k.startsWith('security-studio-quick-notes:')).map(k=>[k,localStorage.getItem(k)])),
    customCommands:JSON.parse(localStorage.getItem('security-studio-custom-commands')||'[]'),
    copyHistory:JSON.parse(localStorage.getItem('security-studio-copy-history')||'[]'),
-   appearance:JSON.parse(localStorage.getItem('security-studio-appearance')||'{}')
+   appearance:JSON.parse(localStorage.getItem('security-studio-appearance')||'{}'),
+   assessment:readAssessmentWorkspace(),
+   findings:readFindings(),
+   assessmentTimeline:JSON.parse(localStorage.getItem(TIMELINE_STORAGE_KEY)||'[]')
   };
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='security-studio-workspace.json';a.click();URL.revokeObjectURL(a.href);studioToast('Workspace exported');

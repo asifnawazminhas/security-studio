@@ -1,123 +1,95 @@
 # Asif's Security Studio
 
-## v2.7 - Detailed Catalogue Expansion
+## v2.8 - Catalogue Intelligence + Topic Navigation
 
-v2.7 focuses on the remaining content-depth gap: more granular commands per topic while keeping the surrounding Security Studio context.
+v2.8 turns the 297-command catalogue into a polished knowledge browser instead of a flat command list.
 
-### Catalogue
-- Previous catalogue: 168 commands
-- v2.7 catalogue: 297 commands
-- Added: 129 detailed reference commands
+### Premium catalogue experience
+- New Catalogue Overview landing page
+- Platform showcase cards
+- Topic drill-down cards
+- ATT&CK coverage summary
+- Telemetry coverage summary
+- Parameterised-command count
+- Read-only command count
+- Recently expanded catalogue rail
 
-### Expanded Windows coverage
-- OS and hardware details
-- disks and volumes
-- adapters, DNS, routes and neighbour cache
-- TCP and UDP endpoints
-- running services and process review
-- scheduled tasks and patch inventory
-- Defender status
-- local users and groups
-- AppLocker collections and EXE rules
-- PowerShell execution policy and language mode
-- Authenticode inspection
+### Command Library intelligence
+- Platform filters
+- Tool filters
+- Category
+- Tag
+- Risk
+- Favourites
+- Has ATT&CK
+- Has telemetry
+- Has parameters
+- Weighted search
+- Sort by:
+  - Title
+  - Platform
+  - Tool
+  - Category
+  - Quality
+  - Recently expanded
+- Pin a filter combination locally
+- Re-apply pinned filters
+- Share filtered views
+- Active-filter summary
 
-### Expanded Linux coverage
-- distribution and kernel
-- CPU, memory and storage
-- mounts and filesystems
-- interfaces, routes and neighbours
-- TCP/UDP socket review
-- DNS resolver configuration
-- systemd service inventory
-- process tree and memory review
-- NSS user/group inventory
-- login sessions
-- time configuration
-- Debian/RPM package inventory
-- journal warnings
-
-### Expanded Active Directory coverage
-- domain and forest metadata
-- domain controllers
-- enabled users
-- groups and computers
-- organizational units
-- trusts
-- password policies
-- sites and subnets
-- nltest DC discovery
-- Group Policy summary
-- Kerberos ticket-cache summary
-
-### Expanded network / DNS / TLS coverage
-- Nmap top-port, connect, UDP and service-version checks
-- Nmap HTTP title and TLS certificate inspection
-- DNS AAAA, NS, TXT, CNAME and SRV queries
-- DNS delegation tracing
-- OpenSSL certificate and SAN inspection
-- route, neighbour, listening-port and traceroute references
-
-### Expanded web / curl coverage
-- response headers
-- status codes
-- redirect chains
-- detailed timings
-- OPTIONS
-- Origin/CORS observations
-- HTTP/1.1 and HTTP/2
-- local DNS override
-- security.txt
-- robots.txt
-- sitemap.xml
-- TLS summary
-- Content-Type and Set-Cookie inspection
-
-### Expanded packet-analysis coverage
-- protocol hierarchy
-- IP conversations and endpoints
-- DNS queries
-- HTTP hosts
-- TLS SNI
-- tcpdump interfaces and PCAP filters
-
-### Expanded repository/runtime coverage
-- Git branch/history/config review
-- ripgrep searches for routes, auth terms and configuration files
-- deeper Python, Node.js, PHP, Java, .NET, Go, Bash and PowerShell runtime references
-
-### Quality model retained
-Every catalogue entry remains structured with:
-- platform
-- tool
-- category
-- command
+### Command maturity
+Each command receives a metadata-maturity score based on:
 - description
-- risk
-- tags
-- parameters
-- ATT&CK mapping where appropriate
 - explanation
+- tags
 - telemetry
-- Security Notes link
+- Notes
+- parameter schema
+- ATT&CK structure
+- command relationships
+
+### Command Studio navigation
+- Catalogue breadcrumbs
+- platform breadcrumb
+- category breadcrumb
+- maturity badge
+- relationship panel
+- cross-platform equivalent suggestions
+- knowledge-completeness panel
+
+### UI refinement
+- premium typography stack using installed/system fonts
+- stronger visual hierarchy
+- glass-like cards
+- subtle depth and gradients
+- improved hover/focus states
+- cleaner command cards
+- refined light-mode surfaces
+- responsive catalogue navigation
+- polished topic and statistics cards
 
 ### Product retained
-v2.7 includes all v2.6 QA/hardening features:
-- Error Boundary
-- diagnostics/recovery
-- deterministic source audit
-- link audit
-- Vitest unit tests
-- Playwright desktop/mobile tests
-- accessibility checks
-- dark/light mode
-- Appearance Studio
-- Carbon-style command visualisation
+- 297 structured commands
+- Runtime Library
+- Carbon-style syntax visualiser
+- Command Compare
+- Command Packs
+- Custom Commands
+- ATT&CK Explorer
 - Knowledge Graph
+- Attack Path Explorer
+- PrivEsc Explorer
 - Context Profiles
-- Assessment Sequences
 - Quick Notes
 - Copy History
 - Engagement Timer
-- Custom Commands
+- Assessment Sequences
+- Coverage Intelligence
+- Workflow Builder
+- Purple Team Mapping
+- Report Builder
+- Notes Link Builder
+- Appearance Studio
+- Diagnostics & Recovery
+- automated QA
 - no file uploads

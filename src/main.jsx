@@ -19,7 +19,7 @@ import './styles.css';
 
 const sections=[
  {title:'',items:[['Dashboard','dashboard',LayoutDashboard]]},
- {title:'COMMANDS',items:[['Command Library','library',Library],['Command Studio','command-studio',TerminalSquare],['Command Visualiser','visualiser',Image],['Command Compare','compare',Columns3],['Command Packs','packs',Package],['Runtime Library','runtimes',Code2],['Custom Commands','custom-commands',Braces]]},
+ {title:'COMMANDS',items:[['Catalogue Overview','catalogue',Layers3],['Command Library','library',Library],['Command Studio','command-studio',TerminalSquare],['Command Visualiser','visualiser',Image],['Command Compare','compare',Columns3],['Command Packs','packs',Package],['Runtime Library','runtimes',Code2],['Custom Commands','custom-commands',Braces]]},
  {title:'EXPLORERS',items:[['PrivEsc Explorer','privesc',ShieldCheck],['ATT&CK Explorer','attack',Network],['Attack Path Explorer','attack-path',GitCompareArrows],['Knowledge Graph','graph',GitBranch]]},
  {title:'WORKSPACE',items:[['Saved Workspace','workspace',Star],['Context Profiles','contexts',Braces],['Quick Notes','quick-notes',NotebookPen],['Copy History','copy-history',History],['Engagement Timer','timer',TimerReset],['Report Builder','reports',FileText],['Notes Link Builder','notes-links',Link2]]},
  {title:'BUILDERS',items:[['Workflow Builder','workflow',Workflow],['Assessment Sequences','assessments',ListChecks]]},
@@ -106,6 +106,38 @@ const relatedCommandsFor=(c,limit=6)=>commands
   return {x,score};
  })
  .filter(r=>r.score>0)
+ .sort((a,b)=>b.score-a.score||a.x.title.localeCompare(b.x.title))
+ .slice(0,limit)
+ .map(r=>r.x);
+
+
+const recentlyExpandedIds=new Set(commands.slice(-129).map(c=>c.id));
+
+const commandMaturity=(c)=>{
+ const checks={
+  description:!!c.description?.trim(),
+  explanation:Array.isArray(c.explanation)&&c.explanation.length>0,
+  tags:Array.isArray(c.tags)&&c.tags.length>=2,
+  telemetry:Array.isArray(c.telemetry)&&c.telemetry.length>0,
+  notes:!!c.notes?.trim(),
+  parameters:Array.isArray(c.parameters),
+  attack:Array.isArray(c.attack),
+  relationships:relatedCommandsFor(c,1).length>0
+ };
+ const score=Math.round(Object.values(checks).filter(Boolean).length/Object.keys(checks).length*100);
+ return {score,checks,label:score>=90?'Complete':score>=75?'Strong':'Needs review'};
+};
+
+const crossPlatformEquivalents=(c,limit=4)=>commands
+ .filter(x=>x.id!==c.id&&x.platform!==c.platform)
+ .map(x=>{
+  let score=0;
+  if(x.category===c.category)score+=5;
+  score+=x.tags.filter(t=>c.tags.includes(t)).length*3;
+  score+=x.attack.filter(t=>c.attack.includes(t)).length*4;
+  return {x,score};
+ })
+ .filter(r=>r.score>=4)
  .sort((a,b)=>b.score-a.score||a.x.title.localeCompare(b.x.title))
  .slice(0,limit)
  .map(r=>r.x);
@@ -307,9 +339,10 @@ function App(){
    </div>
    <button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button>
   </header>
-  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v2.7</div></aside>
+  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v2.8</div></aside>
   <main>
    {page==='dashboard'?<Dashboard go={go} favorites={favorites} recent={recent}/>:
+    page==='catalogue'?<CatalogueOverview go={go} openCommand={openCommand}/>:
     page==='library'?<LibraryPage query={query} setQuery={setQuery} platform={platform} setPlatform={setPlatform} tool={tool} setTool={setTool} openCommand={openCommand} favorites={favorites} toggleFavorite={toggleFavorite}/>:
     page==='command-studio'?<CommandStudio c={selected} tab={tab} setTab={setTab} go={go} favorites={favorites} toggleFavorite={toggleFavorite}/>:
     page==='visualiser'?<Visualiser c={selected}/>: 
@@ -343,7 +376,7 @@ function App(){
 
 function Dashboard({go,favorites,recent}){
  const quick=[
-  ['Command Library','library',Library,'Search structured security commands'],
+  ['Catalogue Overview','catalogue',Layers3,'Browse the knowledge catalogue by platform and topic'],
   ['Command Studio','command-studio',TerminalSquare,'Explain, modify and contextualise commands'],
   ['Command Visualiser','visualiser',Image,'Create syntax-highlighted documentation cards'],
   ['Knowledge Graph','graph',GitBranch,'Connect commands, telemetry, ATT&CK and Notes'],
@@ -433,89 +466,183 @@ function CommandPalette({close,openCommand,go}){
  </div>
 }
 
+
+function CatalogueOverview({go,openCommand}){
+ const [platform,setPlatform]=useState('All');
+ const platforms=['Windows','Linux','Active Directory','Network','Web','Tools'];
+ const rows=platform==='All'?commands:commands.filter(c=>c.platform===platform);
+ const categories=[...new Set(rows.map(c=>c.category))].sort((a,b)=>
+  rows.filter(c=>c.category===b).length-rows.filter(c=>c.category===a).length||a.localeCompare(b)
+ );
+ const attackMapped=rows.filter(c=>c.attack?.length).length;
+ const telemetryMapped=rows.filter(c=>c.telemetry?.length).length;
+ const parameterised=rows.filter(c=>c.parameters?.length).length;
+ const readOnly=rows.filter(c=>c.risk==='Read only').length;
+ const recent=rows.filter(c=>recentlyExpandedIds.has(c.id)).slice(-8).reverse();
+
+ return <>
+  <div className="catalogueHero">
+   <div>
+    <span className="eyebrow">CATALOGUE INTELLIGENCE</span>
+    <h1>Security knowledge,<br/><em>beautifully organised.</em></h1>
+    <p>Browse {commands.length} structured commands by platform, topic, ATT&CK coverage and telemetry instead of searching a flat list.</p>
+    <div className="catalogueHeroActions">
+     <button className="primarySmall" onClick={()=>go('library')}><Search size={15}/> Open Command Library</button>
+     <button className="secondarySmall" onClick={()=>go('coverage')}><BarChart3 size={15}/> View Coverage</button>
+    </div>
+   </div>
+   <div className="catalogueOrbital">
+    <div className="catalogueCore"><b>{commands.length}</b><span>structured commands</span></div>
+    <i className="ring one"/><i className="ring two"/>
+    <span className="orbitLabel l1">ATT&CK</span><span className="orbitLabel l2">Telemetry</span>
+    <span className="orbitLabel l3">Notes</span><span className="orbitLabel l4">Runtime</span>
+   </div>
+  </div>
+
+  <div className="platformShowcase">
+   {platforms.map(p=>{
+    const set=commands.filter(c=>c.platform===p);
+    const cats=new Set(set.map(c=>c.category)).size;
+    const mapped=set.filter(c=>c.attack?.length).length;
+    return <button key={p} className={platform===p?'active':''} onClick={()=>setPlatform(platform===p?'All':p)}>
+     <span>{p}</span><b>{set.length}</b><small>{cats} topics · {mapped} ATT&CK mapped</small><ChevronRight/>
+    </button>
+   })}
+  </div>
+
+  <div className="catalogueStats">
+   <div><span>VIEW</span><b>{platform}</b><small>{rows.length} commands</small></div>
+   <div><span>ATT&CK</span><b>{Math.round(attackMapped/Math.max(rows.length,1)*100)}%</b><small>{attackMapped} mapped</small></div>
+   <div><span>TELEMETRY</span><b>{Math.round(telemetryMapped/Math.max(rows.length,1)*100)}%</b><small>{telemetryMapped} covered</small></div>
+   <div><span>PARAMETERS</span><b>{parameterised}</b><small>interactive commands</small></div>
+   <div><span>READ ONLY</span><b>{readOnly}</b><small>reference checks</small></div>
+  </div>
+
+  <section className="topicSection">
+   <div className="sectionhead premium"><span className="eyebrow">TOPICS</span><h2>{platform==='All'?'Browse by topic':`${platform} topics`}</h2><p>Drill down into the catalogue without losing the surrounding knowledge context.</p></div>
+   <div className="topicGrid">
+    {categories.slice(0,18).map(cat=>{
+     const catRows=rows.filter(c=>c.category===cat);
+     const quality=Math.round(catRows.reduce((n,c)=>n+commandMaturity(c).score,0)/catRows.length);
+     return <article className="topicCard" key={cat}>
+      <div className="topicCardTop"><span>{cat}</span><b>{catRows.length}</b></div>
+      <div className="topicMeter"><i style={{width:`${quality}%`}}/></div>
+      <small>{quality}% metadata maturity</small>
+      <div className="topicExamples">{catRows.slice(0,3).map(c=><button key={c.id} onClick={()=>openCommand(c)}>{c.title}<ChevronRight size={13}/></button>)}</div>
+      <button className="topicOpen" onClick={()=>{location.href=`${location.pathname}?platform=${encodeURIComponent(platform==='All'?'All':platform)}&category=${encodeURIComponent(cat)}#/library`}}>Browse topic</button>
+     </article>
+    })}
+   </div>
+  </section>
+
+  <section>
+   <div className="sectionhead premium"><span className="eyebrow">RECENTLY EXPANDED</span><h2>Fresh catalogue depth</h2><p>Commands added in the detailed catalogue expansion wave.</p></div>
+   <div className="recentRail">{recent.map(c=><button key={c.id} onClick={()=>openCommand(c)}><div><span>{c.platform} · {c.category}</span><b>{c.title}</b><code>{c.command}</code></div><ChevronRight/></button>)}</div>
+  </section>
+ </>
+}
+
 function LibraryPage({query,setQuery,platform,setPlatform,tool,setTool,openCommand,favorites,toggleFavorite}){
  const params=new URLSearchParams(location.search);
  const [sort,setSort]=useState(params.get('sort')||'Title');
  const [category,setCategory]=useState(params.get('category')||'All');
  const [tag,setTag]=useState(params.get('tag')||'All');
+ const [risk,setRisk]=useState(params.get('risk')||'All');
  const [onlyFavorites,setOnlyFavorites]=useState(params.get('favorites')==='1');
+ const [withAttack,setWithAttack]=useState(params.get('attack')==='1');
+ const [withTelemetry,setWithTelemetry]=useState(params.get('telemetry')==='1');
+ const [withParameters,setWithParameters]=useState(params.get('params')==='1');
+ const [pinned,setPinned]=useState(()=>{try{return JSON.parse(localStorage.getItem('security-studio-pinned-filter')||'null')}catch{return null}});
 
  const platforms=['All',...new Set(commands.map(c=>c.platform))];
  const tools=['All',...new Set(commands.map(c=>c.tool))];
  const categories=['All',...new Set(commands.map(c=>c.category))].sort();
  const tags=['All',...new Set(commands.flatMap(c=>c.tags))].sort();
+ const risks=['All',...new Set(commands.map(c=>c.risk))];
 
  useEffect(()=>{
-   const p=new URLSearchParams();
-   if(query)p.set('q',query);
-   if(platform!=='All')p.set('platform',platform);
-   if(tool!=='All')p.set('tool',tool);
-   if(category!=='All')p.set('category',category);
-   if(tag!=='All')p.set('tag',tag);
-   if(sort!=='Title')p.set('sort',sort);
-   if(onlyFavorites)p.set('favorites','1');
-   const qs=p.toString();
-   history.replaceState(null,'',`${location.pathname}${qs?`?${qs}`:''}${location.hash||'#/library'}`);
- },[query,platform,tool,category,tag,sort,onlyFavorites]);
+  const p=new URLSearchParams();
+  if(query)p.set('q',query); if(platform!=='All')p.set('platform',platform); if(tool!=='All')p.set('tool',tool);
+  if(category!=='All')p.set('category',category); if(tag!=='All')p.set('tag',tag); if(risk!=='All')p.set('risk',risk);
+  if(sort!=='Title')p.set('sort',sort); if(onlyFavorites)p.set('favorites','1'); if(withAttack)p.set('attack','1');
+  if(withTelemetry)p.set('telemetry','1'); if(withParameters)p.set('params','1');
+  const qs=p.toString(); history.replaceState(null,'',`${location.pathname}${qs?`?${qs}`:''}${location.hash||'#/library'}`);
+ },[query,platform,tool,category,tag,risk,sort,onlyFavorites,withAttack,withTelemetry,withParameters]);
 
  const filtered=useMemo(()=>{
-   const rows=commands.filter(c=>
-     (platform==='All'||c.platform===platform) &&
-     (tool==='All'||c.tool===tool) &&
-     (category==='All'||c.category===category) &&
-     (tag==='All'||c.tags.includes(tag)) &&
-     (!onlyFavorites||favorites.includes(c.id)) &&
-     (!query||commandSearchScore(c,query)>0)
-   );
-   if(query)return [...rows].sort((a,b)=>commandSearchScore(b,query)-commandSearchScore(a,query)||a.title.localeCompare(b.title));
-   return [...rows].sort((a,b)=>{
-     if(sort==='Platform')return a.platform.localeCompare(b.platform)||a.title.localeCompare(b.title);
-     if(sort==='Tool')return a.tool.localeCompare(b.tool)||a.title.localeCompare(b.title);
-     if(sort==='Category')return a.category.localeCompare(b.category)||a.title.localeCompare(b.title);
-     return a.title.localeCompare(b.title);
-   });
- },[query,platform,tool,category,tag,onlyFavorites,favorites,sort]);
+  const rows=commands.filter(c=>
+   (platform==='All'||c.platform===platform)&&(tool==='All'||c.tool===tool)&&(category==='All'||c.category===category)&&
+   (tag==='All'||c.tags.includes(tag))&&(risk==='All'||c.risk===risk)&&(!onlyFavorites||favorites.includes(c.id))&&
+   (!withAttack||c.attack?.length>0)&&(!withTelemetry||c.telemetry?.length>0)&&(!withParameters||c.parameters?.length>0)&&
+   (!query||commandSearchScore(c,query)>0)
+  );
+  if(query)return [...rows].sort((a,b)=>commandSearchScore(b,query)-commandSearchScore(a,query)||a.title.localeCompare(b.title));
+  return [...rows].sort((a,b)=>{
+   if(sort==='Platform')return a.platform.localeCompare(b.platform)||a.title.localeCompare(b.title);
+   if(sort==='Tool')return a.tool.localeCompare(b.tool)||a.title.localeCompare(b.title);
+   if(sort==='Category')return a.category.localeCompare(b.category)||a.title.localeCompare(b.title);
+   if(sort==='Quality')return commandMaturity(b).score-commandMaturity(a).score||a.title.localeCompare(b.title);
+   if(sort==='Recently expanded')return Number(recentlyExpandedIds.has(b.id))-Number(recentlyExpandedIds.has(a.id))||a.title.localeCompare(b.title);
+   return a.title.localeCompare(b.title);
+  });
+ },[query,platform,tool,category,tag,risk,onlyFavorites,withAttack,withTelemetry,withParameters,favorites,sort]);
 
  const count=(key,value)=>commands.filter(c=>value==='All'||(key==='tags'?c.tags.includes(value):c[key]===value)).length;
- const copy=(e,c)=>{e.stopPropagation();studioCopy(c.command,c.title);};
+ const copy=(e,c)=>{e.stopPropagation();studioCopy(c.command,c.title)};
  const fav=(e,c)=>{e.stopPropagation();toggleFavorite(c.id)};
- const copyLink=()=>studioCopy(location.href,'Filtered Command Library link');
- const resetFilters=()=>{
-   setQuery('');setPlatform('All');setTool('All');setCategory('All');setTag('All');setSort('Title');setOnlyFavorites(false);
- };
+ const resetFilters=()=>{setQuery('');setPlatform('All');setTool('All');setCategory('All');setTag('All');setRisk('All');setSort('Title');setOnlyFavorites(false);setWithAttack(false);setWithTelemetry(false);setWithParameters(false)};
+ const pinFilters=()=>{const f={platform,tool,category,tag,risk,onlyFavorites,withAttack,withTelemetry,withParameters,sort};localStorage.setItem('security-studio-pinned-filter',JSON.stringify(f));setPinned(f);studioToast('Filter view pinned')};
+ const applyPinned=()=>{if(!pinned)return;setPlatform(pinned.platform||'All');setTool(pinned.tool||'All');setCategory(pinned.category||'All');setTag(pinned.tag||'All');setRisk(pinned.risk||'All');setOnlyFavorites(!!pinned.onlyFavorites);setWithAttack(!!pinned.withAttack);setWithTelemetry(!!pinned.withTelemetry);setWithParameters(!!pinned.withParameters);setSort(pinned.sort||'Title');studioToast('Pinned filter applied')};
 
  return <>
-  <PageTitle kicker="COMMANDS" title="Command Library" text="Search reusable security commands by platform, tool, category and tag."/>
-  <div className="librarytools">
-   <div className="librarysearch"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search commands, tools, categories..."/></div>
-   <div className="filterrow"><Filter size={16}/><b>Platform</b>{platforms.map(p=><button className={platform===p?'selected':''} onClick={()=>setPlatform(p)} key={p}>{p}<small>{count('platform',p)}</small></button>)}</div>
-   <div className="filterrow"><Filter size={16}/><b>Tool</b>{tools.slice(0,22).map(p=><button className={tool===p?'selected':''} onClick={()=>setTool(p)} key={p}>{p}<small>{count('tool',p)}</small></button>)}</div>
-   <div className="libraryAdvancedFilters">
+  <div className="libraryHeading">
+   <div className="catalogueBreadcrumb"><button onClick={()=>location.hash='#/catalogue'}>Catalogue</button><ChevronRight size={13}/><span>{platform}</span>{category!=='All'&&<><ChevronRight size={13}/><b>{category}</b></>}</div>
+   <PageTitle kicker="COMMANDS" title="Command Library" text={`Search ${commands.length} structured security commands by platform, tool, topic, risk and knowledge coverage.`}/>
+  </div>
+
+  <div className="librarytools premiumLibrary">
+   <div className="librarysearch"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search title, tool, ATT&CK, category, tag or command..."/><kbd>/</kbd></div>
+   <div className="filterrow scrollable"><Filter size={16}/><b>Platform</b>{platforms.map(p=><button className={platform===p?'selected':''} onClick={()=>setPlatform(p)} key={p}>{p}<small>{count('platform',p)}</small></button>)}</div>
+   <div className="filterrow scrollable"><Filter size={16}/><b>Tool</b>{tools.slice(0,24).map(p=><button className={tool===p?'selected':''} onClick={()=>setTool(p)} key={p}>{p}<small>{count('tool',p)}</small></button>)}</div>
+
+   <div className="libraryFacetGrid">
     <label>Category<select value={category} onChange={e=>setCategory(e.target.value)}>{categories.map(x=><option key={x}>{x}</option>)}</select></label>
     <label>Tag<select value={tag} onChange={e=>setTag(e.target.value)}>{tags.map(x=><option key={x}>{x}</option>)}</select></label>
-    <label>Sort<select value={sort} onChange={e=>setSort(e.target.value)}><option>Title</option><option>Platform</option><option>Tool</option><option>Category</option></select></label>
+    <label>Risk<select value={risk} onChange={e=>setRisk(e.target.value)}>{risks.map(x=><option key={x}>{x}</option>)}</select></label>
+    <label>Sort<select value={sort} onChange={e=>setSort(e.target.value)}><option>Title</option><option>Platform</option><option>Tool</option><option>Category</option><option>Quality</option><option>Recently expanded</option></select></label>
    </div>
-   <div className="libraryOptions">
+
+   <div className="libraryOptions modern">
     <div className="optionGroup">
      <button className={onlyFavorites?'optionActive':''} onClick={()=>setOnlyFavorites(!onlyFavorites)}><Star size={14} fill={onlyFavorites?'currentColor':'none'}/> Favourites</button>
-     <button onClick={resetFilters}><RotateCcw size={14}/> Reset filters</button>
+     <button className={withAttack?'optionActive':''} onClick={()=>setWithAttack(!withAttack)}><Network size={14}/> ATT&CK</button>
+     <button className={withTelemetry?'optionActive':''} onClick={()=>setWithTelemetry(!withTelemetry)}><RadioTower size={14}/> Telemetry</button>
+     <button className={withParameters?'optionActive':''} onClick={()=>setWithParameters(!withParameters)}><Braces size={14}/> Parameters</button>
     </div>
-    <button onClick={copyLink}><Copy size={14}/> Copy filtered link</button>
+    <div className="optionGroup">
+     {pinned&&<button onClick={applyPinned}><Check size={14}/> Apply pinned</button>}
+     <button onClick={pinFilters}><Save size={14}/> Pin filters</button>
+     <button onClick={resetFilters}><RotateCcw size={14}/> Reset</button>
+     <button onClick={()=>studioCopy(location.href,'Filtered Command Library link')}><Copy size={14}/> Share view</button>
+    </div>
    </div>
   </div>
 
-  <div className="resultline"><b>{filtered.length}</b> commands match current filters</div>
-  <div className="commandgrid">{filtered.map(c=><article className="commandcard" key={c.id}>
-   <div className="badges"><span>{c.platform}</span><span>{c.tool}</span><small>{c.risk}</small><small className={`qualityBadge ${commandQuality(c)>=85?'good':'review'}`}>{commandQuality(c)}%</small></div>
+  <div className="libraryResultBar"><div><b>{filtered.length}</b><span>commands match</span></div><div className="activeFacetSummary">{platform!=='All'&&<span>{platform}</span>}{category!=='All'&&<span>{category}</span>}{risk!=='All'&&<span>{risk}</span>}{withAttack&&<span>ATT&CK</span>}{withTelemetry&&<span>Telemetry</span>}{withParameters&&<span>Parameters</span>}</div></div>
+
+  <div className="commandgrid premiumGrid">{filtered.map(c=>{const maturity=commandMaturity(c);return <article className="commandcard premiumCard" key={c.id}>
+   {recentlyExpandedIds.has(c.id)&&<span className="newBadge">NEW</span>}
+   <div className="badges"><span>{c.platform}</span><span>{c.tool}</span><small>{c.risk}</small></div>
    <h3>{c.title}</h3><p>{c.description}</p><code>{c.command}</code>
-   <div className="tags">{c.tags.map(t=><small key={t}>{t}</small>)}</div>
-   <div className="cardActions">
-    <button onClick={e=>fav(e,c)} className={favorites.includes(c.id)?'favOn':''}><Star size={14} fill={favorites.includes(c.id)?'currentColor':'none'}/> {favorites.includes(c.id)?'Saved':'Save'}</button>
-    <button onClick={e=>copy(e,c)}><Copy size={14}/> Copy</button>
-    <a href={c.notes} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()}><BookOpen size={14}/> Notes</a>
-    <button className="openBtn" onClick={()=>openCommand(c)}>Open in Studio <ChevronRight size={14}/></button>
+   <div className="commandCoverage">
+    <span className={c.attack?.length?'covered':''}><Network size={12}/> {c.attack?.length||0} ATT&CK</span>
+    <span className={c.telemetry?.length?'covered':''}><RadioTower size={12}/> {c.telemetry?.length||0} telemetry</span>
+    <span className={c.parameters?.length?'covered':''}><Braces size={12}/> {c.parameters?.length||0} params</span>
+    <span className={`maturity ${maturity.score>=90?'good':maturity.score>=75?'strong':'review'}`}>{maturity.score}%</span>
    </div>
-  </article>)}</div>
+   <div className="tags">{c.tags.slice(0,5).map(t=><small key={t}>{t}</small>)}</div>
+   <div className="cardActions"><button onClick={e=>fav(e,c)} className={favorites.includes(c.id)?'favOn':''}><Star size={14} fill={favorites.includes(c.id)?'currentColor':'none'}/> {favorites.includes(c.id)?'Saved':'Save'}</button><button onClick={e=>copy(e,c)}><Copy size={14}/> Copy</button><a href={c.notes} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()}><BookOpen size={14}/> Notes</a><button className="openBtn" onClick={()=>openCommand(c)}>Open <ChevronRight size={14}/></button></div>
+  </article>})}</div>
   {!filtered.length&&<div className="empty">No commands match the current search and filters.</div>}
  </>
 }
@@ -527,15 +654,17 @@ function CommandStudio({c,tab,setTab,go,favorites,toggleFavorite}){
  useEffect(()=>{const h=()=>{try{setCtx(JSON.parse(localStorage.getItem('security-studio-context')||'{}'))}catch{}};addEventListener('storage',h);return()=>removeEventListener('storage',h)},[]);
  const generated=c.parameters.reduce((s,p)=>s.replaceAll(`<${p.name}>`,values[p.name]||ctx[p.name]||`<${p.name}>`),c.command);
  const related=relatedCommandsFor(c);
+ const equivalents=crossPlatformEquivalents(c);
+ const maturity=commandMaturity(c);
  const copy=()=>studioCopy(generated,c.title);
- return <><button className="back" onClick={()=>go('library')}><ArrowLeft size={15}/> Command Library</button><div className="studioTitleRow"><PageTitle kicker={`${c.platform} / ${c.category}`} title={c.title} text={c.description}/><button className={`saveCommand ${favorites.includes(c.id)?'saved':''}`} onClick={()=>toggleFavorite(c.id)}><Star size={16} fill={favorites.includes(c.id)?'currentColor':'none'}/>{favorites.includes(c.id)?'Saved':'Save command'}</button></div><div className="studio"><div className="commandbox"><div className="commandmeta"><span className="cmdtool"><TerminalSquare size={18}/>{c.tool}</span><span className="cmdrisk">{c.risk}</span></div><div className="commandline"><code>{generated}</code><button className="copybtn" onClick={copy}><Copy size={15}/> Copy</button></div></div><div className="tabs">{['Explain','Modify','Detect','Visualise','Related'].map(t=><button className={tab===t?'active':''} onClick={()=>setTab(t)} key={t}>{t}</button>)}</div>
+ return <><button className="back" onClick={()=>go('library')}><ArrowLeft size={15}/> Command Library</button><div className="commandBreadcrumb"><button onClick={()=>go('catalogue')}>Catalogue</button><ChevronRight/><button onClick={()=>{location.href=`${location.pathname}?platform=${encodeURIComponent(c.platform)}#/library`}}>{c.platform}</button><ChevronRight/><button onClick={()=>{location.href=`${location.pathname}?platform=${encodeURIComponent(c.platform)}&category=${encodeURIComponent(c.category)}#/library`}}>{c.category}</button><ChevronRight/><span>{c.title}</span></div><div className="studioTitleRow"><PageTitle kicker={`${c.platform} / ${c.category}`} title={c.title} text={c.description}/><div className="studioTitleActions"><div className={`maturityPill ${maturity.score>=90?'good':maturity.score>=75?'strong':'review'}`}><span>{maturity.label}</span><b>{maturity.score}%</b></div><button className={`saveCommand ${favorites.includes(c.id)?'saved':''}`} onClick={()=>toggleFavorite(c.id)}><Star size={16} fill={favorites.includes(c.id)?'currentColor':'none'}/>{favorites.includes(c.id)?'Saved':'Save command'}</button></div></div><div className="studio"><div className="commandbox"><div className="commandmeta"><span className="cmdtool"><TerminalSquare size={18}/>{c.tool}</span><span className="cmdrisk">{c.risk}</span></div><div className="commandline"><code>{generated}</code><button className="copybtn" onClick={copy}><Copy size={15}/> Copy</button></div></div><div className="tabs">{['Explain','Modify','Detect','Visualise','Related'].map(t=><button className={tab===t?'active':''} onClick={()=>setTab(t)} key={t}>{t}</button>)}</div>
  {tab==='Explain'&&<div className="twocol"><Panel title="Command Breakdown"><dl>{c.explanation.map(([a,b])=><React.Fragment key={a}><dt>{a}</dt><dd>{b}</dd></React.Fragment>)}</dl></Panel><Panel title="Context"><dl><dt>Platform</dt><dd>{c.platform}</dd><dt>Tool</dt><dd>{c.tool}</dd><dt>Category</dt><dd>{c.category}</dd><dt>Changes system</dt><dd>{c.changesSystem?'Yes':'No'}</dd><dt>Risk</dt><dd>{c.risk}</dd></dl></Panel></div>}
  {tab==='Modify'&&<Panel title="Command Parameters">{c.parameters.length?<>{c.parameters.map(p=><label className="field" key={p.name}>{p.label}<input placeholder={p.placeholder} value={values[p.name]||''} onChange={e=>setValues({...values,[p.name]:e.target.value})}/></label>)}<div className="generated"><small>GENERATED COMMAND</small><code>{generated}</code><button onClick={copy}><Copy size={15}/> Copy</button></div></>:<p>This command has no editable placeholders.</p>}</Panel>}
  {tab==='Detect'&&<div className="twocol"><Panel title="Defender View"><p>Use the telemetry below as assessment context. A command alone is not automatically suspicious; correlation and intent matter.</p>{c.telemetry.map(x=><div className="check" key={x}><CheckCircle2 size={16}/>{x}</div>)}</Panel><Panel title="ATT&CK Context">{c.attack.length?c.attack.map(x=><div className="attackpill" key={x}>{x}</div>):<p>No ATT&CK mapping assigned to this reference entry.</p>}</Panel></div>}
  {tab==='Visualise'&&<VisualPreview c={{...c,command:generated}}/>}
  {tab==='Related'&&<div className="relatedGrid">
-   <Panel title="Command Relationships"><div className="relationshipList">{related.map((x,i)=><button key={x.id} onClick={()=>{location.hash=`#/command/${x.id}`;location.reload()}}><span>{i===0?'Next check':'Related'}</span><div><b>{x.title}</b><small>{x.platform} · {x.tool} · {x.category}</small></div><ChevronRight/></button>)}</div></Panel>
-   <Panel title="Security Notes"><p>Continue with the full methodology and supporting documentation.</p><a className="textlink" href={c.notes} target="_blank" rel="noopener noreferrer">Open related Security Notes <ExternalLink size={14}/></a><div className="tags big">{c.tags.map(x=><small key={x}>{x}</small>)}</div><p className="permalink">Permalink<br/><code>{location.href}</code></p></Panel>
+   <div><Panel title="Command Relationships"><div className="relationshipList">{related.map((x,i)=><button key={x.id} onClick={()=>{location.hash=`#/command/${x.id}`;location.reload()}}><span>{i===0?'Next check':'Related'}</span><div><b>{x.title}</b><small>{x.platform} · {x.tool} · {x.category}</small></div><ChevronRight/></button>)}</div></Panel><Panel title="Cross-platform equivalents">{equivalents.length?<div className="equivalentList">{equivalents.map(x=><button key={x.id} onClick={()=>{location.hash=`#/command/${x.id}`;location.reload()}}><span>{x.platform}</span><div><b>{x.title}</b><code>{x.command}</code></div><ChevronRight/></button>)}</div>:<p>No strong cross-platform equivalent has been identified for this command.</p>}</Panel></div>
+   <div><Panel title="Knowledge completeness"><div className="maturityChecklist">{Object.entries(maturity.checks).map(([key,ok])=><div key={key}><span>{key.replaceAll('_',' ')}</span><b className={ok?'ok':'missing'}>{ok?'Covered':'Missing'}</b></div>)}</div></Panel><Panel title="Security Notes"><p>Continue with the full methodology and supporting documentation.</p><a className="textlink" href={c.notes} target="_blank" rel="noopener noreferrer">Open related Security Notes <ExternalLink size={14}/></a><div className="tags big">{c.tags.map(x=><small key={x}>{x}</small>)}</div><p className="permalink">Permalink<br/><code>{location.href}</code></p></Panel></div>
   </div>}
  </div></>
 }
@@ -968,7 +1097,7 @@ function Diagnostics(){
   <PageTitle kicker="SETTINGS" title="Diagnostics & Recovery" text="Run local health checks and recover the Studio if browser data becomes corrupted."/>
   <div className="diagnosticGrid">
    <Panel title="Application health">
-    <div className="diagnosticMeta"><span>Studio version</span><b>v2.6</b><span>Storage schema</span><b>v{STORAGE_VERSION}</b><span>Last migration</span><b>{storageMigration.migrated?`v${storageMigration.from} → v${storageMigration.to}`:'Current'}</b></div>
+    <div className="diagnosticMeta"><span>Studio version</span><b>v2.8</b><span>Storage schema</span><b>v{STORAGE_VERSION}</b><span>Last migration</span><b>{storageMigration.migrated?`v${storageMigration.from} → v${storageMigration.to}`:'Current'}</b></div>
     <button className="primarySmall" onClick={check}><ShieldCheck size={15}/> Run health checks</button>
     {result&&<div className="diagnosticResults">{rows.map(([label,ok])=><div key={label}><span>{label}</span><b className={ok?'ok':'warn'}>{ok?'Pass':'Review'}</b></div>)}</div>}
    </Panel>

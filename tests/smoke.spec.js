@@ -5,6 +5,9 @@ test('dashboard and command workflow render', async ({page}) => {
   await page.goto('/#/dashboard');
   await expect(page.getByText("Security knowledge,")).toBeVisible();
 
+  await page.goto('/#/catalogue');
+  await expect(page.getByText('Security knowledge,')).toBeVisible();
+
   await page.goto('/#/library');
   await expect(page.getByText('Command Library')).toBeVisible();
 

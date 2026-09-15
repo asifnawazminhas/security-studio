@@ -1,4 +1,4 @@
-const CACHE='security-studio-v1.0';
+const CACHE='security-studio-v1.1';
 const APP_SHELL=['/','/index.html','/manifest.webmanifest','/offline.html'];
 
 self.addEventListener('install',event=>{

@@ -1,6 +1,6 @@
 # Asif's Security Studio
 
-## 1.0 - Assessment Intelligence
+## 1.1 - Premium UI Polish + Assessment Intelligence
 
 Security Studio 1.0 is the first product milestone where the existing command, ATT&CK, telemetry, privilege-escalation, notes and reporting features operate as one integrated assessment workbench.
 
@@ -117,3 +117,15 @@ Security Studio adapts the organisational ideas rather than copying exploit payl
 - PWA/offline support
 - automated QA
 - no file uploads
+
+### 1.1 UI refinement
+- more premium typography hierarchy
+- tighter sidebar navigation
+- better header search treatment
+- glass-like filter panel
+- polished filter chips
+- deeper command cards
+- refined command code blocks
+- stronger dark/light parity
+- improved responsive layout
+- catalogue context strip

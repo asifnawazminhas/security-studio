@@ -475,7 +475,7 @@ function App(){
    </div>
    <button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button>
   </header>
-  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v1.0</div></aside>
+  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v1.1</div></aside>
   <main>
    {page==='dashboard'?<Dashboard go={go} favorites={favorites} recent={recent}/>:
     page==='catalogue'?<CatalogueOverview go={go} openCommand={openCommand}/>:
@@ -742,7 +742,7 @@ function LibraryPage({query,setQuery,platform,setPlatform,tool,setTool,openComma
    <PageTitle kicker="COMMANDS" title="Command Library" text={`Search ${commands.length} structured security commands by platform, tool, topic, risk and knowledge coverage.`}/>
   </div>
 
-  <div className="librarytools premiumLibrary">
+  <div className="libraryContextBar"><div><span>CATALOGUE</span><b>{platform==='All'?'All platforms':platform}</b></div><div><span>VISIBLE</span><b>{filtered.length}</b></div><div><span>TOTAL</span><b>{commands.length}</b></div></div><div className="librarytools premiumLibrary">
    <div className="librarysearch"><Search size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search title, tool, ATT&CK, category, tag or command..."/><kbd>/</kbd></div>
    <div className="filterrow scrollable"><Filter size={16}/><b>Platform</b>{platforms.map(p=><button className={platform===p?'selected':''} onClick={()=>setPlatform(p)} key={p}>{p}<small>{count('platform',p)}</small></button>)}</div>
    <div className="filterrow scrollable"><Filter size={16}/><b>Tool</b>{tools.slice(0,24).map(p=><button className={tool===p?'selected':''} onClick={()=>setTool(p)} key={p}>{p}<small>{count('tool',p)}</small></button>)}</div>
@@ -1443,7 +1443,7 @@ function Diagnostics(){
   <PageTitle kicker="SETTINGS" title="Diagnostics & Recovery" text="Run local health checks and recover the Studio if browser data becomes corrupted."/>
   <div className="diagnosticGrid">
    <Panel title="Application health">
-    <div className="diagnosticMeta"><span>Studio version</span><b>v1.0</b><span>Storage schema</span><b>v{STORAGE_VERSION}</b><span>Last migration</span><b>{storageMigration.migrated?`v${storageMigration.from} → v${storageMigration.to}`:'Current'}</b></div>
+    <div className="diagnosticMeta"><span>Studio version</span><b>v1.1</b><span>Storage schema</span><b>v{STORAGE_VERSION}</b><span>Last migration</span><b>{storageMigration.migrated?`v${storageMigration.from} → v${storageMigration.to}`:'Current'}</b></div>
     <button className="primarySmall" onClick={check}><ShieldCheck size={15}/> Run health checks</button>
     {result&&<div className="diagnosticResults">{rows.map(([label,ok])=><div key={label}><span>{label}</span><b className={ok?'ok':'warn'}>{ok?'Pass':'Review'}</b></div>)}</div>}
    </Panel>

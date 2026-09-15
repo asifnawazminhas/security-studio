@@ -1,70 +1,73 @@
 # Asif's Security Studio
 
-## v2.4 - Syntax Visualiser + Coverage Intelligence
+## v2.5 - Operator UX + Personalisation
 
-### Carbon-style Command Visualiser
-- Select a language independently from the command
-- Auto language detection
-- Syntax colours adapt to the selected visual theme
-- Languages: Shell, PowerShell, Python, Java, JavaScript, TypeScript, PHP, C#, Go, JSON, YAML, SQL, HTML/XML, CSS, HTTP
-- Optional line numbers
-- Optional prompt
-- Syntax highlighting toggle
-- PNG/SVG export
-- Safe React text/span rendering - no HTML injection renderer
+Security Studio v2.5 focuses on day-to-day usability instead of adding another isolated security category.
 
-### Coverage Intelligence
-- Catalogue quality counts
-- ATT&CK coverage
-- Telemetry coverage
-- Notes coverage
-- Platform coverage bars
-- Commands needing improvement
+### Appearance Studio
+- Dark / Light mode
+- Accent presets: Cyan, Purple, Green, Amber
+- Background: Solid, Grid, Dots, Scanlines
+- Density: Compact, Comfortable, Spacious
+- Adjustable sidebar width
+- Reduced-motion preference
+- Preferences stored only in browser localStorage
 
-### Assessment Sequences
-- Windows Baseline
-- Linux Baseline
-- Web Quick Review
-- Network Review
-- Status: Not tested / Pass / Review / Fail
-- Expected-output field
-- Notes field
+### Focus Mode
+- One-click distraction-free workspace
+- Hides the left navigation
+- Expands the main workspace
+- Header control exits Focus Mode
+
+### Copy History
+- Last 20 copied commands
+- Local timestamps
+- Copy again
+- Remove individual items
+- Clear all
+- No backend storage
+
+### Quick Notes
+- Notes attached to the active Context Profile
+- Plain text only
 - Markdown export
+- Local-only browser storage
+- No file upload
+
+### Engagement Timer
+- Context-profile-aware timer
+- Start / Pause / Reset
 - Local persistence
+- No tracking or backend calls
 
-### Command Compare
-- Side-by-side comparison
-- Platform, tool, category, risk, ATT&CK, telemetry and quality
+### Custom Commands
+- Create local text-only command references
+- Platform, tool, category, tags and Notes URL
+- Copy to clipboard
+- Stored only in localStorage
+- Never executed by Security Studio
+- No upload functionality
 
-### Knowledge Graph v2
-- Platform filter
-- Tool filter
-- Existing command, ATT&CK, telemetry and Notes relationships retained
-
-### Quality scoring
-- Quality badge added to Command Library cards
-- Completeness uses description, explanation, tags, telemetry, Notes, parameter metadata and ATT&CK field presence
-
-### Existing platform retained
+### Existing functionality retained
 - 168-command catalogue
 - Runtime Library
+- Carbon-style language selector and syntax themes
 - Command Studio
+- Command Visualiser
+- Command Compare
 - Command Packs
-- Context Profiles
-- Saved Workspace
-- Report Builder
-- Notes Link Builder
-- Workflow Builder
-- Purple Team Validation
 - ATT&CK Explorer
+- Knowledge Graph
 - PrivEsc Explorer
 - Attack Path Explorer
-- Dark/light mode
+- Context Profiles
+- Assessment Sequences
+- Coverage Intelligence
+- Workflow Builder
+- Detection & Telemetry
+- Purple Team Mapping
+- Report Builder
+- Notes Link Builder
 - PWA/offline support
-- No user file uploads
 
-### Local-only / no-upload policy
-- No file input controls
-- No workspace import
-- No workflow import
-- Studio can export data, images and reports but does not ask users to upload files
+All Security Notes links open in a new tab with `rel="noopener noreferrer"`.

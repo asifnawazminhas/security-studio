@@ -4,22 +4,36 @@ import {toPng,toSvg} from 'html-to-image';
 import {
   Activity,ArrowLeft,BookOpen,CheckCircle2,ChevronDown,ChevronRight,Copy,Download,
   Clock3,ExternalLink,Filter,GitCompareArrows,Image,Layers3,LayoutDashboard,Library,Menu,
-  BarChart3,Braces,Check,Code2,Columns3,FileJson,FileText,GitBranch,GripVertical,HelpCircle,Link2,ListChecks,Moon,Network,Package,Plus,RadioTower,RotateCcw,Save,Search,ShieldCheck,Star,Sun,Tag,TerminalSquare,Trash2,Upload,Workflow,X
+  BarChart3,Braces,Check,Code2,Columns3,FileJson,FileText,Focus,GitBranch,GripVertical,HelpCircle,History,Link2,ListChecks,Maximize2,Minimize2,Moon,Network,NotebookPen,Package,Palette,Pause,Play,Plus,RadioTower,RotateCcw,Save,Search,ShieldCheck,Star,Sun,Tag,TerminalSquare,TimerReset,Trash2,Upload,Workflow,X
 } from 'lucide-react';
 import {commands} from './data/commands';
 import './styles.css';
 
 const sections=[
  {title:'',items:[['Dashboard','dashboard',LayoutDashboard]]},
- {title:'COMMANDS',items:[['Command Library','library',Library],['Command Studio','command-studio',TerminalSquare],['Command Visualiser','visualiser',Image],['Command Compare','compare',Columns3],['Command Packs','packs',Package],['Runtime Library','runtimes',Code2]]},
+ {title:'COMMANDS',items:[['Command Library','library',Library],['Command Studio','command-studio',TerminalSquare],['Command Visualiser','visualiser',Image],['Command Compare','compare',Columns3],['Command Packs','packs',Package],['Runtime Library','runtimes',Code2],['Custom Commands','custom-commands',Braces]]},
  {title:'EXPLORERS',items:[['PrivEsc Explorer','privesc',ShieldCheck],['ATT&CK Explorer','attack',Network],['Attack Path Explorer','attack-path',GitCompareArrows],['Knowledge Graph','graph',GitBranch]]},
- {title:'WORKSPACE',items:[['Saved Workspace','workspace',Star],['Context Profiles','contexts',Braces],['Report Builder','reports',FileText],['Notes Link Builder','notes-links',Link2]]},
+ {title:'WORKSPACE',items:[['Saved Workspace','workspace',Star],['Context Profiles','contexts',Braces],['Quick Notes','quick-notes',NotebookPen],['Copy History','copy-history',History],['Engagement Timer','timer',TimerReset],['Report Builder','reports',FileText],['Notes Link Builder','notes-links',Link2]]},
  {title:'BUILDERS',items:[['Workflow Builder','workflow',Workflow],['Assessment Sequences','assessments',ListChecks]]},
- {title:'DEFENCE',items:[['Coverage Intelligence','coverage',BarChart3],['Detection & Telemetry','detection',RadioTower],['Purple Team Mapping','purple',Layers3]]}
+ {title:'DEFENCE',items:[['Coverage Intelligence','coverage',BarChart3],['Detection & Telemetry','detection',RadioTower],['Purple Team Mapping','purple',Layers3]]},
+ {title:'SETTINGS',items:[['Appearance','appearance',Palette]]}
 ];
 
 
 const studioToast=(message)=>window.dispatchEvent(new CustomEvent('studio-toast',{detail:message}));
+
+const studioCopy=(value,title='Command')=>{
+ const text=String(value??'');
+ navigator.clipboard?.writeText(text);
+ try{
+  const current=JSON.parse(localStorage.getItem('security-studio-copy-history')||'[]');
+  const entry={id:`${Date.now()}-${Math.random().toString(16).slice(2)}`,title,text,copiedAt:new Date().toISOString()};
+  const next=[entry,...current.filter(x=>x.text!==text)].slice(0,20);
+  localStorage.setItem('security-studio-copy-history',JSON.stringify(next));
+  window.dispatchEvent(new Event('studio-copy-history'));
+ }catch{}
+ studioToast(`${title} copied`);
+};
 
 const catalogHealth=()=>{
  const ids=commands.map(c=>c.id);
@@ -186,10 +200,24 @@ function App(){
   if(saved==='light'||saved==='dark')return saved;
   return matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';
  });
+ const [appearance,setAppearance]=useState(()=>{
+  try{return JSON.parse(localStorage.getItem('security-studio-appearance')||'{}')}catch{return {}}
+ });
+ const [focusMode,setFocusMode]=useState(()=>localStorage.getItem('security-studio-focus-mode')==='true');
  useEffect(()=>{
   document.documentElement.dataset.theme=theme;
   localStorage.setItem('security-studio-theme',theme);
  },[theme]);
+ useEffect(()=>{
+  const a={accent:'cyan',background:'solid',density:'comfortable',sidebar:202,reduceMotion:false,...appearance};
+  document.documentElement.dataset.accent=a.accent;
+  document.documentElement.dataset.background=a.background;
+  document.documentElement.dataset.density=a.density;
+  document.documentElement.dataset.reduceMotion=a.reduceMotion?'true':'false';
+  document.documentElement.style.setProperty('--sidebar-width',`${a.sidebar}px`);
+  localStorage.setItem('security-studio-appearance',JSON.stringify(a));
+ },[appearance]);
+ useEffect(()=>localStorage.setItem('security-studio-focus-mode',String(focusMode)),[focusMode]);
  const [online,setOnline]=useState(navigator.onLine);
  useEffect(()=>{
   const on=()=>setOnline(true);
@@ -251,22 +279,24 @@ function App(){
    go('command-studio',c);
  };
 
- return <div className="app">
+ return <div className={`app ${focusMode?'focusMode':''}`}>
   <header>
    <button className="brand" onClick={()=>go('dashboard')}><div className="mark">A</div><div><b>Asif's Security Studio</b><span>Interactive security knowledge workspace</span></div></button>
    <button className="topsearch" onClick={()=>setPalette(true)}><Search size={17}/><span>Search commands, tools, techniques...</span><kbd>Ctrl K</kbd></button>
    <div className="topActions">
+    <div className="contextIndicator" title="Active context profile"><Braces size={13}/><span>{contextProfile}</span></div>
     <div className={`connectionState ${online?'online':'offline'}`}><span/> {online?'Online':'Offline'}</div>
     <button className="themeToggle" onClick={()=>setTheme(theme==='dark'?'light':'dark')} title={`Switch to ${theme==='dark'?'light':'dark'} mode`} aria-label={`Switch to ${theme==='dark'?'light':'dark'} mode`}>
      {theme==='dark'?<Sun size={16}/>:<Moon size={16}/>}
      <span>{theme==='dark'?'Light':'Dark'}</span>
     </button>
+    <button className="headerIconButton" onClick={()=>setFocusMode(!focusMode)} title={focusMode?'Exit focus mode':'Focus mode'} aria-label={focusMode?'Exit focus mode':'Focus mode'}>{focusMode?<Minimize2 size={16}/>:<Maximize2 size={16}/>}</button>
     <button className="headerIconButton" onClick={()=>setHelp(true)} title="Keyboard shortcuts" aria-label="Keyboard shortcuts"><HelpCircle size={16}/></button>
     <a className="notes" href="https://notes.asifnawazminhas.com/" target="_blank" rel="noopener noreferrer">Notes <ExternalLink size={14}/></a>
    </div>
    <button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button>
   </header>
-  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v2.4</div></aside>
+  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v2.5</div></aside>
   <main>
    {page==='dashboard'?<Dashboard go={go} favorites={favorites} recent={recent}/>:
     page==='library'?<LibraryPage query={query} setQuery={setQuery} platform={platform} setPlatform={setPlatform} tool={tool} setTool={setTool} openCommand={openCommand} favorites={favorites} toggleFavorite={toggleFavorite}/>:
@@ -275,19 +305,24 @@ function App(){
     page==='compare'?<CommandCompare openCommand={openCommand}/>: 
     page==='packs'?<CommandPacks openCommand={openCommand}/>: 
     page==='runtimes'?<RuntimeLibrary openCommand={openCommand}/>:
+    page==='custom-commands'?<CustomCommands/>:
     page==='privesc'?<PrivEscExplorer openCommand={openCommand}/>:
     page==='attack'?<AttackExplorer openCommand={openCommand}/>:
     page==='attack-path'?<AttackPathExplorer openCommand={openCommand}/>: 
     page==='graph'?<KnowledgeGraph openCommand={openCommand}/>:
     page==='workspace'?<WorkspacePage favorites={favorites} recent={recent} toggleFavorite={toggleFavorite} openCommand={openCommand} removeRecent={removeRecent} clearRecent={clearRecent}/>: 
     page==='contexts'?<ContextProfiles context={context} setContext={setContext} active={contextProfile} setActive={setContextProfile}/>: 
+    page==='quick-notes'?<QuickNotes activeProfile={contextProfile}/>:
+    page==='copy-history'?<CopyHistory/>:
+    page==='timer'?<EngagementTimer activeProfile={contextProfile}/>: 
     page==='reports'?<ReportBuilder/>:
     page==='notes-links'?<NotesLinkBuilder/>:
     page==='workflow'?<WorkflowBuilder/>:
     page==='assessments'?<AssessmentSequences openCommand={openCommand}/>:
     page==='coverage'?<CoverageIntelligence openCommand={openCommand}/>:
     page==='detection'?<Detection/>:
-    page==='purple'?<Purple/>:<NotFound/>}
+    page==='purple'?<Purple/>:
+    page==='appearance'?<AppearanceStudio appearance={appearance} setAppearance={setAppearance} theme={theme} setTheme={setTheme}/>:<NotFound/>}
   </main>
   {palette&&<CommandPalette close={()=>setPalette(false)} openCommand={c=>{setPalette(false);openCommand(c)}} go={p=>{setPalette(false);go(p)}}/>}
   {help&&<ShortcutHelp close={()=>setHelp(false)}/>}<ToastHost/>
@@ -298,10 +333,10 @@ function Dashboard({go,favorites,recent}){
  const quick=[
   ['Command Library','library',Library,'Search structured security commands'],
   ['Command Studio','command-studio',TerminalSquare,'Explain, modify and contextualise commands'],
-  ['Command Packs','packs',Package,'Open reusable command collections'],
-  ['Saved Workspace','workspace',Star,'Return to favourites and recent commands'],
-  ['Report Builder','reports',FileText,'Turn validation work into a finished report'],
-  ['Purple Team Mapping','purple',Layers3,'Connect validation to defence']
+  ['Command Visualiser','visualiser',Image,'Create syntax-highlighted documentation cards'],
+  ['Knowledge Graph','graph',GitBranch,'Connect commands, telemetry, ATT&CK and Notes'],
+  ['Quick Notes','quick-notes',NotebookPen,'Keep local engagement notes close'],
+  ['Appearance','appearance',Palette,'Personalise theme, density and workspace']
  ];
  const health=catalogHealth();
  return <>
@@ -375,7 +410,7 @@ function CommandPalette({close,openCommand,go}){
   if(e.key==='ArrowDown'){e.preventDefault();setActive(x=>Math.min(x+1,results.length-1))}
   if(e.key==='ArrowUp'){e.preventDefault();setActive(x=>Math.max(x-1,0))}
   if(e.key==='Enter'&&results[active]){e.preventDefault();openCommand(results[active])}
-  if(e.key.toLowerCase()==='c'&&e.altKey&&results[active]){e.preventDefault();navigator.clipboard?.writeText(results[active].command);studioToast('Command copied')}
+  if(e.key.toLowerCase()==='c'&&e.altKey&&results[active]){e.preventDefault();studioCopy(results[active].command,results[active].title)}
  };
  return <div className="paletteback" onMouseDown={e=>e.target===e.currentTarget&&close()}>
   <div className="palette">
@@ -430,9 +465,9 @@ function LibraryPage({query,setQuery,platform,setPlatform,tool,setTool,openComma
  },[query,platform,tool,category,tag,onlyFavorites,favorites,sort]);
 
  const count=(key,value)=>commands.filter(c=>value==='All'||(key==='tags'?c.tags.includes(value):c[key]===value)).length;
- const copy=(e,c)=>{e.stopPropagation();navigator.clipboard?.writeText(c.command);studioToast('Command copied');};
+ const copy=(e,c)=>{e.stopPropagation();studioCopy(c.command,c.title);};
  const fav=(e,c)=>{e.stopPropagation();toggleFavorite(c.id)};
- const copyLink=()=>{navigator.clipboard?.writeText(location.href);studioToast('Filtered Command Library link copied');};
+ const copyLink=()=>studioCopy(location.href,'Filtered Command Library link');
  const resetFilters=()=>{
    setQuery('');setPlatform('All');setTool('All');setCategory('All');setTag('All');setSort('Title');setOnlyFavorites(false);
  };
@@ -480,7 +515,7 @@ function CommandStudio({c,tab,setTab,go,favorites,toggleFavorite}){
  useEffect(()=>{const h=()=>{try{setCtx(JSON.parse(localStorage.getItem('security-studio-context')||'{}'))}catch{}};addEventListener('storage',h);return()=>removeEventListener('storage',h)},[]);
  const generated=c.parameters.reduce((s,p)=>s.replaceAll(`<${p.name}>`,values[p.name]||ctx[p.name]||`<${p.name}>`),c.command);
  const related=relatedCommandsFor(c);
- const copy=()=>navigator.clipboard?.writeText(generated);
+ const copy=()=>studioCopy(generated,c.title);
  return <><button className="back" onClick={()=>go('library')}><ArrowLeft size={15}/> Command Library</button><div className="studioTitleRow"><PageTitle kicker={`${c.platform} / ${c.category}`} title={c.title} text={c.description}/><button className={`saveCommand ${favorites.includes(c.id)?'saved':''}`} onClick={()=>toggleFavorite(c.id)}><Star size={16} fill={favorites.includes(c.id)?'currentColor':'none'}/>{favorites.includes(c.id)?'Saved':'Save command'}</button></div><div className="studio"><div className="commandbox"><div className="commandmeta"><span className="cmdtool"><TerminalSquare size={18}/>{c.tool}</span><span className="cmdrisk">{c.risk}</span></div><div className="commandline"><code>{generated}</code><button className="copybtn" onClick={copy}><Copy size={15}/> Copy</button></div></div><div className="tabs">{['Explain','Modify','Detect','Visualise','Related'].map(t=><button className={tab===t?'active':''} onClick={()=>setTab(t)} key={t}>{t}</button>)}</div>
  {tab==='Explain'&&<div className="twocol"><Panel title="Command Breakdown"><dl>{c.explanation.map(([a,b])=><React.Fragment key={a}><dt>{a}</dt><dd>{b}</dd></React.Fragment>)}</dl></Panel><Panel title="Context"><dl><dt>Platform</dt><dd>{c.platform}</dd><dt>Tool</dt><dd>{c.tool}</dd><dt>Category</dt><dd>{c.category}</dd><dt>Changes system</dt><dd>{c.changesSystem?'Yes':'No'}</dd><dt>Risk</dt><dd>{c.risk}</dd></dl></Panel></div>}
  {tab==='Modify'&&<Panel title="Command Parameters">{c.parameters.length?<>{c.parameters.map(p=><label className="field" key={p.name}>{p.label}<input placeholder={p.placeholder} value={values[p.name]||''} onChange={e=>setValues({...values,[p.name]:e.target.value})}/></label>)}<div className="generated"><small>GENERATED COMMAND</small><code>{generated}</code><button onClick={copy}><Copy size={15}/> Copy</button></div></>:<p>This command has no editable placeholders.</p>}</Panel>}
@@ -637,7 +672,7 @@ function AttackPathExplorer({openCommand}){
      <div className="commandSnippet"><code>{c.command}</code></div>
      <button className="primarySmall" onClick={()=>openCommand(c)}>Open related command <ChevronRight size={14}/></button>
     </>}
-    <a className="textlink" target="_blank" rel="noopener noreferrer" href="https://notes.asifnawazminhas.com/active-directory/">Open related Security Notes <ExternalLink size={14}/></a>
+    <a className="textlink" target="_blank" rel="noopener noreferrer" href="https://notes.asifnawazminhas.com/active-directory/" target="_blank" rel="noopener noreferrer">Open related Security Notes <ExternalLink size={14}/></a>
    </div>
   </div>
  </>;
@@ -716,7 +751,7 @@ function VisualPreview({c}){
    </div>
   </div>
 
-  <div className="visualActionBar"><div className="visualActionGroup"><button className="primarySmall" onClick={()=>download('png')}><Download size={15}/> Export PNG</button><button className="secondarySmall" onClick={()=>download('svg')}><Download size={15}/> Export SVG</button><button className="secondarySmall" onClick={()=>{navigator.clipboard?.writeText(customCommand);studioToast('Command copied')}}><Copy size={15}/> Copy</button></div><button className="secondarySmall" onClick={reset}><RotateCcw size={15}/> Reset</button></div>
+  <div className="visualActionBar"><div className="visualActionGroup"><button className="primarySmall" onClick={()=>download('png')}><Download size={15}/> Export PNG</button><button className="secondarySmall" onClick={()=>download('svg')}><Download size={15}/> Export SVG</button><button className="secondarySmall" onClick={()=>{studioCopy(customCommand,c.title)}}><Copy size={15}/> Copy</button></div><button className="secondarySmall" onClick={reset}><RotateCcw size={15}/> Reset</button></div>
  </div>
 }
 
@@ -793,13 +828,111 @@ const runtimeGroups=[
  ['Node.js','Node.js'],['JavaScript','JavaScript'],['Go','Go'],['.NET','.NET']
 ];
 
+
+function AppearanceStudio({appearance,setAppearance,theme,setTheme}){
+ const a={accent:'cyan',background:'solid',density:'comfortable',sidebar:202,reduceMotion:false,...appearance};
+ const update=patch=>setAppearance({...a,...patch});
+ const reset=()=>{setTheme('dark');setAppearance({accent:'cyan',background:'solid',density:'comfortable',sidebar:202,reduceMotion:false});studioToast('Appearance reset')};
+ return <>
+  <PageTitle kicker="SETTINGS" title="Appearance Studio" text="Personalise Security Studio locally without changing the underlying security content."/>
+  <div className="appearanceLayout">
+   <Panel title="Mode"><div className="appearanceChoices two"><button className={theme==='dark'?'active':''} onClick={()=>setTheme('dark')}><Moon/>Dark<span>Low-light workspace</span></button><button className={theme==='light'?'active':''} onClick={()=>setTheme('light')}><Sun/>Light<span>Bright documentation view</span></button></div></Panel>
+   <Panel title="Accent"><div className="accentChoices">{['cyan','purple','green','amber'].map(x=><button className={`${x} ${a.accent===x?'active':''}`} key={x} onClick={()=>update({accent:x})}><i/>{x}</button>)}</div></Panel>
+   <Panel title="Background"><div className="appearanceChoices"><button className={a.background==='solid'?'active':''} onClick={()=>update({background:'solid'})}>Solid</button><button className={a.background==='grid'?'active':''} onClick={()=>update({background:'grid'})}>Grid</button><button className={a.background==='dots'?'active':''} onClick={()=>update({background:'dots'})}>Dots</button><button className={a.background==='scanlines'?'active':''} onClick={()=>update({background:'scanlines'})}>Scanlines</button></div></Panel>
+   <Panel title="Density"><div className="appearanceChoices"><button className={a.density==='compact'?'active':''} onClick={()=>update({density:'compact'})}>Compact</button><button className={a.density==='comfortable'?'active':''} onClick={()=>update({density:'comfortable'})}>Comfortable</button><button className={a.density==='spacious'?'active':''} onClick={()=>update({density:'spacious'})}>Spacious</button></div></Panel>
+   <Panel title="Workspace"><label className="rangeField">Sidebar width <span>{a.sidebar}px</span><input type="range" min="180" max="280" step="4" value={a.sidebar} onChange={e=>update({sidebar:Number(e.target.value)})}/></label><label className="settingToggle"><input type="checkbox" checked={a.reduceMotion} onChange={e=>update({reduceMotion:e.target.checked})}/><span>Reduce motion</span></label></Panel>
+  </div>
+  <div className="appearanceFooter"><span>Preferences stay in this browser.</span><button className="secondarySmall" onClick={reset}><RotateCcw size={14}/> Reset appearance</button></div>
+ </>
+}
+
+function CopyHistory(){
+ const read=()=>{try{return JSON.parse(localStorage.getItem('security-studio-copy-history')||'[]')}catch{return []}};
+ const [items,setItems]=useState(read);
+ useEffect(()=>{const h=()=>setItems(read());addEventListener('studio-copy-history',h);return()=>removeEventListener('studio-copy-history',h)},[]);
+ const clear=()=>{localStorage.removeItem('security-studio-copy-history');setItems([]);studioToast('Copy history cleared')};
+ const remove=id=>{const next=items.filter(x=>x.id!==id);setItems(next);localStorage.setItem('security-studio-copy-history',JSON.stringify(next))};
+ return <>
+  <PageTitle kicker="WORKSPACE" title="Copy History" text="Review the most recent commands copied from Security Studio. History stays local to this browser."/>
+  <div className="historyToolbar"><span>{items.length}/20 entries</span><button className="secondarySmall dangerOutline" disabled={!items.length} onClick={clear}><Trash2 size={14}/> Clear history</button></div>
+  <div className="historyList">{items.length?items.map(x=><article key={x.id}><div><span>{new Date(x.copiedAt).toLocaleString()}</span><h3>{x.title}</h3><code>{x.text}</code></div><div><button onClick={()=>studioCopy(x.text,x.title)}><Copy size={14}/> Copy again</button><button className="historyDelete" onClick={()=>remove(x.id)} title="Remove entry"><X size={14}/></button></div></article>):<div className="empty">Copy a command from the Library, Studio, Runtime Library or Visualiser and it will appear here.</div>}</div>
+ </>
+}
+
+function QuickNotes({activeProfile}){
+ const key=`security-studio-quick-notes:${activeProfile}`;
+ const [value,setValue]=useState(()=>localStorage.getItem(key)||'');
+ const [saved,setSaved]=useState(localStorage.getItem(`${key}:saved`)||'');
+ useEffect(()=>{setValue(localStorage.getItem(key)||'');setSaved(localStorage.getItem(`${key}:saved`)||'')},[key]);
+ const save=()=>{localStorage.setItem(key,value);const t=new Date().toISOString();localStorage.setItem(`${key}:saved`,t);setSaved(t);studioToast('Quick notes saved')};
+ const exportMd=()=>{
+  const body=`# ${activeProfile} - Quick Notes\n\n${value}\n`;
+  const blob=new Blob([body],{type:'text/markdown'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${activeProfile.toLowerCase().replaceAll(' ','-')}-quick-notes.md`;a.click();URL.revokeObjectURL(a.href);
+ };
+ return <>
+  <PageTitle kicker="WORKSPACE" title="Quick Notes" text={`Local plain-text notes for the ${activeProfile} context profile.`}/>
+  <div className="quickNotesShell">
+   <div className="quickNotesHead"><div><Braces size={15}/><b>{activeProfile}</b><span>Local context</span></div><div><button className="secondarySmall" onClick={exportMd}><Download size={14}/> Markdown</button><button className="primarySmall" onClick={save}><Save size={14}/> Save notes</button></div></div>
+   <textarea value={value} onChange={e=>setValue(e.target.value)} placeholder={"Observations...\nFollow-up checks...\nQuestions for the team...\nEvidence references..."} spellCheck="false"/>
+   <div className="quickNotesFoot"><span>{value.length.toLocaleString()} characters</span><span>{saved?`Last saved ${new Date(saved).toLocaleString()}`:'Not saved yet'}</span></div>
+  </div>
+ </>
+}
+
+function EngagementTimer({activeProfile}){
+ const storageKey=`security-studio-timer:${activeProfile}`;
+ const initial=()=>{try{return JSON.parse(localStorage.getItem(storageKey)||'{}')}catch{return {}}};
+ const saved=initial();
+ const [seconds,setSeconds]=useState(Number(saved.seconds)||0);
+ const [running,setRunning]=useState(false);
+ useEffect(()=>{setSeconds(Number(initial().seconds)||0);setRunning(false)},[storageKey]);
+ useEffect(()=>{
+  if(!running)return;
+  const id=setInterval(()=>setSeconds(s=>s+1),1000);
+  return()=>clearInterval(id);
+ },[running]);
+ useEffect(()=>localStorage.setItem(storageKey,JSON.stringify({seconds})),[seconds,storageKey]);
+ const format=s=>`${String(Math.floor(s/3600)).padStart(2,'0')}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+ const reset=()=>{setRunning(false);setSeconds(0);studioToast('Timer reset')};
+ return <>
+  <PageTitle kicker="WORKSPACE" title="Engagement Timer" text="A local session timer associated with the active context profile. Nothing is sent to a backend."/>
+  <div className="timerCard">
+   <span className="eyebrow">{activeProfile.toUpperCase()}</span>
+   <div className="timerValue">{format(seconds)}</div>
+   <div className="timerActions"><button className="primarySmall" onClick={()=>setRunning(true)} disabled={running}><Play size={16}/> Start</button><button className="secondarySmall" onClick={()=>setRunning(false)} disabled={!running}><Pause size={16}/> Pause</button><button className="secondarySmall" onClick={reset}><RotateCcw size={16}/> Reset</button></div>
+   <div className="timerPrivacy"><ShieldCheck size={16}/><span>Timer state is stored only in your browser.</span></div>
+  </div>
+ </>
+}
+
+function CustomCommands(){
+ const read=()=>{try{return JSON.parse(localStorage.getItem('security-studio-custom-commands')||'[]')}catch{return []}};
+ const [items,setItems]=useState(read);
+ const blank={title:'',platform:'Tools',tool:'Custom',category:'Reference',command:'',description:'',tags:'',notes:''};
+ const [form,setForm]=useState(blank);
+ const persist=next=>{setItems(next);localStorage.setItem('security-studio-custom-commands',JSON.stringify(next))};
+ const add=()=>{
+  if(!form.title.trim()||!form.command.trim()){studioToast('Title and command are required');return}
+  const item={...form,id:`custom-${Date.now()}`,tags:form.tags.split(',').map(x=>x.trim()).filter(Boolean),createdAt:new Date().toISOString()};
+  persist([item,...items]);setForm(blank);studioToast('Custom command saved locally');
+ };
+ const remove=id=>persist(items.filter(x=>x.id!==id));
+ return <>
+  <PageTitle kicker="COMMANDS" title="Custom Commands" text="Create local reference commands for your own workflow. Security Studio stores them as text and never executes them."/>
+  <div className="customCommandLayout">
+   <div className="panel customCommandForm"><h3>New local command</h3><div className="customFields"><label>Title<input value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="My reference command"/></label><label>Platform<select value={form.platform} onChange={e=>setForm({...form,platform:e.target.value})}><option>Windows</option><option>Linux</option><option>Web</option><option>Network</option><option>Tools</option></select></label><label>Tool<input value={form.tool} onChange={e=>setForm({...form,tool:e.target.value})} placeholder="PowerShell"/></label><label>Category<input value={form.category} onChange={e=>setForm({...form,category:e.target.value})} placeholder="Reference"/></label><label className="full">Command<textarea value={form.command} onChange={e=>setForm({...form,command:e.target.value})} placeholder="Command text only"/></label><label className="full">Description<input value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/></label><label className="full">Tags<input value={form.tags} onChange={e=>setForm({...form,tags:e.target.value})} placeholder="tag1, tag2"/></label><label className="full">Notes URL<input value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="https://notes.asifnawazminhas.com/..."/></label></div><button className="primarySmall" onClick={add}><Save size={15}/> Save locally</button><div className="localOnly"><ShieldCheck size={16}/><div><b>Reference only</b><span>Custom commands are never executed by the browser and are not uploaded anywhere.</span></div></div></div>
+   <div className="customCommandList">{items.length?items.map(x=><article key={x.id}><div className="badges"><span>{x.platform}</span><span>{x.tool}</span><small>{x.category}</small></div><h3>{x.title}</h3>{x.description&&<p>{x.description}</p>}<code>{x.command}</code><div className="tags">{x.tags.map(t=><small key={t}>{t}</small>)}</div><div className="cardActions"><button onClick={()=>studioCopy(x.command,x.title)}><Copy size={14}/> Copy</button>{x.notes&&<a href={x.notes} target="_blank" rel="noopener noreferrer"><BookOpen size={14}/> Notes</a>}<button className="dangerAction" onClick={()=>remove(x.id)}><Trash2 size={14}/> Delete</button></div></article>):<div className="empty">No custom commands yet.</div>}</div>
+  </div>
+ </>
+}
+
 function RuntimeLibrary({openCommand}){
  const [runtime,setRuntime]=useState('PowerShell');
  const rows=commands.filter(c=>c.tool===runtime || (runtime==='JavaScript'&&c.tags.includes('JavaScript')));
  return <>
   <PageTitle kicker="COMMANDS" title="Runtime Library" text="Common runtime, language and package-management references integrated with Security Studio."/>
   <div className="runtimeTabs">{runtimeGroups.map(([label,key])=><button className={runtime===key?'active':''} key={key} onClick={()=>setRuntime(key)}><Code2 size={15}/>{label}<span>{commands.filter(c=>c.tool===key || (key==='JavaScript'&&c.tags.includes('JavaScript'))).length}</span></button>)}</div>
-  <div className="runtimeGrid">{rows.map(c=><article key={c.id} className="runtimeCard"><div className="runtimeCardTop"><span>{c.category}</span><small>{c.risk}</small></div><h3>{c.title}</h3><p>{c.description}</p><code>{c.command}</code><div className="runtimeCardActions"><button onClick={()=>navigator.clipboard?.writeText(c.command)}><Copy size={14}/> Copy</button><a href={c.notes} target="_blank" rel="noopener noreferrer"><BookOpen size={14}/> Notes</a><button className="openBtn" onClick={()=>openCommand(c)}>Open <ChevronRight size={14}/></button></div></article>)}</div>
+  <div className="runtimeGrid">{rows.map(c=><article key={c.id} className="runtimeCard"><div className="runtimeCardTop"><span>{c.category}</span><small>{c.risk}</small></div><h3>{c.title}</h3><p>{c.description}</p><code>{c.command}</code><div className="runtimeCardActions"><button onClick={()=>studioCopy(c.command,c.title)}><Copy size={14}/> Copy</button><a href={c.notes} target="_blank" rel="noopener noreferrer"><BookOpen size={14}/> Notes</a><button className="openBtn" onClick={()=>openCommand(c)}>Open <ChevronRight size={14}/></button></div></article>)}</div>
  </>
 }
 
@@ -1141,7 +1274,7 @@ function WorkspacePage({favorites,recent,toggleFavorite,openCommand,removeRecent
  const viewed=recent.map(id=>commands.find(c=>c.id===id)).filter(Boolean);
  const exportWorkspace=()=>{
   const payload={
-   name:'Asif Security Studio Workspace',schemaVersion:'2.4',version:'2.4',exportedAt:new Date().toISOString(),
+   name:'Asif Security Studio Workspace',schemaVersion:'2.5',version:'2.5',exportedAt:new Date().toISOString(),
    favorites,recent,
    workflow:JSON.parse(localStorage.getItem('security-studio-workflow')||'[]'),
    assessment:JSON.parse(localStorage.getItem('security-studio-assessment')||'[]'),
@@ -1151,14 +1284,19 @@ function WorkspacePage({favorites,recent,toggleFavorite,openCommand,removeRecent
    purpleStatus:JSON.parse(localStorage.getItem('security-studio-purple-status')||'{}'),
    purpleName:localStorage.getItem('security-studio-purple-name')||'',
    context:JSON.parse(localStorage.getItem('security-studio-context')||'{}'),
-   contextProfile:localStorage.getItem('security-studio-context-profile')||'Default'
+   contextProfile:localStorage.getItem('security-studio-context-profile')||'Default',
+   quickNotes:Object.fromEntries(Object.keys(localStorage).filter(k=>k.startsWith('security-studio-quick-notes:')).map(k=>[k,localStorage.getItem(k)])),
+   customCommands:JSON.parse(localStorage.getItem('security-studio-custom-commands')||'[]'),
+   copyHistory:JSON.parse(localStorage.getItem('security-studio-copy-history')||'[]'),
+   appearance:JSON.parse(localStorage.getItem('security-studio-appearance')||'{}')
   };
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='security-studio-workspace.json';a.click();URL.revokeObjectURL(a.href);studioToast('Workspace exported');
  };
  const clearWorkspace=()=>{
   if(!confirm('Clear favourites, recent commands, workflow, assessment, Purple Team data and local context from this browser?'))return;
-  ['security-studio-favorites','security-studio-recent','security-studio-workflow','security-studio-assessment','security-studio-purple-map','security-studio-purple-technique','security-studio-purple-command','security-studio-purple-status','security-studio-purple-name','security-studio-context','security-studio-context-profile'].forEach(k=>localStorage.removeItem(k));
+  ['security-studio-favorites','security-studio-recent','security-studio-workflow','security-studio-assessment','security-studio-purple-map','security-studio-purple-technique','security-studio-purple-command','security-studio-purple-status','security-studio-purple-name','security-studio-context','security-studio-context-profile','security-studio-custom-commands','security-studio-copy-history','security-studio-appearance'].forEach(k=>localStorage.removeItem(k));
+  Object.keys(localStorage).filter(k=>k.startsWith('security-studio-quick-notes:')||k.startsWith('security-studio-timer:')).forEach(k=>localStorage.removeItem(k));
   location.reload();
  };
  const savedList=saved.length?<div className="workspaceList">{saved.map(c=><div className="workspaceItem" key={c.id}><div><span>{c.platform} · {c.tool}</span><b>{c.title}</b><code>{c.command}</code></div><div><button onClick={()=>toggleFavorite(c.id)} title="Remove favourite"><Star size={15} fill="currentColor"/></button><a href={c.notes} target="_blank" rel="noopener noreferrer" title="Open Notes"><BookOpen size={15}/></a><button onClick={()=>openCommand(c)}>Open <ChevronRight size={14}/></button></div></div>)}</div>:<div className="empty">No saved commands yet. Use the star button in the Command Library or Command Studio.</div>;
@@ -1215,7 +1353,7 @@ function WorkflowBuilder(){
  const reset=()=>setNodes(createNodes(templates['Assessment']));
 
  const exportJson=()=>{
-   const blob=new Blob([JSON.stringify({name:'Security Studio Workflow',schemaVersion:'2.4',version:'2.4',steps:nodes},null,2)],{type:'application/json'});
+   const blob=new Blob([JSON.stringify({name:'Security Studio Workflow',schemaVersion:'2.5',version:'2.5',steps:nodes},null,2)],{type:'application/json'});
    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='security-studio-workflow.json';a.click();URL.revokeObjectURL(a.href);
  };
  const exportImage=async type=>{
@@ -1320,7 +1458,7 @@ function Purple(){
   setStatuses({telemetry:'Not tested',detection:'Not tested',response:'Not tested',overall:'Not tested'});
  };
  const payload=()=>({
-  name:exerciseName,schemaVersion:'2.4',version:'2.4',technique,
+  name:exerciseName,schemaVersion:'2.5',version:'2.5',technique,
   command:selectedCommand?{id:selectedCommand.id,title:selectedCommand.title,command:selectedCommand.command}:null,
   statuses,mapping:items
  });

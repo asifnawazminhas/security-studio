@@ -1,6 +1,6 @@
 # Asif's Security Studio
 
-## 1.2 - UI Refinement Release
+## 1.3 - Visualiser Studio
 
 Security Studio 1.0 is the first product milestone where the existing command, ATT&CK, telemetry, privilege-escalation, notes and reporting features operate as one integrated assessment workbench.
 
@@ -150,3 +150,19 @@ Security Studio adapts the organisational ideas rather than copying exploit payl
 - dark/light visual parity pass
 
 No new security feature area was added in this release.
+
+### 1.3 Visualiser Studio
+- Visualiser promoted to a highlighted PRO navigation surface
+- dedicated visualiser hero and mode selector
+- Library Command mode
+- Custom Code mode
+- custom title and language selection
+- user code stays local and is never executed
+- local snippet saving
+- Security Context strip for curated commands
+- ATT&CK and telemetry context alongside visual generation
+- improved preview prominence
+- explicit differentiator section
+- global alignment fix for maturity / Save Command actions
+
+Security Studio's differentiator is not simply generating a code image. Curated security commands can carry platform, tool, ATT&CK, telemetry, risk, Notes and assessment context, while custom code remains a local-only visualisation workflow.

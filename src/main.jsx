@@ -19,7 +19,7 @@ import './styles.css';
 
 const sections=[
  {title:'',items:[['Dashboard','dashboard',LayoutDashboard]]},
- {title:'COMMANDS',items:[['Catalogue Overview','catalogue',Layers3],['Command Library','library',Library],['Command Studio','command-studio',TerminalSquare],['Command Visualiser','visualiser',Image],['Command Compare','compare',Columns3],['Command Packs','packs',Package],['Runtime Library','runtimes',Code2],['Custom Commands','custom-commands',Braces]]},
+ {title:'COMMANDS',items:[['Catalogue Overview','catalogue',Layers3],['Command Library','library',Library],['Command Studio','command-studio',TerminalSquare],['Visualiser Studio','visualiser',Image],['Command Compare','compare',Columns3],['Command Packs','packs',Package],['Runtime Library','runtimes',Code2],['Custom Commands','custom-commands',Braces]]},
  {title:'EXPLORERS',items:[['PrivEsc Explorer','privesc',ShieldCheck],['ATT&CK Explorer','attack',Network],['Attack Path Explorer','attack-path',GitCompareArrows],['Knowledge Graph','graph',GitBranch]]},
  {title:'ASSESSMENT',items:[['Assessment Workspace','assessment-workspace',ListChecks],['Findings','findings',FileText],['Report Builder','reports',FileText]]},
  {title:'WORKSPACE',items:[['Saved Workspace','workspace',Star],['Context Profiles','contexts',Braces],['Quick Notes','quick-notes',NotebookPen],['Copy History','copy-history',History],['Engagement Timer','timer',TimerReset],['Notes Link Builder','notes-links',Link2]]},
@@ -480,7 +480,7 @@ function App(){
    </div>
    <button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button>
   </header>
-  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className={`navgroup ${s.title&&collapsedGroups[s.title]?'collapsed':''}`} key={i}>{s.title?<button className="navGroupTitle" onClick={()=>toggleGroup(s.title)}><span>{s.title}</span><ChevronDown size={13}/></button>:null}<div className="navGroupItems">{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><span className="navIcon"><Icon size={18}/></span><span className="navText">{name}</span></button>)}</div></div>)}<div className="sidefoot"><span className="dot"/> Studio v1.2</div></aside>
+  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className={`navgroup ${s.title&&collapsedGroups[s.title]?'collapsed':''}`} key={i}>{s.title?<button className="navGroupTitle" onClick={()=>toggleGroup(s.title)}><span>{s.title}</span><ChevronDown size={13}/></button>:null}<div className="navGroupItems">{s.items.map(([name,id,Icon])=><button key={id} className={`${page===id?'active':''} ${id==='visualiser'?'visualiserNav':''}`} onClick={()=>go(id)}><span className="navIcon"><Icon size={18}/></span><span className="navText">{name}</span>{id==='visualiser'&&<span className="navBadge">PRO</span>}</button>)}</div></div>)}<div className="sidefoot"><span className="dot"/> Studio v1.3</div></aside>
   <main>
    {page==='dashboard'?<Dashboard go={go} favorites={favorites} recent={recent}/>:
     page==='catalogue'?<CatalogueOverview go={go} openCommand={openCommand}/>:
@@ -541,7 +541,7 @@ function Dashboard({go,favorites,recent}){
  return <>
   <div className="hero assessmentHeroHome">
    <div>
-    <span className="eyebrow">ASIF'S SECURITY STUDIO 1.2</span>
+    <span className="eyebrow">ASIF'S SECURITY STUDIO 1.3</span>
     <h1>Assessment intelligence,<br/><em>made practical.</em></h1>
     <p>Run structured assessments, track findings, connect commands to ATT&CK and telemetry, and turn technical observations into finished reports.</p>
     <div className="heroactions">
@@ -1170,7 +1170,7 @@ function AttackPathExplorer({openCommand}){
  </>;
 }
 
-function VisualPreview({c}){
+function VisualPreview({c,customMode=false,initialLanguage='Auto'}){
  const ref=useRef(null);
  const [theme,setTheme]=useState('Security Notes Dark');
  const [language,setLanguage]=useState('Auto');
@@ -1187,11 +1187,12 @@ function VisualPreview({c}){
  const [syntax,setSyntax]=useState(true);
 
  useEffect(()=>{
-   setPrompt(c.tool==='PowerShell'?'PS>':'');
-   setWindowTitle(c.tool);
+   setPrompt(customMode?'':(c.tool==='PowerShell'?'PS>':''));
+   setWindowTitle(customMode?(c.title||'Custom Code'):c.tool);
    setCustomCommand(c.command);
-   setLanguage('Auto');
- },[c.id]);
+   setLanguage(customMode?initialLanguage:'Auto');
+   if(customMode)setShowMeta(false);
+ },[c.id,customMode,initialLanguage]);
 
  const activeLanguage=language==='Auto'?inferLanguage(c):language;
  const themeClass={
@@ -1209,10 +1210,10 @@ function VisualPreview({c}){
    const a=document.createElement('a');a.href=data;a.download=`${safeFilename(c.id)}-${safeFilename(theme.toLowerCase())}.${type}`;a.click();
  };
  const reset=()=>{
-   setTheme('Security Notes Dark');setLanguage('Auto');setPrompt(c.tool==='PowerShell'?'PS>':'');
-   setWatermark(true);setWatermarkText('studio.asifnawazminhas.com');setWindowTitle(c.tool);
+   setTheme('Security Notes Dark');setLanguage(customMode?initialLanguage:'Auto');setPrompt(customMode?'':(c.tool==='PowerShell'?'PS>':''));
+   setWatermark(true);setWatermarkText('studio.asifnawazminhas.com');setWindowTitle(customMode?(c.title||'Custom Code'):c.tool);
    setFontSize(20);setPadding(48);setCustomCommand(c.command);setLayout('Terminal');
-   setShowMeta(true);setLineNumbers(false);setSyntax(true);
+   setShowMeta(!customMode);setLineNumbers(false);setSyntax(true);
  };
 
  return <div className="visualPro v24">
@@ -1231,6 +1232,10 @@ function VisualPreview({c}){
    <div className="visualField watermarkField"><label>Watermark</label><div className="inlineControl"><input type="checkbox" checked={watermark} onChange={e=>setWatermark(e.target.checked)}/><input disabled={!watermark} value={watermarkText} onChange={e=>setWatermarkText(e.target.value)}/></div></div>
   </div>
 
+  <div className={`visualContextStrip ${customMode?'custom':''}`}>
+   {customMode?<><div><span>MODE</span><b>Custom code</b></div><div><span>PRIVACY</span><b>Local browser only</b></div><div><span>EXECUTION</span><b>Never executed</b></div></>:<><div><span>PLATFORM</span><b>{c.platform}</b></div><div><span>TOOL</span><b>{c.tool}</b></div><div><span>ATT&CK</span><b>{c.attack?.length?c.attack.join(', '):'Not mapped'}</b></div><div><span>TELEMETRY</span><b>{c.telemetry?.length?`${c.telemetry.length} sources`:'Not mapped'}</b></div></>}
+  </div>
+
   <div ref={ref} className={`exportcard pro refined carbonCard ${themeClass} ${layoutClass}`} data-language={activeLanguage}>
    {layout!=='Minimal'&&<div className="exportbar"><div className="windowDots"><i/><i/><i/></div><div className="windowIdentity"><span>{windowTitle}</span><small>{activeLanguage}</small></div></div>}
    <div className="exportbody" style={{padding:`${padding}px`}}>
@@ -1239,7 +1244,7 @@ function VisualPreview({c}){
      {prompt&&<b className="codePrompt">{prompt}</b>}
      {syntax?<SyntaxCode code={customCommand} language={activeLanguage} lineNumbers={lineNumbers}/>:<code>{customCommand}</code>}
     </div>
-    <div className="visualFooter">{watermark&&<small>{watermarkText}</small>}{showMeta&&<span>{c.risk}</span>}</div>
+    <div className="visualFooter">{watermark&&<small>{watermarkText}</small>}{showMeta&&!customMode&&<span>{c.risk}</span>}</div>
    </div>
   </div>
 
@@ -1248,11 +1253,89 @@ function VisualPreview({c}){
 }
 
 function Visualiser({c}){
+ const [mode,setMode]=useState('Library');
  const [chosen,setChosen]=useState(c||commands[0]);
+ const [customLanguage,setCustomLanguage]=useState('JavaScript');
+ const [customTitle,setCustomTitle]=useState('Custom Code');
+ const [customCode,setCustomCode]=useState(`const validate = (input) => {
+  return input?.trim().length > 0;
+};
+
+console.log(validate("security-studio"));`);
+
+ const customObject=useMemo(()=>({
+  id:`custom-${customLanguage}-${customTitle}`,
+  title:customTitle||'Custom Code',
+  platform:'Custom',
+  tool:customLanguage,
+  category:'Custom Code',
+  command:customCode,
+  description:'User-provided code rendered locally in the browser.',
+  risk:'Local only',
+  changesSystem:false,
+  tags:['CUSTOM',customLanguage.toUpperCase()],
+  attack:[],
+  parameters:[],
+  explanation:[],
+  telemetry:[],
+  notes:''
+ }),[customLanguage,customTitle,customCode]);
+
+ const saveCustom=()=>{
+  const current=(()=>{try{return JSON.parse(localStorage.getItem('security-studio-visual-snippets')||'[]')}catch{return []}})();
+  const item={id:`snippet-${Date.now()}`,title:customTitle||'Custom Code',language:customLanguage,code:customCode,updatedAt:new Date().toISOString()};
+  localStorage.setItem('security-studio-visual-snippets',JSON.stringify([item,...current].slice(0,20)));
+  studioToast('Visual snippet saved locally');
+ };
+
  return <>
-  <PageTitle kicker="COMMANDS" title="Command Visualiser" text="Create Carbon-style syntax-coloured command and code cards for documentation, reports and knowledge sharing."/>
-  <div className="visualselect"><label>Library command<select value={chosen.id} onChange={e=>setChosen(commands.find(c=>c.id===e.target.value))}>{commands.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label></div>
-  <VisualPreview c={chosen}/>
+  <div className="visualiserHero">
+   <div>
+    <span className="visualiserBadge">VISUALISER STUDIO</span>
+    <h1>Turn security commands<br/><em>into visual knowledge.</em></h1>
+    <p>Create polished syntax-coloured cards from the Security Studio catalogue or your own code. Nothing is executed and custom content stays in your browser.</p>
+   </div>
+   <div className="visualiserValueGrid">
+    <div><Image size={18}/><b>Visual-first</b><span>PNG and SVG exports</span></div>
+    <div><Braces size={18}/><b>Language-aware</b><span>Syntax colour profiles</span></div>
+    <div><ShieldCheck size={18}/><b>Security context</b><span>ATT&CK and telemetry</span></div>
+    <div><Save size={18}/><b>Local snippets</b><span>No uploads required</span></div>
+   </div>
+  </div>
+
+  <div className="visualiserModeBar">
+   <div className="visualModeTabs">
+    <button className={mode==='Library'?'active':''} onClick={()=>setMode('Library')}><Library size={15}/> Library Command</button>
+    <button className={mode==='Custom'?'active':''} onClick={()=>setMode('Custom')}><Code2 size={15}/> Custom Code</button>
+   </div>
+   <span>{mode==='Library'?'Enrich a curated command with security metadata.':'Paste or type code locally — Security Studio never executes it.'}</span>
+  </div>
+
+  {mode==='Library'?<>
+   <div className="visualselect enhanced"><label>Library command<select value={chosen.id} onChange={e=>setChosen(commands.find(c=>c.id===e.target.value))}>{commands.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label><div className="selectedCommandMeta"><span>{chosen.platform}</span><span>{chosen.tool}</span><span>{chosen.category}</span></div></div>
+   <VisualPreview c={chosen}/>
+  </>:<>
+   <div className="customCodeIntro">
+    <div className="customCodeFields">
+     <label>Title<input value={customTitle} onChange={e=>setCustomTitle(e.target.value)} placeholder="Custom Code"/></label>
+     <label>Language<select value={customLanguage} onChange={e=>setCustomLanguage(e.target.value)}>{languageOptions.filter(x=>x!=='Auto').map(x=><option key={x}>{x}</option>)}</select></label>
+    </div>
+    <label className="customCodeEditor">Your code<textarea value={customCode} onChange={e=>setCustomCode(e.target.value)} spellCheck="false" placeholder="Type or paste code here..."/></label>
+    <div className="customCodeActions"><span><ShieldCheck size={14}/> Local-only text. No upload. No execution.</span><button className="secondarySmall" onClick={saveCustom}><Save size={14}/> Save snippet locally</button></div>
+   </div>
+   <VisualPreview c={customObject} customMode initialLanguage={customLanguage}/>
+  </>}
+
+  <div className="visualiserDifference">
+   <span className="eyebrow">WHY SECURITY STUDIO</span>
+   <h2>More than a code screenshot.</h2>
+   <div>
+    <article><Network/><b>Security context</b><p>Curated commands can carry ATT&CK, platform, tool, risk and telemetry context alongside the visual.</p></article>
+    <article><GitBranch/><b>Connected knowledge</b><p>Move from a visual card into commands, related checks, assessments, Notes and defensive context.</p></article>
+    <article><ShieldCheck/><b>Local-first</b><p>Custom code is treated as text, never executed, and snippets stay in browser storage.</p></article>
+    <article><Palette/><b>Presentation system</b><p>Use security-oriented themes, layouts, metadata, watermarking and export settings built for reports and documentation.</p></article>
+   </div>
+  </div>
  </>
 }
 
@@ -1448,7 +1531,7 @@ function Diagnostics(){
   <PageTitle kicker="SETTINGS" title="Diagnostics & Recovery" text="Run local health checks and recover the Studio if browser data becomes corrupted."/>
   <div className="diagnosticGrid">
    <Panel title="Application health">
-    <div className="diagnosticMeta"><span>Studio version</span><b>v1.2</b><span>Storage schema</span><b>v{STORAGE_VERSION}</b><span>Last migration</span><b>{storageMigration.migrated?`v${storageMigration.from} → v${storageMigration.to}`:'Current'}</b></div>
+    <div className="diagnosticMeta"><span>Studio version</span><b>v1.3</b><span>Storage schema</span><b>v{STORAGE_VERSION}</b><span>Last migration</span><b>{storageMigration.migrated?`v${storageMigration.from} → v${storageMigration.to}`:'Current'}</b></div>
     <button className="primarySmall" onClick={check}><ShieldCheck size={15}/> Run health checks</button>
     {result&&<div className="diagnosticResults">{rows.map(([label,ok])=><div key={label}><span>{label}</span><b className={ok?'ok':'warn'}>{ok?'Pass':'Review'}</b></div>)}</div>}
    </Panel>

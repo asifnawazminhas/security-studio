@@ -1,13 +1,18 @@
 {
   "name": "security-studio",
   "private": true,
-  "version": "2.5.0",
+  "version": "2.7.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run validate && vite build",
+    "build": "npm run qa && vite build",
     "preview": "vite preview",
-    "validate": "node scripts/validate-commands.mjs"
+    "validate": "node scripts/validate-commands.mjs",
+    "audit:source": "node scripts/audit-source.mjs",
+    "audit:links": "node scripts/audit-links.mjs",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
+    "qa": "npm run validate && npm run audit:source && npm run audit:links && npm run test:unit"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^4.3.4",
@@ -17,5 +22,12 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/test": "^1.49.1",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "jsdom": "^25.0.1",
+    "vitest": "^2.1.8"
+  }
 }

@@ -592,9 +592,6 @@ main>.pagetitle:first-child{max-width:1180px}
  border-radius:999px;padding:5px 9px;font-size:10px
 }
 
-/* no-upload policy visual cleanup */
-input[type="file"]{display:none!important}
-
 /* Visualiser without shell prompt by default */
 .exportCommand:has(> b:empty) b{display:none}
 .exportCommand code{margin-left:0}
@@ -1183,4 +1180,106 @@ html[data-theme="light"] .timerCard b{color:#17323d!important}
  .historyList article{grid-template-columns:1fr}
  .timerCard{padding:28px 16px}
  .timerValue{letter-spacing:-2px}
+}
+
+/* ============================================================
+   v2.6 - QA, hardening, recovery and responsive consistency
+   ============================================================ */
+
+:root{
+ --action-height:42px;
+ --control-radius:6px;
+}
+button,a.primarySmall,a.secondarySmall,.primarySmall,.secondarySmall{
+ min-height:var(--action-height);
+}
+button:disabled{opacity:.45;cursor:not-allowed}
+img,svg{max-width:100%}
+pre,code{overflow-wrap:anywhere}
+textarea,input,select{max-width:100%}
+
+/* Error recovery */
+.fatalError{
+ min-height:100vh!important;padding:40px!important;display:grid;place-items:center!important;
+ background:#050d13!important
+}
+.fatalErrorCard{
+ width:min(760px,100%);border:1px solid #6e3340;background:#07151e;border-radius:12px;
+ padding:28px;box-shadow:0 35px 100px #0008
+}
+.fatalErrorCard h1{margin:7px 0 10px}
+.fatalErrorCard p{color:#8ca8b6}
+.fatalErrorCard code{
+ display:block;margin:18px 0;background:#050d13;border:1px solid #432a31;color:#f2a4af;
+ padding:12px;border-radius:6px
+}
+.fatalErrorCard>div{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Diagnostics */
+.diagnosticGrid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}
+.diagnosticGrid>.panel:last-child{grid-column:1/-1}
+.diagnosticMeta{
+ display:grid;grid-template-columns:1fr auto;gap:8px 16px;margin-bottom:17px;
+ border-bottom:1px solid #173443;padding-bottom:14px
+}
+.diagnosticMeta span{color:#7899ac}
+.diagnosticResults{margin-top:16px;border-top:1px solid #173443}
+.diagnosticResults>div{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #112c38}
+.diagnosticResults .ok{color:#35e78e}
+.diagnosticResults .warn{color:#ffc45a}
+.privacyChecklist{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.privacyChecklist span{display:flex;align-items:center;gap:7px;color:#8ba7b5}
+.privacyChecklist svg{width:15px;color:#35e78e}
+
+/* Stronger light mode final pass */
+html[data-theme="light"] .fatalError{background:#eef4f6!important}
+html[data-theme="light"] .fatalErrorCard{background:#fff!important;color:#17323d!important;border-color:#d7a7ae!important}
+html[data-theme="light"] .fatalErrorCard code{background:#fff6f7!important;color:#943746!important}
+html[data-theme="light"] .diagnosticMeta{border-color:#d5e2e7}
+html[data-theme="light"] .diagnosticResults>div{border-color:#e0e9ed}
+html[data-theme="light"] .primarySmall{font-weight:750}
+html[data-theme="light"] .secondarySmall:not(.dangerOutline){
+ color:#254957!important;border-color:#91adb9!important;background:#fff!important
+}
+html[data-theme="light"] .secondarySmall:not(.dangerOutline):hover{
+ color:#006f82!important;border-color:#00a9be!important;background:#edfafd!important
+}
+
+/* Responsive hardening */
+@media(max-width:1200px){
+ main{padding-right:4vw}
+ .featuregrid,.commandgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:900px){
+ header{padding-left:18px;padding-right:18px}
+ aside{transform:translateX(-100%);pointer-events:none}
+ main{padding:130px 20px 70px!important}
+ .featuregrid,.commandgrid,.twocol,.workspaceColumns,.graphBottom,
+ .appearanceLayout,.customCommandLayout,.diagnosticGrid{grid-template-columns:1fr!important}
+ .diagnosticGrid>.panel:last-child{grid-column:auto}
+ .privacyChecklist{grid-template-columns:1fr}
+ .topsearch{max-width:48vw}
+ .contextIndicator{display:none}
+}
+@media(max-width:640px){
+ header .brand span{display:none}
+ header .brand b{font-size:12px}
+ .topsearch{display:none}
+ main{padding-top:104px!important}
+ .hero{grid-template-columns:1fr!important}
+ .heroactions{flex-wrap:wrap}
+ .heroactions>*{width:100%;justify-content:center}
+ .studioToolbar,.visualActionBar,.quickNotesHead,.historyToolbar{
+  align-items:stretch!important;flex-direction:column!important
+ }
+ .toolbarPrimary,.toolbarSecondary,.visualActionGroup{flex-wrap:wrap}
+ .primarySmall,.secondarySmall{justify-content:center}
+ .runtimeGrid,.profileFields,.accentChoices{grid-template-columns:1fr!important}
+ .timerActions{flex-direction:column}
+ .timerActions>*{width:100%;justify-content:center}
+}
+
+/* Respect OS/browser contrast preferences where available */
+@media(prefers-contrast:more){
+ button,a,input,select,textarea,.panel,.commandcard{border-width:2px!important}
 }

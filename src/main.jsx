@@ -7,6 +7,14 @@ import {
   BarChart3,Braces,Check,Code2,Columns3,FileJson,FileText,Focus,GitBranch,GripVertical,HelpCircle,History,Link2,ListChecks,Maximize2,Minimize2,Moon,Network,NotebookPen,Package,Palette,Pause,Play,Plus,RadioTower,RotateCcw,Save,Search,ShieldCheck,Star,Sun,Tag,TerminalSquare,TimerReset,Trash2,Upload,Workflow,X
 } from 'lucide-react';
 import {commands} from './data/commands';
+import {
+  STORAGE_VERSION,
+  clearStudioData,
+  migrateStorage,
+  readJSON,
+  safeExternalUrl,
+  safeFilename
+} from './lib/storage';
 import './styles.css';
 
 const sections=[
@@ -16,8 +24,11 @@ const sections=[
  {title:'WORKSPACE',items:[['Saved Workspace','workspace',Star],['Context Profiles','contexts',Braces],['Quick Notes','quick-notes',NotebookPen],['Copy History','copy-history',History],['Engagement Timer','timer',TimerReset],['Report Builder','reports',FileText],['Notes Link Builder','notes-links',Link2]]},
  {title:'BUILDERS',items:[['Workflow Builder','workflow',Workflow],['Assessment Sequences','assessments',ListChecks]]},
  {title:'DEFENCE',items:[['Coverage Intelligence','coverage',BarChart3],['Detection & Telemetry','detection',RadioTower],['Purple Team Mapping','purple',Layers3]]},
- {title:'SETTINGS',items:[['Appearance','appearance',Palette]]}
+ {title:'SETTINGS',items:[['Appearance','appearance',Palette],['Diagnostics','diagnostics',ShieldCheck]]}
 ];
+
+
+const storageMigration=migrateStorage();
 
 
 const studioToast=(message)=>window.dispatchEvent(new CustomEvent('studio-toast',{detail:message}));
@@ -296,7 +307,7 @@ function App(){
    </div>
    <button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button>
   </header>
-  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v2.5</div></aside>
+  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v2.7</div></aside>
   <main>
    {page==='dashboard'?<Dashboard go={go} favorites={favorites} recent={recent}/>:
     page==='library'?<LibraryPage query={query} setQuery={setQuery} platform={platform} setPlatform={setPlatform} tool={tool} setTool={setTool} openCommand={openCommand} favorites={favorites} toggleFavorite={toggleFavorite}/>:
@@ -322,7 +333,8 @@ function App(){
     page==='coverage'?<CoverageIntelligence openCommand={openCommand}/>:
     page==='detection'?<Detection/>:
     page==='purple'?<Purple/>:
-    page==='appearance'?<AppearanceStudio appearance={appearance} setAppearance={setAppearance} theme={theme} setTheme={setTheme}/>:<NotFound/>}
+    page==='appearance'?<AppearanceStudio appearance={appearance} setAppearance={setAppearance} theme={theme} setTheme={setTheme}/>:
+    page==='diagnostics'?<Diagnostics/>:<NotFound/>}
   </main>
   {palette&&<CommandPalette close={()=>setPalette(false)} openCommand={c=>{setPalette(false);openCommand(c)}} go={p=>{setPalette(false);go(p)}}/>}
   {help&&<ShortcutHelp close={()=>setHelp(false)}/>}<ToastHost/>
@@ -344,7 +356,7 @@ function Dashboard({go,favorites,recent}){
    <div>
     <span className="eyebrow">ASIF'S SECURITY STUDIO</span>
     <h1>Security knowledge,<br/><em>made interactive.</em></h1>
-    <p>Explore commands, understand context, map telemetry and turn security notes into practical workflows and finished reports.</p>
+    <p>Explore detailed security commands, understand context, map telemetry and turn security notes into practical workflows and finished reports.</p>
     <div className="heroactions">
      <button onClick={()=>go('library')}>Explore Commands <ChevronRight size={16}/></button>
      <a className="heroSecondary" href="https://notes.asifnawazminhas.com/" target="_blank" rel="noopener noreferrer"><BookOpen size={16}/> Open Security Notes</a>
@@ -714,7 +726,7 @@ function VisualPreview({c}){
    if(!ref.current)return;
    const fn=type==='png'?toPng:toSvg;
    const data=await fn(ref.current,{pixelRatio:2,cacheBust:true});
-   const a=document.createElement('a');a.href=data;a.download=`${c.id}-${theme.toLowerCase().replaceAll(' ','-')}.${type}`;a.click();
+   const a=document.createElement('a');a.href=data;a.download=`${safeFilename(c.id)}-${safeFilename(theme.toLowerCase())}.${type}`;a.click();
  };
  const reset=()=>{
    setTheme('Security Notes Dark');setLanguage('Auto');setPrompt(c.tool==='PowerShell'?'PS>':'');
@@ -867,7 +879,7 @@ function QuickNotes({activeProfile}){
  const save=()=>{localStorage.setItem(key,value);const t=new Date().toISOString();localStorage.setItem(`${key}:saved`,t);setSaved(t);studioToast('Quick notes saved')};
  const exportMd=()=>{
   const body=`# ${activeProfile} - Quick Notes\n\n${value}\n`;
-  const blob=new Blob([body],{type:'text/markdown'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${activeProfile.toLowerCase().replaceAll(' ','-')}-quick-notes.md`;a.click();URL.revokeObjectURL(a.href);
+  const blob=new Blob([body],{type:'text/markdown'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${safeFilename(activeProfile.toLowerCase())}-quick-notes.md`;a.click();URL.revokeObjectURL(a.href);
  };
  return <>
   <PageTitle kicker="WORKSPACE" title="Quick Notes" text={`Local plain-text notes for the ${activeProfile} context profile.`}/>
@@ -913,7 +925,9 @@ function CustomCommands(){
  const persist=next=>{setItems(next);localStorage.setItem('security-studio-custom-commands',JSON.stringify(next))};
  const add=()=>{
   if(!form.title.trim()||!form.command.trim()){studioToast('Title and command are required');return}
-  const item={...form,id:`custom-${Date.now()}`,tags:form.tags.split(',').map(x=>x.trim()).filter(Boolean),createdAt:new Date().toISOString()};
+  const notes=form.notes.trim()?safeExternalUrl(form.notes.trim()):'';
+  if(form.notes.trim()&&!notes){studioToast('Notes URL must use HTTP or HTTPS');return}
+  const item={...form,notes,id:`custom-${Date.now()}`,tags:form.tags.split(',').map(x=>x.trim()).filter(Boolean),createdAt:new Date().toISOString()};
   persist([item,...items]);setForm(blank);studioToast('Custom command saved locally');
  };
  const remove=id=>persist(items.filter(x=>x.id!==id));
@@ -922,6 +936,49 @@ function CustomCommands(){
   <div className="customCommandLayout">
    <div className="panel customCommandForm"><h3>New local command</h3><div className="customFields"><label>Title<input value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="My reference command"/></label><label>Platform<select value={form.platform} onChange={e=>setForm({...form,platform:e.target.value})}><option>Windows</option><option>Linux</option><option>Web</option><option>Network</option><option>Tools</option></select></label><label>Tool<input value={form.tool} onChange={e=>setForm({...form,tool:e.target.value})} placeholder="PowerShell"/></label><label>Category<input value={form.category} onChange={e=>setForm({...form,category:e.target.value})} placeholder="Reference"/></label><label className="full">Command<textarea value={form.command} onChange={e=>setForm({...form,command:e.target.value})} placeholder="Command text only"/></label><label className="full">Description<input value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/></label><label className="full">Tags<input value={form.tags} onChange={e=>setForm({...form,tags:e.target.value})} placeholder="tag1, tag2"/></label><label className="full">Notes URL<input value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="https://notes.asifnawazminhas.com/..."/></label></div><button className="primarySmall" onClick={add}><Save size={15}/> Save locally</button><div className="localOnly"><ShieldCheck size={16}/><div><b>Reference only</b><span>Custom commands are never executed by the browser and are not uploaded anywhere.</span></div></div></div>
    <div className="customCommandList">{items.length?items.map(x=><article key={x.id}><div className="badges"><span>{x.platform}</span><span>{x.tool}</span><small>{x.category}</small></div><h3>{x.title}</h3>{x.description&&<p>{x.description}</p>}<code>{x.command}</code><div className="tags">{x.tags.map(t=><small key={t}>{t}</small>)}</div><div className="cardActions"><button onClick={()=>studioCopy(x.command,x.title)}><Copy size={14}/> Copy</button>{x.notes&&<a href={x.notes} target="_blank" rel="noopener noreferrer"><BookOpen size={14}/> Notes</a>}<button className="dangerAction" onClick={()=>remove(x.id)}><Trash2 size={14}/> Delete</button></div></article>):<div className="empty">No custom commands yet.</div>}</div>
+  </div>
+ </>
+}
+
+
+function Diagnostics(){
+ const [result,setResult]=useState(null);
+ const check=()=>{
+  const notesSafe=commands.every(c=>{try{const u=new URL(c.notes);return u.protocol==='https:'&&u.hostname==='notes.asifnawazminhas.com'}catch{return false}});
+  const ids=commands.map(c=>c.id);
+  const unique=new Set(ids).size===ids.length;
+  const storageOk=(()=>{try{localStorage.setItem('security-studio-diagnostic-test','1');localStorage.removeItem('security-studio-diagnostic-test');return true}catch{return false}})();
+  const clipboard=!!navigator.clipboard;
+  const serviceWorker='serviceWorker' in navigator;
+  setResult({notesSafe,unique,storageOk,clipboard,serviceWorker});
+ };
+ const reset=()=>{
+  if(!confirm('Reset all Security Studio local data in this browser? This cannot be undone.'))return;
+  clearStudioData();
+  location.reload();
+ };
+ const rows=result?[
+  ['Catalogue IDs',result.unique],
+  ['Security Notes URLs',result.notesSafe],
+  ['Browser localStorage',result.storageOk],
+  ['Clipboard API',result.clipboard],
+  ['Service Worker support',result.serviceWorker]
+ ]:[];
+ return <>
+  <PageTitle kicker="SETTINGS" title="Diagnostics & Recovery" text="Run local health checks and recover the Studio if browser data becomes corrupted."/>
+  <div className="diagnosticGrid">
+   <Panel title="Application health">
+    <div className="diagnosticMeta"><span>Studio version</span><b>v2.6</b><span>Storage schema</span><b>v{STORAGE_VERSION}</b><span>Last migration</span><b>{storageMigration.migrated?`v${storageMigration.from} → v${storageMigration.to}`:'Current'}</b></div>
+    <button className="primarySmall" onClick={check}><ShieldCheck size={15}/> Run health checks</button>
+    {result&&<div className="diagnosticResults">{rows.map(([label,ok])=><div key={label}><span>{label}</span><b className={ok?'ok':'warn'}>{ok?'Pass':'Review'}</b></div>)}</div>}
+   </Panel>
+   <Panel title="Recovery">
+    <p>If local browser data becomes malformed or an old workspace causes a problem, reset only Security Studio data. This does not affect other websites.</p>
+    <button className="secondarySmall dangerOutline" onClick={reset}><Trash2 size={15}/> Reset local Studio data</button>
+   </Panel>
+   <Panel title="Privacy posture">
+    <div className="privacyChecklist"><span><Check/> No backend account required</span><span><Check/> No file uploads</span><span><Check/> Context stored locally</span><span><Check/> Quick Notes stored locally</span><span><Check/> Custom commands are text-only</span></div>
+   </Panel>
   </div>
  </>
 }
@@ -1540,7 +1597,28 @@ function NotFound(){return <PageTitle kicker="STUDIO" title="Not found" text="Th
 function PageTitle({kicker,title,text}){return <div className="pagetitle"><span className="eyebrow">{kicker}</span><h1>{title}</h1><p>{text}</p></div>}
 function Panel({title,children}){return <div className="panel"><h3>{title}</h3>{children}</div>}
 
-createRoot(document.getElementById('root')).render(<App/>);
+class AppErrorBoundary extends React.Component{
+ constructor(props){super(props);this.state={error:null}}
+ static getDerivedStateFromError(error){return {error}}
+ componentDidCatch(error,info){console.error('Security Studio error',error,info)}
+ render(){
+  if(!this.state.error)return this.props.children;
+  return <main className="fatalError">
+   <div className="fatalErrorCard">
+    <span className="eyebrow">RECOVERY</span>
+    <h1>Security Studio could not render this view.</h1>
+    <p>Your local data has not been uploaded anywhere. You can reload the application or reset Security Studio browser data if the problem persists.</p>
+    <code>{String(this.state.error?.message||'Unexpected application error')}</code>
+    <div>
+     <button className="primarySmall" onClick={()=>location.reload()}><RotateCcw size={15}/> Reload Studio</button>
+     <button className="secondarySmall dangerOutline" onClick={()=>{if(confirm('Reset Security Studio local browser data?')){clearStudioData();location.reload()}}}><Trash2 size={15}/> Reset local data</button>
+    </div>
+   </div>
+  </main>
+ }
+}
+
+createRoot(document.getElementById('root')).render(<AppErrorBoundary><App/></AppErrorBoundary>);
 
 if('serviceWorker' in navigator){
  addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));

@@ -9714,5 +9714,733 @@ export const commands = [
       "PowerShell telemetry"
     ],
     "notes": "https://notes.asifnawazminhas.com/cheatsheets/powershell/"
+  },
+  {
+    "id": "win-integrity-level",
+    "title": "Windows Integrity Level",
+    "platform": "Windows",
+    "tool": "whoami",
+    "category": "Identity",
+    "command": "whoami /groups | findstr /i \"Mandatory Label\"",
+    "description": "Display the current process integrity-level label.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Integrity Level",
+      "Token"
+    ],
+    "attack": [
+      "T1033"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "whoami",
+        "Display the current process integrity-level label."
+      ]
+    ],
+    "telemetry": [
+      "Process creation"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "win-uac-policy",
+    "title": "Windows UAC Policy",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Policy",
+    "command": "Get-ItemProperty 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' | Select-Object EnableLUA,ConsentPromptBehaviorAdmin,PromptOnSecureDesktop,FilterAdministratorToken",
+    "description": "Review selected User Account Control policy values.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "UAC",
+      "Policy"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-ItemProperty",
+        "Review selected User Account Control policy values."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry",
+      "Registry access"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "win-always-install-elevated",
+    "title": "AlwaysInstallElevated Policy",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Policy",
+    "command": "Get-ItemProperty 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer','HKCU:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer' -Name AlwaysInstallElevated -ErrorAction SilentlyContinue | Select-Object PSPath,AlwaysInstallElevated",
+    "description": "Review the machine and current-user AlwaysInstallElevated policy values.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Installer",
+      "Policy"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-ItemProperty",
+        "Review the machine and current-user AlwaysInstallElevated policy values."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry",
+      "Registry access"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "win-service-binary-paths",
+    "title": "Windows Service Binary Paths",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Services",
+    "command": "Get-CimInstance Win32_Service | Select-Object Name,StartName,State,StartMode,PathName | Sort-Object Name",
+    "description": "List Windows services with service accounts, startup mode and binary paths.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Services",
+      "Binary Path"
+    ],
+    "attack": [
+      "T1007"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-CimInstance",
+        "List Windows services with service accounts, startup mode and binary paths."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry",
+      "WMI/CIM activity"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "win-scheduled-task-actions",
+    "title": "Windows Scheduled Task Actions",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Scheduled Tasks",
+    "command": "Get-ScheduledTask | ForEach-Object { $t=$_; $t.Actions | Select-Object @{n='Task';e={$t.TaskPath+$t.TaskName}},Execute,Arguments,WorkingDirectory }",
+    "description": "List scheduled-task executable actions and arguments.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Scheduled Tasks",
+      "Actions"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-ScheduledTask",
+        "List scheduled-task executable actions and arguments."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "win-path-entries",
+    "title": "Windows PATH Entries",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Environment",
+    "command": "$env:Path -split ';' | Where-Object { $_ }",
+    "description": "Display individual directories in the current process PATH.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "PATH",
+      "Environment"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "$env:Path",
+        "Display individual directories in the current process PATH."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "win-programfiles-acl",
+    "title": "Program Files ACL Summary",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Filesystem",
+    "command": "Get-Acl $env:ProgramFiles | Format-List Path,Owner,AccessToString",
+    "description": "Review the root Program Files ACL and owner.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "ACL",
+      "Program Files"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-Acl",
+        "Review the root Program Files ACL and owner."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry",
+      "File access"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "win-programdata-acl",
+    "title": "ProgramData ACL Summary",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Filesystem",
+    "command": "Get-Acl $env:ProgramData | Format-List Path,Owner,AccessToString",
+    "description": "Review the root ProgramData ACL and owner.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "ACL",
+      "ProgramData"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-Acl",
+        "Review the root ProgramData ACL and owner."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry",
+      "File access"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "win-temp-acl",
+    "title": "TEMP Directory ACL",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Filesystem",
+    "command": "Get-Acl $env:TEMP | Format-List Path,Owner,AccessToString",
+    "description": "Review the current user's TEMP directory ACL.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "ACL",
+      "TEMP"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-Acl",
+        "Review the current user's TEMP directory ACL."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry",
+      "File access"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "win-installed-software-uninstall",
+    "title": "Installed Software Registry Inventory",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Software",
+    "command": "Get-ItemProperty 'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*','HKLM:\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*' -ErrorAction SilentlyContinue | Where-Object DisplayName | Select-Object DisplayName,DisplayVersion,Publisher,InstallLocation | Sort-Object DisplayName",
+    "description": "List installed software from common machine-wide uninstall registry locations.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Software",
+      "Inventory"
+    ],
+    "attack": [
+      "T1518"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-ItemProperty",
+        "List installed software from common machine-wide uninstall registry locations."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry",
+      "Registry access"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "win-codeintegrity-files",
+    "title": "Windows Code Integrity Policy Files",
+    "platform": "Windows",
+    "tool": "PowerShell",
+    "category": "Application Control",
+    "command": "Get-ChildItem \"$env:WINDIR\\System32\\CodeIntegrity\" -Force -ErrorAction SilentlyContinue | Select-Object Name,Length,LastWriteTime,FullName",
+    "description": "List files present in the Windows Code Integrity policy directory.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "WDAC",
+      "Code Integrity"
+    ],
+    "attack": [
+      "T1518.001"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "Get-ChildItem",
+        "List files present in the Windows Code Integrity policy directory."
+      ]
+    ],
+    "telemetry": [
+      "PowerShell telemetry",
+      "File access"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "win-cmdkey-list",
+    "title": "Windows Saved Credential References",
+    "platform": "Windows",
+    "tool": "cmd",
+    "category": "Identity",
+    "command": "cmdkey /list",
+    "description": "List saved Windows credential target references without revealing credential secrets.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Windows",
+      "Credential Manager",
+      "References"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "cmdkey",
+        "List saved Windows credential target references without revealing credential secrets."
+      ]
+    ],
+    "telemetry": [
+      "Process creation"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/windows/"
+  },
+  {
+    "id": "linux-sudo-list",
+    "title": "Linux sudo Permissions",
+    "platform": "Linux",
+    "tool": "sudo",
+    "category": "Privilege Boundary",
+    "command": "sudo -l",
+    "description": "Display commands the current user is permitted to run through sudo.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "sudo",
+      "Privileges"
+    ],
+    "attack": [
+      "T1548.003"
+    ],
+    "parameters": [],
+    "explanation": [
+      [
+        "sudo",
+        "Display commands the current user is permitted to run through sudo."
+      ]
+    ],
+    "telemetry": [
+      "Process execution",
+      "sudo/auth logs"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-suid-files",
+    "title": "Linux SUID Files",
+    "platform": "Linux",
+    "tool": "find",
+    "category": "Filesystem",
+    "command": "find / -xdev -perm -4000 -type f -print 2>/dev/null",
+    "description": "List SUID files on the current filesystem without crossing mount boundaries.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "SUID",
+      "Filesystem"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "find",
+        "List SUID files on the current filesystem without crossing mount boundaries."
+      ]
+    ],
+    "telemetry": [
+      "Process execution",
+      "Filesystem access"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-sgid-files",
+    "title": "Linux SGID Files",
+    "platform": "Linux",
+    "tool": "find",
+    "category": "Filesystem",
+    "command": "find / -xdev -perm -2000 -type f -print 2>/dev/null",
+    "description": "List SGID files on the current filesystem without crossing mount boundaries.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "SGID",
+      "Filesystem"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "find",
+        "List SGID files on the current filesystem without crossing mount boundaries."
+      ]
+    ],
+    "telemetry": [
+      "Process execution",
+      "Filesystem access"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-file-capabilities",
+    "title": "Linux File Capabilities",
+    "platform": "Linux",
+    "tool": "getcap",
+    "category": "Capabilities",
+    "command": "getcap -r / 2>/dev/null",
+    "description": "List filesystem capabilities assigned to files.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Capabilities",
+      "Filesystem"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "getcap",
+        "List filesystem capabilities assigned to files."
+      ]
+    ],
+    "telemetry": [
+      "Process execution",
+      "Filesystem access"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-user-crontab",
+    "title": "Linux User Crontab",
+    "platform": "Linux",
+    "tool": "crontab",
+    "category": "Scheduled Tasks",
+    "command": "crontab -l 2>/dev/null",
+    "description": "Display the current user's crontab when present.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Cron",
+      "Scheduled Tasks"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "crontab",
+        "Display the current user's crontab when present."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-systemd-timers",
+    "title": "Linux systemd Timers",
+    "platform": "Linux",
+    "tool": "systemctl",
+    "category": "Scheduled Tasks",
+    "command": "systemctl list-timers --all --no-pager",
+    "description": "List systemd timers and their next/last trigger times.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "systemd",
+      "Timers"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "systemctl",
+        "List systemd timers and their next/last trigger times."
+      ]
+    ],
+    "telemetry": [
+      "Process execution",
+      "systemd logs"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-path-entries",
+    "title": "Linux PATH Entries",
+    "platform": "Linux",
+    "tool": "Bash",
+    "category": "Environment",
+    "command": "printf '%s\\n' \"$PATH\" | tr ':' '\\n'",
+    "description": "Display the current shell PATH as one directory per line.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "PATH",
+      "Environment"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "printf",
+        "Display the current shell PATH as one directory per line."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-fstab",
+    "title": "Linux fstab",
+    "platform": "Linux",
+    "tool": "cat",
+    "category": "Filesystem",
+    "command": "cat /etc/fstab",
+    "description": "Display configured static filesystem mount definitions.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "fstab",
+      "Mounts"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "cat",
+        "Display configured static filesystem mount definitions."
+      ]
+    ],
+    "telemetry": [
+      "Process execution",
+      "File access"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-world-writable-dirs",
+    "title": "Linux World-writable Directories",
+    "platform": "Linux",
+    "tool": "find",
+    "category": "Filesystem",
+    "command": "find / -xdev -type d -perm -0002 -print 2>/dev/null",
+    "description": "List world-writable directories on the current filesystem.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Permissions",
+      "Writable"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "find",
+        "List world-writable directories on the current filesystem."
+      ]
+    ],
+    "telemetry": [
+      "Process execution",
+      "Filesystem access"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-current-shell-env",
+    "title": "Linux Shell Environment",
+    "platform": "Linux",
+    "tool": "Bash",
+    "category": "Environment",
+    "command": "env | sort",
+    "description": "Display sorted environment variables for the current process.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Environment",
+      "Shell"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "env",
+        "Display sorted environment variables for the current process."
+      ]
+    ],
+    "telemetry": [
+      "Process execution"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-docker-context",
+    "title": "Linux Docker Context",
+    "platform": "Linux",
+    "tool": "docker",
+    "category": "Containers",
+    "command": "docker info --format '{{json .}}' 2>/dev/null",
+    "description": "Display local Docker daemon context when the current user is permitted to query it.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Docker",
+      "Containers"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "docker",
+        "Display local Docker daemon context when the current user is permitted to query it."
+      ]
+    ],
+    "telemetry": [
+      "Process execution",
+      "Docker daemon logs"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-container-indicators",
+    "title": "Linux Container Indicators",
+    "platform": "Linux",
+    "tool": "cat",
+    "category": "Containers",
+    "command": "cat /proc/1/cgroup 2>/dev/null; printf '\\n'; cat /proc/self/mountinfo 2>/dev/null | head -n 40",
+    "description": "Review common process and mount indicators of a containerised environment.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Containers",
+      "cgroup"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "cat",
+        "Review common process and mount indicators of a containerised environment."
+      ]
+    ],
+    "telemetry": [
+      "Process execution",
+      "File access"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
+  },
+  {
+    "id": "linux-shells",
+    "title": "Linux Login Shells",
+    "platform": "Linux",
+    "tool": "cat",
+    "category": "Identity",
+    "command": "cat /etc/shells",
+    "description": "Display valid login shells configured on the system.",
+    "risk": "Read only",
+    "changesSystem": false,
+    "tags": [
+      "Linux",
+      "Shells",
+      "Identity"
+    ],
+    "attack": [],
+    "parameters": [],
+    "explanation": [
+      [
+        "cat",
+        "Display valid login shells configured on the system."
+      ]
+    ],
+    "telemetry": [
+      "Process execution",
+      "File access"
+    ],
+    "notes": "https://notes.asifnawazminhas.com/linux/"
   }
 ];

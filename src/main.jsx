@@ -339,7 +339,7 @@ function App(){
    </div>
    <button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button>
   </header>
-  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v2.8</div></aside>
+  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v2.9</div></aside>
   <main>
    {page==='dashboard'?<Dashboard go={go} favorites={favorites} recent={recent}/>:
     page==='catalogue'?<CatalogueOverview go={go} openCommand={openCommand}/>:
@@ -671,27 +671,231 @@ function CommandStudio({c,tab,setTab,go,favorites,toggleFavorite}){
 
 function PrivEscExplorer({openCommand}){
  const [os,setOs]=useState('Windows');
- const [step,setStep]=useState('identity');
- const [answers,setAnswers]=useState({});
- const flow={
+ const [activeSection,setActiveSection]=useState('identity');
+ const [activeCheck,setActiveCheck]=useState(null);
+ const storageKey=`security-studio-privesc-v2:${os}`;
+
+ const map={
   Windows:[
-   ['identity','Identity & token','Review the current user, groups and token privileges.',['windows-identity','windows-groups','windows-privileges']],
-   ['controls','Application control','Review AppLocker, PowerShell language mode and endpoint controls.',['applocker-effective','language-mode','windows-defender-status']],
-   ['services','Services & processes','Review running services and processes for security context.',['windows-services','windows-processes']],
-   ['network','Network context','Review listeners, routes, DNS and firewall profile state.',['tcp-listeners','windows-routes','windows-dns-cache','windows-firewall-profiles']]
+   {id:'identity',title:'Identity & Privileges',desc:'Establish the current security context, group membership and token privileges.',checks:[
+    ['Current identity','Confirm the current Windows user and domain context.',['windows-identity']],
+    ['Group memberships','Review local/domain group memberships for the current token.',['windows-groups']],
+    ['Token privileges','Review enabled and disabled token privileges.',['windows-privileges']],
+    ['Integrity level','Review the current process integrity level.',['win-integrity-level']],
+    ['Local administrators','Review members of the local Administrators group.',['win-local-admin-members']]
+   ]},
+   {id:'system',title:'Operating System',desc:'Capture OS build, architecture, patch and host information.',checks:[
+    ['OS and build','Review Windows version, build and architecture.',['win-os-details','windows-systeminfo']],
+    ['Computer system','Review domain membership, hardware model and system type.',['win-computer-system']],
+    ['Installed hotfixes','Review recently installed Windows hotfixes.',['win-hotfixes-detailed']],
+    ['Optional features','Review enabled Windows optional features.',['win-optional-features']]
+   ]},
+   {id:'controls',title:'Application Control',desc:'Review application-control and PowerShell restrictions.',checks:[
+    ['AppLocker effective policy','Inspect effective AppLocker policy.',['applocker-effective']],
+    ['AppLocker collections','Review rule collection enforcement modes.',['win-applocker-collections']],
+    ['AppLocker EXE rules','Review effective executable rules.',['win-applocker-exe-rules']],
+    ['Code Integrity policy files','Review Windows Code Integrity policy files.',['win-codeintegrity-files']],
+    ['PowerShell language mode','Check the current language mode.',['win-language-mode','language-mode']],
+    ['PowerShell execution policy','Review execution-policy scopes.',['win-execution-policy-list']],
+    ['Microsoft Defender','Review Defender protection state.',['win-defender-summary']]
+   ]},
+   {id:'services',title:'Services & Processes',desc:'Review service configuration, process context and executable paths.',checks:[
+    ['Service inventory','Review Windows service inventory.',['windows-services']],
+    ['Service binary paths','Review service accounts and configured binary paths.',['win-service-binary-paths']],
+    ['Running services','Review currently running services.',['win-running-services-detailed']],
+    ['Process inventory','Review running process names and IDs.',['windows-processes']],
+    ['Process paths','Review process executable paths.',['windows-process-paths']],
+    ['Processes by CPU','Review high-CPU processes with path information.',['win-process-cpu']]
+   ]},
+   {id:'tasks',title:'Scheduled Tasks',desc:'Review scheduled tasks, principals and executable actions.',checks:[
+    ['Task inventory','Review scheduled task names and state.',['win-scheduled-tasks-detailed']],
+    ['Task actions','Review configured task executables and arguments.',['win-scheduled-task-actions']]
+   ]},
+   {id:'filesystem',title:'Filesystem & Permissions',desc:'Review important directories, permissions and local storage context.',checks:[
+    ['Program Files ACL','Review the Program Files root ACL.',['win-programfiles-acl']],
+    ['ProgramData ACL','Review the ProgramData root ACL.',['win-programdata-acl']],
+    ['TEMP ACL','Review the current TEMP directory ACL.',['win-temp-acl']],
+    ['Logical disks','Review filesystem type, capacity and free space.',['win-logical-disks']],
+    ['Volumes','Review mounted volume information and health.',['win-volumes']]
+   ]},
+   {id:'software',title:'Installed Software',desc:'Review installed applications and runtime/tooling inventory.',checks:[
+    ['Installed software','Review machine-wide installed software inventory.',['win-installed-software-uninstall']],
+    ['PowerShell version','Review PowerShell edition and version.',['runtime-powershell-version']],
+    ['Available modules','Review available PowerShell modules.',['runtime-powershell-modules']]
+   ]},
+   {id:'network',title:'Network Context',desc:'Review local interfaces, routes, DNS and listening sockets.',checks:[
+    ['Network adapters','Review adapter status and MAC addresses.',['win-netadapters']],
+    ['IP configuration','Review Windows IP addressing.',['windows-ip-config']],
+    ['Routing table','Review routes, next hops and metrics.',['win-routes-detailed']],
+    ['DNS servers','Review DNS server configuration.',['win-dns-servers']],
+    ['Neighbour cache','Review local neighbour cache.',['win-neighbor-cache']],
+    ['Listening TCP ports','Review listening TCP sockets.',['win-listening-tcp-detailed']],
+    ['UDP endpoints','Review local UDP endpoints.',['win-udp-endpoints']],
+    ['Firewall profiles','Review Windows Firewall profile state.',['windows-firewall-profiles']]
+   ]},
+   {id:'environment',title:'Environment',desc:'Review PATH, environment variables and runtime locations.',checks:[
+    ['PATH entries','Review directories in the current PATH.',['win-path-entries']],
+    ['Environment variables','Review current environment variables.',['windows-env']],
+    ['PowerShell home','Review the PowerShell installation path.',['runtime-powershell-home']],
+    ['Module path','Review PowerShell module search paths.',['runtime-powershell-path']]
+   ]},
+   {id:'policy',title:'Registry & Policy',desc:'Review local policy values relevant to privilege boundaries.',checks:[
+    ['UAC policy','Review selected UAC policy values.',['win-uac-policy']],
+    ['AlwaysInstallElevated','Review Windows Installer elevation policy values.',['win-always-install-elevated']],
+    ['Saved credential references','Review saved credential target references.',['win-cmdkey-list']]
+   ]},
+   {id:'signing',title:'Code Signing',desc:'Review executable signing context and certificate information.',checks:[
+    ['Authenticode signature','Inspect the signature state of a selected file.',['win-authenticode-signature']],
+    ['Current user certificates','Review current-user certificate store entries.',['windows-cert-store']]
+   ]}
   ],
   Linux:[
-   ['identity','Identity & groups','Review current identity and group context.',['linux-identity']],
-   ['services','Services & processes','Review running services and processes.',['linux-services','linux-processes']],
-   ['network','Network context','Review interfaces, routes and listening sockets.',['linux-ip','linux-routes','linux-listeners']],
-   ['filesystem','Filesystem context','Review mounted filesystems and disk usage.',['linux-mounts','linux-disk']]
+   {id:'identity',title:'Identity & Groups',desc:'Establish the current user, groups and active session context.',checks:[
+    ['Current identity','Review user and group identifiers.',['linux-identity','linux-current-groups']],
+    ['Account directory','Review users exposed through NSS.',['linux-users-getent']],
+    ['Group directory','Review groups exposed through NSS.',['linux-groups-getent']],
+    ['Login sessions','Review active login sessions.',['linux-login-sessions']],
+    ['Login shells','Review valid configured login shells.',['linux-shells']]
+   ]},
+   {id:'system',title:'Kernel & Distribution',desc:'Capture distribution, kernel, architecture and resource context.',checks:[
+    ['Distribution','Review Linux distribution metadata.',['linux-os-release-detailed']],
+    ['Kernel','Review kernel and architecture details.',['linux-kernel-detailed']],
+    ['CPU','Review CPU architecture and topology.',['linux-lscpu']],
+    ['Memory','Review physical and swap memory usage.',['linux-memory-detailed']],
+    ['Time configuration','Review timezone and time-synchronisation state.',['linux-time-status']]
+   ]},
+   {id:'sudo',title:'sudo',desc:'Review commands permitted through sudo for the current user.',checks:[
+    ['sudo permissions','Review sudo command permissions for the current user.',['linux-sudo-list']]
+   ]},
+   {id:'special',title:'SUID / SGID / Capabilities',desc:'Review special permission bits and filesystem capabilities.',checks:[
+    ['SUID files','List SUID files on the current filesystem.',['linux-suid-files']],
+    ['SGID files','List SGID files on the current filesystem.',['linux-sgid-files']],
+    ['File capabilities','List assigned filesystem capabilities.',['linux-file-capabilities']]
+   ]},
+   {id:'scheduled',title:'Scheduled Execution',desc:'Review recurring task configuration.',checks:[
+    ['User crontab','Review the current user crontab.',['linux-user-crontab']],
+    ['System cron','Review common system cron directories.',['linux-cron']],
+    ['systemd timers','Review systemd timers.',['linux-systemd-timers']]
+   ]},
+   {id:'services',title:'Services & Processes',desc:'Review service inventory, startup state and process context.',checks:[
+    ['Running services','Review running systemd services.',['linux-running-services']],
+    ['Enabled services','Review services enabled at boot.',['linux-enabled-services']],
+    ['Process tree','Review processes and parent-child relationships.',['linux-process-tree']],
+    ['Processes by memory','Review high-memory processes.',['linux-top-memory-processes']],
+    ['Open files','Review files opened by the current user.',['linux-open-files']]
+   ]},
+   {id:'filesystem',title:'Filesystem & Permissions',desc:'Review mounts, permissions and writable directory context.',checks:[
+    ['Mounted filesystems','Review mount sources, types and options.',['linux-mounts-detailed']],
+    ['Filesystem usage','Review filesystem types and capacity.',['linux-filesystems']],
+    ['fstab','Review configured static mounts.',['linux-fstab']],
+    ['World-writable directories','Review world-writable directories on the current filesystem.',['linux-world-writable-dirs']],
+    ['Block devices','Review local block devices and mount points.',['linux-block-devices']]
+   ]},
+   {id:'environment',title:'Environment & PATH',desc:'Review environment variables, PATH and shell behaviour.',checks:[
+    ['PATH entries','Review current PATH directories.',['linux-path-entries']],
+    ['Shell environment','Review current environment variables.',['linux-current-shell-env']],
+    ['Bash options','Review Bash shell options.',['runtime-bash-options']],
+    ['Command resolution','Review how Bash resolves a selected command.',['bash-command-type']]
+   ]},
+   {id:'packages',title:'Packages & Software',desc:'Review installed package inventory and runtime versions.',checks:[
+    ['Debian packages','Review installed Debian package versions.',['linux-debian-packages']],
+    ['RPM packages','Review installed RPM package versions.',['linux-rpm-packages']],
+    ['Bash version','Review Bash runtime version.',['runtime-bash-version']]
+   ]},
+   {id:'network',title:'Network Context',desc:'Review local interfaces, routes, DNS and sockets.',checks:[
+    ['Interfaces','Review local interface and address summary.',['linux-ip-brief']],
+    ['Routes','Review routing tables.',['linux-routes-detailed']],
+    ['Neighbour cache','Review local neighbour cache.',['linux-neighbor-cache']],
+    ['Listening sockets','Review listening TCP/UDP sockets.',['linux-listening-sockets']],
+    ['Established connections','Review established TCP connections.',['linux-established-tcp']],
+    ['Resolver status','Review DNS resolver configuration.',['linux-dns-resolver-status']]
+   ]},
+   {id:'containers',title:'Containers',desc:'Review local container context without attempting escape or exploitation.',checks:[
+    ['Container indicators','Review cgroup and mount indicators.',['linux-container-indicators']],
+    ['Docker context','Review Docker daemon metadata when permitted.',['linux-docker-context']]
+   ]},
+   {id:'logs',title:'Logs & Recent Activity',desc:'Review selected local log and login context.',checks:[
+    ['Current boot warnings','Review warning-or-higher journal entries.',['linux-journal-warnings']],
+    ['Recent logins','Review recent login records.',['linux-last-logins']]
+   ]}
   ]
  };
- const steps=flow[os];
- const current=steps.find(x=>x[0]===step)||steps[0];
- useEffect(()=>setStep(flow[os][0][0]),[os]);
- const currentCommands=current[3].map(id=>commands.find(c=>c.id===id)).filter(Boolean);
- return <><PageTitle kicker="EXPLORERS" title="PrivEsc Explorer" text="Decision-support for reviewing privilege boundaries, context and defensive controls."/><div className="explorerShell"><div className="explorerTop"><div className="segmented"><button className={os==='Windows'?'active':''} onClick={()=>setOs('Windows')}>Windows</button><button className={os==='Linux'?'active':''} onClick={()=>setOs('Linux')}>Linux</button></div><div className="explainer">This explorer organises review steps and links to read-only validation commands. It does not perform exploitation.</div></div><div className="explorerGrid"><div className="stepRail">{steps.map(([id,title],i)=><button className={step===id?'active':''} key={id} onClick={()=>setStep(id)}><span>{i+1}</span><b>{title}</b><ChevronRight/></button>)}</div><div className="stepContent"><span className="eyebrow">{os.toUpperCase()} REVIEW STEP</span><h2>{current[1]}</h2><p>{current[2]}</p><div className="decisionRow"><button className={answers[step]==='reviewed'?'yes':''} onClick={()=>setAnswers({...answers,[step]:'reviewed'})}>Mark reviewed</button><button className={answers[step]==='followup'?'follow':''} onClick={()=>setAnswers({...answers,[step]:'followup'})}>Needs follow-up</button></div><h3>Related commands</h3><div className="miniCommands">{currentCommands.map(c=><button key={c.id} onClick={()=>openCommand(c)}><div><b>{c.title}</b><code>{c.command}</code></div><ChevronRight/></button>)}</div><a className="textlink" target="_blank" rel="noopener noreferrer" href={os==='Windows'?'https://notes.asifnawazminhas.com/windows/':'https://notes.asifnawazminhas.com/linux/'}>Open {os} Security Notes <ExternalLink size={14}/></a></div></div></div></>
+
+ const sections=map[os];
+ const section=sections.find(x=>x.id===activeSection)||sections[0];
+ const checks=section.checks.map((x,i)=>({id:`${section.id}-${i}`,...{title:x[0],desc:x[1],commandIds:x[2]}}));
+ const [status,setStatus]=useState(()=>{try{return JSON.parse(localStorage.getItem(storageKey)||'{}')}catch{return {}}});
+ useEffect(()=>{try{setStatus(JSON.parse(localStorage.getItem(storageKey)||'{}'))}catch{setStatus({})};setActiveSection(map[os][0].id);setActiveCheck(null)},[os]);
+ useEffect(()=>localStorage.setItem(storageKey,JSON.stringify(status)),[status,storageKey]);
+
+ const flat=sections.flatMap(s=>s.checks.map((c,i)=>({section:s.id,id:`${s.id}-${i}`,title:c[0],desc:c[1],commandIds:c[2]})));
+ const totals={
+  reviewed:flat.filter(x=>status[x.id]==='Reviewed').length,
+  follow:flat.filter(x=>status[x.id]==='Needs review').length,
+  issue:flat.filter(x=>status[x.id]==='Potential issue').length,
+  notTested:flat.filter(x=>!status[x.id]||status[x.id]==='Not tested').length
+ };
+ const completed=flat.length-totals.notTested;
+ const coverage=Math.round(completed/flat.length*100);
+ const selected=activeCheck?flat.find(x=>x.id===activeCheck):null;
+ const selectedCommands=(selected?.commandIds||[]).map(id=>commands.find(c=>c.id===id)).filter(Boolean);
+
+ const setCheckStatus=(id,value)=>setStatus({...status,[id]:value});
+ const sectionDone=s=>{
+  const own=s.checks.map((c,i)=>status[`${s.id}-${i}`]);
+  return own.filter(x=>x&&x!=='Not tested').length;
+ };
+ const exportAssessment=()=>{
+  const lines=[`# ${os} PrivEsc Review`,``,`Coverage: ${coverage}%`,``,`| Section | Check | Status |`,`|---|---|---|`];
+  sections.forEach(s=>s.checks.forEach((c,i)=>lines.push(`| ${s.title} | ${c[0]} | ${status[`${s.id}-${i}`]||'Not tested'} |`)));
+  const blob=new Blob([lines.join('\n')],{type:'text/markdown'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${os.toLowerCase()}-privesc-review.md`;a.click();URL.revokeObjectURL(a.href);
+ };
+
+ return <>
+  <div className="privescHero">
+   <div><span className="eyebrow">PRIVILEGE BOUNDARY ASSESSMENT</span><h1>{os} PrivEsc Explorer</h1><p>Structured enumeration, validation and defensive context for authorised privilege-boundary reviews.</p></div>
+   <div className="privescCoverage"><div><b>{coverage}%</b><span>assessment coverage</span></div><div className="coverageRing" style={{'--coverage':`${coverage*3.6}deg`}}><span>{completed}/{flat.length}</span></div></div>
+  </div>
+
+  <div className="privescTopbar">
+   <div className="segmented large"><button className={os==='Windows'?'active':''} onClick={()=>setOs('Windows')}>Windows <span>{map.Windows.reduce((n,s)=>n+s.checks.length,0)}</span></button><button className={os==='Linux'?'active':''} onClick={()=>setOs('Linux')}>Linux <span>{map.Linux.reduce((n,s)=>n+s.checks.length,0)}</span></button></div>
+   <div className="privescLegend"><span className="reviewed">{totals.reviewed} Reviewed</span><span className="follow">{totals.follow} Needs review</span><span className="issue">{totals.issue} Potential issue</span><span>{totals.notTested} Not tested</span></div>
+   <button className="secondarySmall" onClick={exportAssessment}><Download size={14}/> Export review</button>
+  </div>
+
+  <div className="privescProLayout">
+   <aside className="privescTree">
+    <div className="treeHeader"><span>ASSESSMENT AREAS</span><b>{sections.length}</b></div>
+    {sections.map((s,i)=>{
+      const done=sectionDone(s);
+      return <button className={activeSection===s.id?'active':''} key={s.id} onClick={()=>{setActiveSection(s.id);setActiveCheck(null)}}><span className="treeNumber">{String(i+1).padStart(2,'0')}</span><div><b>{s.title}</b><small>{done}/{s.checks.length} reviewed</small></div><div className="miniProgress"><i style={{width:`${Math.round(done/s.checks.length*100)}%`}}/></div><ChevronRight size={15}/></button>
+    })}
+   </aside>
+
+   <section className="privescWorkspace">
+    <div className="privescSectionHead"><div><span className="eyebrow">{os.toUpperCase()} REVIEW AREA</span><h2>{section.title}</h2><p>{section.desc}</p></div><div className="sectionCount"><b>{sectionDone(section)}</b><span>of {section.checks.length} reviewed</span></div></div>
+
+    <div className="privescCheckList">
+     {checks.map((check,i)=>{
+      const state=status[check.id]||'Not tested';
+      const cmdObjs=check.commandIds.map(id=>commands.find(c=>c.id===id)).filter(Boolean);
+      return <article className={`privescCheck ${activeCheck===check.id?'open':''}`} key={check.id}>
+       <button className="checkSummary" onClick={()=>setActiveCheck(activeCheck===check.id?null:check.id)}>
+        <span className="checkIndex">{String(i+1).padStart(2,'0')}</span>
+        <div><h3>{check.title}</h3><p>{check.desc}</p><small>{cmdObjs.length} validation command{cmdObjs.length===1?'':'s'}</small></div>
+        <span className={`statusBadge ${state.toLowerCase().replaceAll(' ','-')}`}>{state}</span><ChevronRight className={activeCheck===check.id?'rotate':''}/>
+       </button>
+       {activeCheck===check.id&&<div className="checkDetail">
+        <div className="checkCommands"><span className="eyebrow">VALIDATION COMMANDS</span>{cmdObjs.map(c=><button key={c.id} onClick={()=>openCommand(c)}><div><b>{c.title}</b><code>{c.command}</code><small>{c.tool} · {c.risk}</small></div><ChevronRight/></button>)}</div>
+        <div className="checkAssessment"><span className="eyebrow">ASSESSMENT STATUS</span><div className="statusButtons">{['Reviewed','Needs review','Potential issue','Not tested'].map(v=><button className={state===v?'active':''} key={v} onClick={()=>setCheckStatus(check.id,v)}>{v}</button>)}</div><div className="assessmentHelp"><ShieldCheck size={16}/><p>Use this explorer for review and validation. It intentionally does not provide automated exploitation or privilege-escalation payloads.</p></div></div>
+       </div>}
+      </article>
+     })}
+    </div>
+   </section>
+  </div>
+ </>
 }
 
 function AttackExplorer({openCommand}){
@@ -1097,7 +1301,7 @@ function Diagnostics(){
   <PageTitle kicker="SETTINGS" title="Diagnostics & Recovery" text="Run local health checks and recover the Studio if browser data becomes corrupted."/>
   <div className="diagnosticGrid">
    <Panel title="Application health">
-    <div className="diagnosticMeta"><span>Studio version</span><b>v2.8</b><span>Storage schema</span><b>v{STORAGE_VERSION}</b><span>Last migration</span><b>{storageMigration.migrated?`v${storageMigration.from} → v${storageMigration.to}`:'Current'}</b></div>
+    <div className="diagnosticMeta"><span>Studio version</span><b>v2.9</b><span>Storage schema</span><b>v{STORAGE_VERSION}</b><span>Last migration</span><b>{storageMigration.migrated?`v${storageMigration.from} → v${storageMigration.to}`:'Current'}</b></div>
     <button className="primarySmall" onClick={check}><ShieldCheck size={15}/> Run health checks</button>
     {result&&<div className="diagnosticResults">{rows.map(([label,ok])=><div key={label}><span>{label}</span><b className={ok?'ok':'warn'}>{ok?'Pass':'Review'}</b></div>)}</div>}
    </Panel>

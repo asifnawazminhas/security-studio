@@ -1,94 +1,82 @@
 # Asif's Security Studio
 
-## v2.8 - Catalogue Intelligence + Topic Navigation
+## v2.9 - PrivEsc Explorer Pro + Header Polish
 
-v2.8 turns the 297-command catalogue into a polished knowledge browser instead of a flat command list.
+### PrivEsc Explorer Pro
+The old four-step PrivEsc view has been replaced with a structured authorised-assessment workspace.
 
-### Premium catalogue experience
-- New Catalogue Overview landing page
-- Platform showcase cards
-- Topic drill-down cards
-- ATT&CK coverage summary
-- Telemetry coverage summary
-- Parameterised-command count
-- Read-only command count
-- Recently expanded catalogue rail
+#### Windows
+- Identity & Privileges
+- Operating System
+- Application Control
+- Services & Processes
+- Scheduled Tasks
+- Filesystem & Permissions
+- Installed Software
+- Network Context
+- Environment
+- Registry & Policy
+- Code Signing
 
-### Command Library intelligence
-- Platform filters
-- Tool filters
-- Category
-- Tag
-- Risk
-- Favourites
-- Has ATT&CK
-- Has telemetry
-- Has parameters
-- Weighted search
-- Sort by:
-  - Title
-  - Platform
-  - Tool
-  - Category
-  - Quality
-  - Recently expanded
-- Pin a filter combination locally
-- Re-apply pinned filters
-- Share filtered views
-- Active-filter summary
+#### Linux
+- Identity & Groups
+- Kernel & Distribution
+- sudo
+- SUID / SGID / Capabilities
+- Scheduled Execution
+- Services & Processes
+- Filesystem & Permissions
+- Environment & PATH
+- Packages & Software
+- Network Context
+- Containers
+- Logs & Recent Activity
 
-### Command maturity
-Each command receives a metadata-maturity score based on:
-- description
-- explanation
-- tags
-- telemetry
-- Notes
-- parameter schema
-- ATT&CK structure
-- command relationships
+### Assessment workflow
+Each check provides:
+- purpose
+- safe validation command references
+- local status:
+  - Reviewed
+  - Needs review
+  - Potential issue
+  - Not tested
+- section progress
+- total assessment coverage
+- Markdown review export
+- direct Command Studio navigation
 
-### Command Studio navigation
-- Catalogue breadcrumbs
-- platform breadcrumb
-- category breadcrumb
-- maturity badge
-- relationship panel
-- cross-platform equivalent suggestions
-- knowledge-completeness panel
+The explorer intentionally does not automate exploitation or execute commands.
 
-### UI refinement
-- premium typography stack using installed/system fonts
-- stronger visual hierarchy
-- glass-like cards
-- subtle depth and gradients
-- improved hover/focus states
-- cleaner command cards
-- refined light-mode surfaces
-- responsive catalogue navigation
-- polished topic and statistics cards
+### Header polish
+- Security Notes is now a contained action button
+- Notes cannot be pushed outside the visible header
+- lower-priority header items collapse first at narrower widths
+- theme/focus/help controls remain responsive
+- Notes continues opening in a new tab
 
-### Product retained
-- 297 structured commands
+### Catalogue
+- Previous: 297 commands
+- v2.9: 322 commands
+- Added read-only privilege-boundary enumeration references for Windows and Linux
+
+### Existing v2.8 features retained
+- premium Catalogue Overview
+- topic navigation
+- maturity scoring
+- pinned filters
+- cross-platform equivalents
+- 297+ detailed catalogue
 - Runtime Library
-- Carbon-style syntax visualiser
-- Command Compare
-- Command Packs
-- Custom Commands
-- ATT&CK Explorer
+- Carbon-style Visualiser
 - Knowledge Graph
-- Attack Path Explorer
-- PrivEsc Explorer
+- ATT&CK Explorer
 - Context Profiles
 - Quick Notes
 - Copy History
 - Engagement Timer
 - Assessment Sequences
 - Coverage Intelligence
-- Workflow Builder
-- Purple Team Mapping
-- Report Builder
-- Notes Link Builder
 - Appearance Studio
 - Diagnostics & Recovery
 - automated QA

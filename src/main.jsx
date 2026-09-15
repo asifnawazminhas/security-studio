@@ -4,18 +4,18 @@ import {toPng,toSvg} from 'html-to-image';
 import {
   Activity,ArrowLeft,BookOpen,CheckCircle2,ChevronDown,ChevronRight,Copy,Download,
   Clock3,ExternalLink,Filter,GitCompareArrows,Image,Layers3,LayoutDashboard,Library,Menu,
-  Braces,Check,Code2,FileJson,FileText,GitBranch,GripVertical,HelpCircle,Link2,Moon,Network,Package,Plus,RadioTower,RotateCcw,Save,Search,ShieldCheck,Star,Sun,Tag,TerminalSquare,Trash2,Upload,Workflow,X
+  BarChart3,Braces,Check,Code2,Columns3,FileJson,FileText,GitBranch,GripVertical,HelpCircle,Link2,ListChecks,Moon,Network,Package,Plus,RadioTower,RotateCcw,Save,Search,ShieldCheck,Star,Sun,Tag,TerminalSquare,Trash2,Upload,Workflow,X
 } from 'lucide-react';
 import {commands} from './data/commands';
 import './styles.css';
 
 const sections=[
  {title:'',items:[['Dashboard','dashboard',LayoutDashboard]]},
- {title:'COMMANDS',items:[['Command Library','library',Library],['Command Studio','command-studio',TerminalSquare],['Command Visualiser','visualiser',Image],['Command Packs','packs',Package],['Runtime Library','runtimes',Code2]]},
+ {title:'COMMANDS',items:[['Command Library','library',Library],['Command Studio','command-studio',TerminalSquare],['Command Visualiser','visualiser',Image],['Command Compare','compare',Columns3],['Command Packs','packs',Package],['Runtime Library','runtimes',Code2]]},
  {title:'EXPLORERS',items:[['PrivEsc Explorer','privesc',ShieldCheck],['ATT&CK Explorer','attack',Network],['Attack Path Explorer','attack-path',GitCompareArrows],['Knowledge Graph','graph',GitBranch]]},
  {title:'WORKSPACE',items:[['Saved Workspace','workspace',Star],['Context Profiles','contexts',Braces],['Report Builder','reports',FileText],['Notes Link Builder','notes-links',Link2]]},
- {title:'BUILDERS',items:[['Workflow Builder','workflow',Workflow]]},
- {title:'DEFENCE',items:[['Detection & Telemetry','detection',RadioTower],['Purple Team Mapping','purple',Layers3]]}
+ {title:'BUILDERS',items:[['Workflow Builder','workflow',Workflow],['Assessment Sequences','assessments',ListChecks]]},
+ {title:'DEFENCE',items:[['Coverage Intelligence','coverage',BarChart3],['Detection & Telemetry','detection',RadioTower],['Purple Team Mapping','purple',Layers3]]}
 ];
 
 
@@ -84,6 +84,91 @@ const relatedCommandsFor=(c,limit=6)=>commands
  .sort((a,b)=>b.score-a.score||a.x.title.localeCompare(b.x.title))
  .slice(0,limit)
  .map(r=>r.x);
+
+const commandQuality=(c)=>{
+ const checks=[
+  !!c.description?.trim(),
+  Array.isArray(c.explanation)&&c.explanation.length>0,
+  Array.isArray(c.tags)&&c.tags.length>=2,
+  Array.isArray(c.telemetry)&&c.telemetry.length>0,
+  !!c.notes?.trim(),
+  Array.isArray(c.parameters),
+  Array.isArray(c.attack)
+ ];
+ return Math.round(checks.filter(Boolean).length/checks.length*100);
+};
+
+const languageOptions=['Auto','Shell','PowerShell','Python','Java','JavaScript','TypeScript','PHP','C#','Go','JSON','YAML','SQL','HTML/XML','CSS','HTTP','Plain Text'];
+
+const inferLanguage=(c)=>{
+ const tool=(c.tool||'').toLowerCase();
+ const cat=(c.category||'').toLowerCase();
+ if(tool.includes('powershell'))return 'PowerShell';
+ if(tool==='python'||tool.includes('python'))return 'Python';
+ if(tool==='java'||tool==='javac'||tool==='jar')return 'Java';
+ if(tool==='php'||tool==='composer')return 'PHP';
+ if(tool==='node.js'||tool==='javascript'||tool==='npm'||c.tags?.includes('JavaScript'))return 'JavaScript';
+ if(tool==='go')return 'Go';
+ if(tool==='.net'||tool==='c#'||tool==='csc'||tool==='dotnet')return 'C#';
+ if(tool==='curl'||tool==='httpx'||cat==='http')return 'Shell';
+ if(tool==='bash'||['nmap','tshark','tcpdump','git','ripgrep','dig','nslookup','ip','ss','systemctl','uname','id','findmnt','df'].includes(tool))return 'Shell';
+ if(cat.includes('json'))return 'JSON';
+ return 'Shell';
+};
+
+const syntaxKeywordSets={
+ 'PowerShell':new Set(['function','param','if','else','elseif','foreach','for','while','switch','return','try','catch','finally','throw','class','filter','begin','process','end','in']),
+ 'Shell':new Set(['if','then','else','elif','fi','for','while','do','done','case','esac','function','in','export','local','readonly']),
+ 'Python':new Set(['def','class','if','elif','else','for','while','in','is','not','and','or','return','yield','import','from','as','try','except','finally','with','lambda','True','False','None','async','await']),
+ 'Java':new Set(['public','private','protected','class','interface','enum','static','final','void','int','long','double','float','boolean','char','byte','short','new','return','if','else','for','while','switch','case','try','catch','finally','throws','extends','implements','package','import','null','true','false']),
+ 'JavaScript':new Set(['const','let','var','function','class','new','return','if','else','for','while','switch','case','try','catch','finally','throw','import','export','from','async','await','true','false','null','undefined','this']),
+ 'TypeScript':new Set(['const','let','var','function','class','interface','type','enum','public','private','protected','readonly','new','return','if','else','for','while','import','export','from','async','await','true','false','null','undefined']),
+ 'PHP':new Set(['function','class','public','private','protected','static','final','return','if','else','elseif','foreach','for','while','switch','case','try','catch','finally','throw','namespace','use','new','true','false','null']),
+ 'C#':new Set(['public','private','protected','internal','class','struct','interface','enum','static','readonly','const','void','string','int','long','double','float','bool','new','return','if','else','for','foreach','while','switch','case','try','catch','finally','throw','namespace','using','async','await','true','false','null']),
+ 'Go':new Set(['package','import','func','var','const','type','struct','interface','map','chan','go','defer','return','if','else','for','range','switch','case','select','break','continue','true','false','nil']),
+ 'SQL':new Set(['select','from','where','join','inner','left','right','full','on','group','by','order','having','insert','into','update','delete','create','alter','drop','table','values','set','as','and','or','not','null','is','in','like','limit','offset']),
+ 'JSON':new Set(['true','false','null']),
+ 'YAML':new Set(['true','false','null','yes','no']),
+ 'HTML/XML':new Set([]),
+ 'CSS':new Set(['display','position','color','background','margin','padding','border','grid','flex','font','width','height']),
+ 'HTTP':new Set(['GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS','HTTP','Host','Accept','Authorization','Content-Type','User-Agent'])
+};
+
+const tokenClass=(token,language)=>{
+ if(/^\s+$/.test(token))return '';
+ if(/^<[^>]+>$/.test(token))return 'syn-placeholder';
+ if(/^--?[A-Za-z0-9][\w-]*$/.test(token))return 'syn-option';
+ if(/^\$[A-Za-z_][\w:]*/.test(token)||/^%[A-Za-z_][\w]*%$/.test(token))return 'syn-variable';
+ if(/^(['"`]).*\1$/s.test(token))return 'syn-string';
+ if(/^\d+(?:\.\d+)?$/.test(token))return 'syn-number';
+ if(/^#/.test(token)||/^\/\//.test(token))return 'syn-comment';
+ const kw=syntaxKeywordSets[language];
+ if(kw&&kw.has(token))return 'syn-keyword';
+ if(['|','||','&&','>','>>','<','<<','=','==','!=','=>','::',';','{','}','(',')','[',']'].includes(token))return 'syn-operator';
+ if(language==='HTML/XML'&&/^<\/?[A-Za-z]/.test(token))return 'syn-keyword';
+ return '';
+};
+
+const tokenizeSyntax=(code,language)=>{
+ const regex=/(\s+|<[^>]+>|--?[A-Za-z0-9][\w-]*|\$[A-Za-z_][\w:.-]*|%[A-Za-z_][\w]*%|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|#[^\n]*|\/\/[^\n]*|\b\d+(?:\.\d+)?\b|[A-Za-z_][\w.-]*|\|\||&&|>>|<<|::|=>|==|!=|[|><=;{}()\[\],.:+*\/])/g;
+ const out=[];let last=0;let m;
+ while((m=regex.exec(code))){
+  if(m.index>last)out.push({text:code.slice(last,m.index),cls:''});
+  out.push({text:m[0],cls:tokenClass(m[0],language)});last=regex.lastIndex;
+ }
+ if(last<code.length)out.push({text:code.slice(last),cls:''});
+ return out;
+};
+
+function SyntaxCode({code,language,lineNumbers=false}){
+ const lines=String(code).split('\n');
+ return <code className={`syntaxCode syntax-${language.toLowerCase().replaceAll(/[^a-z0-9]+/g,'-')}`}>
+  {lines.map((line,i)=><span className="syntaxLine" key={`${i}-${line}`}>
+   {lineNumbers&&<span className="syntaxNumber">{i+1}</span>}
+   <span className="syntaxText">{tokenizeSyntax(line,language).map((t,j)=><span className={t.cls} key={j}>{t.text}</span>)}</span>
+  </span>)}
+ </code>
+}
 
 const routeFor=(page,c)=>page==='command-studio'&&c?`#/command/${c.id}`:`#/${page}`;
 const parseRoute=()=>{
@@ -181,12 +266,13 @@ function App(){
    </div>
    <button className="hamb" onClick={()=>setMobile(!mobile)}>{mobile?<X/>:<Menu/>}</button>
   </header>
-  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v2.3</div></aside>
+  <aside className={mobile?'open':''}>{sections.map((s,i)=><div className="navgroup" key={i}>{s.title&&<label>{s.title}</label>}{s.items.map(([name,id,Icon])=><button key={id} className={page===id?'active':''} onClick={()=>go(id)}><Icon size={18}/>{name}</button>)}</div>)}<div className="sidefoot"><span className="dot"/> Studio v2.4</div></aside>
   <main>
    {page==='dashboard'?<Dashboard go={go} favorites={favorites} recent={recent}/>:
     page==='library'?<LibraryPage query={query} setQuery={setQuery} platform={platform} setPlatform={setPlatform} tool={tool} setTool={setTool} openCommand={openCommand} favorites={favorites} toggleFavorite={toggleFavorite}/>:
     page==='command-studio'?<CommandStudio c={selected} tab={tab} setTab={setTab} go={go} favorites={favorites} toggleFavorite={toggleFavorite}/>:
     page==='visualiser'?<Visualiser c={selected}/>: 
+    page==='compare'?<CommandCompare openCommand={openCommand}/>: 
     page==='packs'?<CommandPacks openCommand={openCommand}/>: 
     page==='runtimes'?<RuntimeLibrary openCommand={openCommand}/>:
     page==='privesc'?<PrivEscExplorer openCommand={openCommand}/>:
@@ -198,6 +284,8 @@ function App(){
     page==='reports'?<ReportBuilder/>:
     page==='notes-links'?<NotesLinkBuilder/>:
     page==='workflow'?<WorkflowBuilder/>:
+    page==='assessments'?<AssessmentSequences openCommand={openCommand}/>:
+    page==='coverage'?<CoverageIntelligence openCommand={openCommand}/>:
     page==='detection'?<Detection/>:
     page==='purple'?<Purple/>:<NotFound/>}
   </main>
@@ -371,7 +459,7 @@ function LibraryPage({query,setQuery,platform,setPlatform,tool,setTool,openComma
 
   <div className="resultline"><b>{filtered.length}</b> commands match current filters</div>
   <div className="commandgrid">{filtered.map(c=><article className="commandcard" key={c.id}>
-   <div className="badges"><span>{c.platform}</span><span>{c.tool}</span><small>{c.risk}</small></div>
+   <div className="badges"><span>{c.platform}</span><span>{c.tool}</span><small>{c.risk}</small><small className={`qualityBadge ${commandQuality(c)>=85?'good':'review'}`}>{commandQuality(c)}%</small></div>
    <h3>{c.title}</h3><p>{c.description}</p><code>{c.command}</code>
    <div className="tags">{c.tags.map(t=><small key={t}>{t}</small>)}</div>
    <div className="cardActions">
@@ -549,7 +637,7 @@ function AttackPathExplorer({openCommand}){
      <div className="commandSnippet"><code>{c.command}</code></div>
      <button className="primarySmall" onClick={()=>openCommand(c)}>Open related command <ChevronRight size={14}/></button>
     </>}
-    <a className="textlink" target="_blank" rel="noopener noreferrer" href="https://notes.asifnawazminhas.com/active-directory/" target="_blank" rel="noopener noreferrer">Open related Security Notes <ExternalLink size={14}/></a>
+    <a className="textlink" target="_blank" rel="noopener noreferrer" href="https://notes.asifnawazminhas.com/active-directory/">Open related Security Notes <ExternalLink size={14}/></a>
    </div>
   </div>
  </>;
@@ -558,7 +646,8 @@ function AttackPathExplorer({openCommand}){
 function VisualPreview({c}){
  const ref=useRef(null);
  const [theme,setTheme]=useState('Security Notes Dark');
- const [prompt,setPrompt]=useState(c.platform==='Windows'?'PS>':'');
+ const [language,setLanguage]=useState('Auto');
+ const [prompt,setPrompt]=useState(c.tool==='PowerShell'?'PS>':'');
  const [watermark,setWatermark]=useState(true);
  const [watermarkText,setWatermarkText]=useState('studio.asifnawazminhas.com');
  const [windowTitle,setWindowTitle]=useState(c.tool);
@@ -567,179 +656,135 @@ function VisualPreview({c}){
  const [customCommand,setCustomCommand]=useState(c.command);
  const [layout,setLayout]=useState('Terminal');
  const [showMeta,setShowMeta]=useState(true);
+ const [lineNumbers,setLineNumbers]=useState(false);
+ const [syntax,setSyntax]=useState(true);
 
  useEffect(()=>{
-   setPrompt(c.platform==='Windows'?'PS>':'');
+   setPrompt(c.tool==='PowerShell'?'PS>':'');
    setWindowTitle(c.tool);
    setCustomCommand(c.command);
+   setLanguage('Auto');
  },[c.id]);
 
+ const activeLanguage=language==='Auto'?inferLanguage(c):language;
  const themeClass={
-   'Security Notes Dark':'theme-security',
-   'Midnight':'theme-midnight',
-   'Clean Light':'theme-light',
-   'Matrix Green':'theme-matrix',
-   'Purple Ops':'theme-purple',
-   'Dracula':'theme-dracula',
-   'Nord':'theme-nord',
-   'Solarized Dark':'theme-solarized',
-   'Amber Terminal':'theme-amber',
+   'Security Notes Dark':'theme-security','Midnight':'theme-midnight','Clean Light':'theme-light',
+   'Matrix Green':'theme-matrix','Purple Ops':'theme-purple','Dracula':'theme-dracula',
+   'Nord':'theme-nord','Solarized Dark':'theme-solarized','Amber Terminal':'theme-amber',
    'High Contrast':'theme-contrast'
  }[theme]||'theme-security';
-
- const layoutClass={
-  'Terminal':'layout-terminal',
-  'Minimal':'layout-minimal',
-  'Card':'layout-card',
-  'Poster':'layout-poster'
- }[layout]||'layout-terminal';
+ const layoutClass={'Terminal':'layout-terminal','Minimal':'layout-minimal','Card':'layout-card','Poster':'layout-poster'}[layout]||'layout-terminal';
 
  const download=async(type)=>{
    if(!ref.current)return;
    const fn=type==='png'?toPng:toSvg;
    const data=await fn(ref.current,{pixelRatio:2,cacheBust:true});
-   const a=document.createElement('a');
-   a.href=data;
-   a.download=`${c.id}-${theme.toLowerCase().replaceAll(' ','-')}.${type}`;
-   a.click();
+   const a=document.createElement('a');a.href=data;a.download=`${c.id}-${theme.toLowerCase().replaceAll(' ','-')}.${type}`;a.click();
  };
-
  const reset=()=>{
-   setTheme('Security Notes Dark');
-   setPrompt(c.platform==='Windows'?'PS>':'');
-   setWatermark(true);
-   setWatermarkText('studio.asifnawazminhas.com');
-   setWindowTitle(c.tool);
-   setFontSize(20);
-   setPadding(48);
-   setCustomCommand(c.command);
-   setLayout('Terminal');
-   setShowMeta(true);
+   setTheme('Security Notes Dark');setLanguage('Auto');setPrompt(c.tool==='PowerShell'?'PS>':'');
+   setWatermark(true);setWatermarkText('studio.asifnawazminhas.com');setWindowTitle(c.tool);
+   setFontSize(20);setPadding(48);setCustomCommand(c.command);setLayout('Terminal');
+   setShowMeta(true);setLineNumbers(false);setSyntax(true);
  };
 
- return <div className="visualPro v22">
-  <div className="visualSettings">
-   <div className="visualField wide">
-    <label>Command</label>
-    <textarea value={customCommand} onChange={e=>setCustomCommand(e.target.value)}/>
-   </div>
-
-   <div className="visualField">
-    <label>Theme</label>
-    <select value={theme} onChange={e=>setTheme(e.target.value)}>
-     <option>Security Notes Dark</option>
-     <option>Midnight</option>
-     <option>Clean Light</option>
-     <option>Matrix Green</option>
-     <option>Purple Ops</option>
-     <option>Dracula</option>
-     <option>Nord</option>
-     <option>Solarized Dark</option>
-     <option>Amber Terminal</option>
-     <option>High Contrast</option>
-    </select>
-   </div>
-
-   <div className="visualField">
-    <label>Layout</label>
-    <select value={layout} onChange={e=>setLayout(e.target.value)}>
-     <option>Terminal</option>
-     <option>Minimal</option>
-     <option>Card</option>
-     <option>Poster</option>
-    </select>
-   </div>
-
-   <div className="visualField">
-    <label>Prompt</label>
-    <input value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder="Optional"/>
-   </div>
-
-   <div className="visualField">
-    <label>Window title</label>
-    <input value={windowTitle} onChange={e=>setWindowTitle(e.target.value)}/>
-   </div>
-
-   <div className="visualField">
-    <label>Font size</label>
-    <select value={fontSize} onChange={e=>setFontSize(Number(e.target.value))}>
-     <option value="16">16 px</option><option value="18">18 px</option><option value="20">20 px</option>
-     <option value="22">22 px</option><option value="24">24 px</option><option value="28">28 px</option>
-    </select>
-   </div>
-
-   <div className="visualField">
-    <label>Card padding</label>
-    <select value={padding} onChange={e=>setPadding(Number(e.target.value))}>
-     <option value="32">Compact</option><option value="48">Balanced</option>
-     <option value="64">Spacious</option><option value="80">Poster</option>
-    </select>
-   </div>
-
-   <div className="visualField toggleField">
-    <label>Details</label>
-    <button className={`togglePill ${showMeta?'on':''}`} onClick={()=>setShowMeta(!showMeta)} type="button">
-     <span/>{showMeta?'Shown':'Hidden'}
-    </button>
-   </div>
-
-   <div className="visualField watermarkField">
-    <label>Watermark</label>
-    <div className="inlineControl">
-     <input type="checkbox" checked={watermark} onChange={e=>setWatermark(e.target.checked)}/>
-     <input disabled={!watermark} value={watermarkText} onChange={e=>setWatermarkText(e.target.value)}/>
-    </div>
-   </div>
+ return <div className="visualPro v24">
+  <div className="visualSettings carbonControls">
+   <div className="visualField wide"><label>Command / code</label><textarea value={customCommand} onChange={e=>setCustomCommand(e.target.value)}/></div>
+   <div className="visualField"><label>Language</label><select value={language} onChange={e=>setLanguage(e.target.value)}>{languageOptions.map(x=><option key={x}>{x}</option>)}</select><small className="controlHint">Detected: {inferLanguage(c)}</small></div>
+   <div className="visualField"><label>Theme</label><select value={theme} onChange={e=>setTheme(e.target.value)}><option>Security Notes Dark</option><option>Midnight</option><option>Clean Light</option><option>Matrix Green</option><option>Purple Ops</option><option>Dracula</option><option>Nord</option><option>Solarized Dark</option><option>Amber Terminal</option><option>High Contrast</option></select></div>
+   <div className="visualField"><label>Layout</label><select value={layout} onChange={e=>setLayout(e.target.value)}><option>Terminal</option><option>Minimal</option><option>Card</option><option>Poster</option></select></div>
+   <div className="visualField"><label>Prompt</label><input value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder="Optional"/></div>
+   <div className="visualField"><label>Window title</label><input value={windowTitle} onChange={e=>setWindowTitle(e.target.value)}/></div>
+   <div className="visualField"><label>Font size</label><select value={fontSize} onChange={e=>setFontSize(Number(e.target.value))}><option value="16">16 px</option><option value="18">18 px</option><option value="20">20 px</option><option value="22">22 px</option><option value="24">24 px</option><option value="28">28 px</option></select></div>
+   <div className="visualField"><label>Card padding</label><select value={padding} onChange={e=>setPadding(Number(e.target.value))}><option value="32">Compact</option><option value="48">Balanced</option><option value="64">Spacious</option><option value="80">Poster</option></select></div>
+   <div className="visualField toggleField"><label>Syntax colours</label><button className={`togglePill ${syntax?'on':''}`} onClick={()=>setSyntax(!syntax)} type="button"><span/>{syntax?'On':'Off'}</button></div>
+   <div className="visualField toggleField"><label>Line numbers</label><button className={`togglePill ${lineNumbers?'on':''}`} onClick={()=>setLineNumbers(!lineNumbers)} type="button"><span/>{lineNumbers?'Shown':'Hidden'}</button></div>
+   <div className="visualField toggleField"><label>Details</label><button className={`togglePill ${showMeta?'on':''}`} onClick={()=>setShowMeta(!showMeta)} type="button"><span/>{showMeta?'Shown':'Hidden'}</button></div>
+   <div className="visualField watermarkField"><label>Watermark</label><div className="inlineControl"><input type="checkbox" checked={watermark} onChange={e=>setWatermark(e.target.checked)}/><input disabled={!watermark} value={watermarkText} onChange={e=>setWatermarkText(e.target.value)}/></div></div>
   </div>
 
-  <div ref={ref} className={`exportcard pro refined ${themeClass} ${layoutClass}`}>
-   {layout!=='Minimal'&&<div className="exportbar">
-    <div className="windowDots"><i/><i/><i/></div>
-    <span>{windowTitle}</span>
-   </div>}
-
+  <div ref={ref} className={`exportcard pro refined carbonCard ${themeClass} ${layoutClass}`} data-language={activeLanguage}>
+   {layout!=='Minimal'&&<div className="exportbar"><div className="windowDots"><i/><i/><i/></div><div className="windowIdentity"><span>{windowTitle}</span><small>{activeLanguage}</small></div></div>}
    <div className="exportbody" style={{padding:`${padding}px`}}>
-    {showMeta&&<div className="visualMeta">
-     <span>{c.platform}</span>
-     <span>{c.tool}</span>
-     <span>{c.category}</span>
-    </div>}
-
-    <div className="exportCommand refinedCommand" style={{fontSize:`${fontSize}px`}}>
-     {prompt&&<b>{prompt}</b>}
-     <code>{customCommand}</code>
+    {showMeta&&<div className="visualMeta"><span>{activeLanguage}</span><span>{c.platform}</span><span>{c.tool}</span><span>{c.category}</span></div>}
+    <div className="exportCommand refinedCommand codeCanvas" style={{fontSize:`${fontSize}px`}}>
+     {prompt&&<b className="codePrompt">{prompt}</b>}
+     {syntax?<SyntaxCode code={customCommand} language={activeLanguage} lineNumbers={lineNumbers}/>:<code>{customCommand}</code>}
     </div>
-
-    <div className="visualFooter">
-     {watermark&&<small>{watermarkText}</small>}
-     {showMeta&&<span>{c.risk}</span>}
-    </div>
+    <div className="visualFooter">{watermark&&<small>{watermarkText}</small>}{showMeta&&<span>{c.risk}</span>}</div>
    </div>
   </div>
 
-  <div className="visualActionBar">
-   <div className="visualActionGroup">
-    <button className="primarySmall" onClick={()=>download('png')}><Download size={15}/> Export PNG</button>
-    <button className="secondarySmall" onClick={()=>download('svg')}><Download size={15}/> Export SVG</button>
-    <button className="secondarySmall" onClick={()=>{navigator.clipboard?.writeText(customCommand);studioToast('Command copied')}}><Copy size={15}/> Copy command</button>
-   </div>
-   <button className="secondarySmall" onClick={reset}><RotateCcw size={15}/> Reset</button>
-  </div>
+  <div className="visualActionBar"><div className="visualActionGroup"><button className="primarySmall" onClick={()=>download('png')}><Download size={15}/> Export PNG</button><button className="secondarySmall" onClick={()=>download('svg')}><Download size={15}/> Export SVG</button><button className="secondarySmall" onClick={()=>{navigator.clipboard?.writeText(customCommand);studioToast('Command copied')}}><Copy size={15}/> Copy</button></div><button className="secondarySmall" onClick={reset}><RotateCcw size={15}/> Reset</button></div>
  </div>
 }
 
 function Visualiser({c}){
  const [chosen,setChosen]=useState(c||commands[0]);
  return <>
-  <PageTitle kicker="COMMANDS" title="Command Visualiser" text="Create polished command cards for documentation, reports and knowledge sharing."/>
-  <div className="visualselect">
-   <label>Library command
-    <select value={chosen.id} onChange={e=>setChosen(commands.find(c=>c.id===e.target.value))}>
-     {commands.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}
-    </select>
-   </label>
-  </div>
+  <PageTitle kicker="COMMANDS" title="Command Visualiser" text="Create Carbon-style syntax-coloured command and code cards for documentation, reports and knowledge sharing."/>
+  <div className="visualselect"><label>Library command<select value={chosen.id} onChange={e=>setChosen(commands.find(c=>c.id===e.target.value))}>{commands.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label></div>
   <VisualPreview c={chosen}/>
+ </>
+}
+
+function CommandCompare({openCommand}){
+ const [leftId,setLeftId]=useState(commands[0]?.id||'');
+ const [rightId,setRightId]=useState(commands[1]?.id||commands[0]?.id||'');
+ const a=commands.find(c=>c.id===leftId)||commands[0];
+ const b=commands.find(c=>c.id===rightId)||commands[1]||commands[0];
+ const Row=({label,va,vb})=><div className="compareRow"><b>{label}</b><span>{va||'—'}</span><span>{vb||'—'}</span></div>;
+ return <>
+  <PageTitle kicker="COMMANDS" title="Command Compare" text="Compare command purpose, risk, ATT&CK, telemetry and quality across platforms and tools."/>
+  <div className="compareSelects"><label>Command A<select value={leftId} onChange={e=>setLeftId(e.target.value)}>{commands.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label><label>Command B<select value={rightId} onChange={e=>setRightId(e.target.value)}>{commands.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label></div>
+  <div className="compareTable">
+   <div className="compareHead"><span/><div><h3>{a.title}</h3><code>{a.command}</code><button onClick={()=>openCommand(a)}>Open in Studio</button></div><div><h3>{b.title}</h3><code>{b.command}</code><button onClick={()=>openCommand(b)}>Open in Studio</button></div></div>
+   <Row label="Platform" va={a.platform} vb={b.platform}/><Row label="Tool" va={a.tool} vb={b.tool}/><Row label="Category" va={a.category} vb={b.category}/><Row label="Risk" va={a.risk} vb={b.risk}/><Row label="ATT&CK" va={a.attack.join(', ')} vb={b.attack.join(', ')}/><Row label="Telemetry" va={a.telemetry.join(', ')} vb={b.telemetry.join(', ')}/><Row label="Quality" va={`${commandQuality(a)}%`} vb={`${commandQuality(b)}%`}/>
+  </div>
+ </>
+}
+
+const assessmentTemplates={
+ 'Windows Baseline':['windows-identity','windows-groups','windows-privileges','windows-computer-info','applocker-effective','windows-language-mode','windows-listening','windows-services'],
+ 'Linux Baseline':['linux-identity','linux-system','linux-kernel','linux-processes','linux-services','linux-ip','linux-routes','linux-listeners'],
+ 'Web Quick Review':['curl-head','curl-follow','curl-timing','web-security-headers','web-cors-origin'],
+ 'Network Review':['network-ping','network-traceroute','dns-dig','nmap-selected-ports','nmap-service','network-tls-inspect']
+};
+
+function AssessmentSequences({openCommand}){
+ const [template,setTemplate]=useState('Windows Baseline');
+ const makeRows=name=>(assessmentTemplates[name]||[]).map((id,i)=>({id:`${name}-${i}`,commandId:id,status:'Not tested',expected:'',notes:''}));
+ const [rows,setRows]=useState(()=>{try{return JSON.parse(localStorage.getItem('security-studio-assessment')||'null')||makeRows('Windows Baseline')}catch{return makeRows('Windows Baseline')}});
+ useEffect(()=>localStorage.setItem('security-studio-assessment',JSON.stringify(rows)),[rows]);
+ const load=()=>setRows(makeRows(template));
+ const update=(id,patch)=>setRows(rows.map(r=>r.id===id?{...r,...patch}:r));
+ const exportMd=()=>{
+  const body=[`# ${template}`,'',...rows.flatMap((r,i)=>{const c=commands.find(x=>x.id===r.commandId);return [`## ${i+1}. ${c?.title||'Command'}`,`- Status: ${r.status}`,`- Command: \`${c?.command||''}\``,`- Expected: ${r.expected||'Not documented'}`,`- Notes: ${r.notes||'Not documented'}`,'']})].join('\n');
+  const blob=new Blob([body],{type:'text/markdown'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='security-studio-assessment.md';a.click();URL.revokeObjectURL(a.href);
+ };
+ return <>
+  <PageTitle kicker="BUILDERS" title="Assessment Sequences" text="Run reusable ordered review sequences and record expected output, status and notes."/>
+  <div className="assessmentToolbar"><select value={template} onChange={e=>setTemplate(e.target.value)}>{Object.keys(assessmentTemplates).map(x=><option key={x}>{x}</option>)}</select><button className="primarySmall" onClick={load}><ListChecks size={15}/> Load sequence</button><button className="secondarySmall" onClick={exportMd}><Download size={15}/> Export Markdown</button></div>
+  <div className="assessmentList">{rows.map((r,i)=>{const c=commands.find(x=>x.id===r.commandId);return <div className="assessmentRow" key={r.id}><span className="assessmentNumber">{i+1}</span><div className="assessmentCommand"><b>{c?.title||r.commandId}</b><code>{c?.command||''}</code><button onClick={()=>c&&openCommand(c)}>Open Studio</button></div><select className={`assessmentStatus status-${r.status.toLowerCase().replaceAll(' ','-')}`} value={r.status} onChange={e=>update(r.id,{status:e.target.value})}><option>Not tested</option><option>Pass</option><option>Review</option><option>Fail</option></select><input placeholder="Expected output / condition" value={r.expected} onChange={e=>update(r.id,{expected:e.target.value})}/><input placeholder="Assessment notes" value={r.notes} onChange={e=>update(r.id,{notes:e.target.value})}/></div>})}</div>
+ </>
+}
+
+function CoverageIntelligence({openCommand}){
+ const platforms=[...new Set(commands.map(c=>c.platform))].sort();
+ const health={
+  strong:commands.filter(c=>commandQuality(c)>=85).length,
+  review:commands.filter(c=>commandQuality(c)<85).length,
+  mapped:commands.filter(c=>c.attack.length).length,
+  telemetry:commands.filter(c=>c.telemetry.length).length,
+  notes:commands.filter(c=>c.notes).length
+ };
+ const platformRows=platforms.map(p=>{const xs=commands.filter(c=>c.platform===p);return {name:p,total:xs.length,mapped:xs.filter(c=>c.attack.length).length,telemetry:xs.filter(c=>c.telemetry.length).length,quality:Math.round(xs.reduce((s,c)=>s+commandQuality(c),0)/Math.max(xs.length,1))}});
+ const needsReview=commands.filter(c=>commandQuality(c)<85).sort((a,b)=>commandQuality(a)-commandQuality(b)).slice(0,12);
+ return <>
+  <PageTitle kicker="DEFENCE" title="Coverage Intelligence" text="See catalogue quality, ATT&CK mapping, telemetry coverage and the areas that need improvement."/>
+  <div className="coverageStats"><div><b>{commands.length}</b><span>Total commands</span></div><div><b>{health.strong}</b><span>High quality</span></div><div><b>{health.mapped}</b><span>ATT&CK mapped</span></div><div><b>{health.telemetry}</b><span>Telemetry mapped</span></div><div><b>{health.notes}</b><span>Notes linked</span></div></div>
+  <div className="coverageGrid"><Panel title="Platform coverage"><div className="coverageRows">{platformRows.map(r=><div key={r.name}><div className="coverageLabel"><b>{r.name}</b><span>{r.total} commands · {r.quality}% quality</span></div><div className="coverageBars"><span style={{width:`${r.total?Math.round(r.mapped/r.total*100):0}%`}}/><i style={{width:`${r.total?Math.round(r.telemetry/r.total*100):0}%`}}/></div><small>ATT&CK {r.mapped}/{r.total} · Telemetry {r.telemetry}/{r.total}</small></div>)}</div></Panel><Panel title="Needs improvement"><div className="qualityList">{needsReview.map(c=><button key={c.id} onClick={()=>openCommand(c)}><div><b>{c.title}</b><span>{c.platform} · {c.tool}</span></div><strong>{commandQuality(c)}%</strong></button>)}</div></Panel></div>
  </>
 }
 
@@ -759,12 +804,15 @@ function RuntimeLibrary({openCommand}){
 }
 
 function KnowledgeGraph({openCommand}){
+ const [platformFilter,setPlatformFilter]=useState('All');
+ const [toolFilter,setToolFilter]=useState('All');
+ const filtered=commands.filter(c=>(platformFilter==='All'||c.platform===platformFilter)&&(toolFilter==='All'||c.tool===toolFilter));
  const [commandId,setCommandId]=useState(commands[0]?.id||'');
- const c=commands.find(x=>x.id===commandId)||commands[0];
+ const c=(filtered.find(x=>x.id===commandId)||filtered[0]||commands[0]);
  const related=relatedCommandsFor(c,5);
  return <>
   <PageTitle kicker="EXPLORERS" title="Knowledge Graph" text="Explore how a command connects to tools, ATT&CK, telemetry, related commands and Security Notes."/>
-  <div className="graphToolbar"><label>Start from command<select value={commandId} onChange={e=>setCommandId(e.target.value)}>{commands.map(x=><option key={x.id} value={x.id}>{x.title}</option>)}</select></label></div>
+  <div className="graphToolbar graphFilters"><label>Platform<select value={platformFilter} onChange={e=>{setPlatformFilter(e.target.value);setCommandId('')}}><option>All</option>{[...new Set(commands.map(c=>c.platform))].sort().map(x=><option key={x}>{x}</option>)}</select></label><label>Tool<select value={toolFilter} onChange={e=>{setToolFilter(e.target.value);setCommandId('')}}><option>All</option>{[...new Set(commands.map(c=>c.tool))].sort().map(x=><option key={x}>{x}</option>)}</select></label><label>Start from command<select value={c.id} onChange={e=>setCommandId(e.target.value)}>{filtered.map(x=><option key={x.id} value={x.id}>{x.title}</option>)}</select></label></div>
   <div className="knowledgeGraph">
    <div className="graphCenter"><TerminalSquare/><span>COMMAND</span><b>{c.title}</b><code>{c.command}</code><button onClick={()=>openCommand(c)}>Open in Studio <ChevronRight size={14}/></button></div>
    <div className="graphColumn left">
@@ -1089,129 +1137,37 @@ function ToastHost(){
 }
 
 function WorkspacePage({favorites,recent,toggleFavorite,openCommand,removeRecent,clearRecent}){
- const importRef=useRef(null);
  const saved=favorites.map(id=>commands.find(c=>c.id===id)).filter(Boolean);
  const viewed=recent.map(id=>commands.find(c=>c.id===id)).filter(Boolean);
-
  const exportWorkspace=()=>{
   const payload={
-   name:'Asif Security Studio Workspace',
-   schemaVersion:'2.0',version:'2.0',
-   exportedAt:new Date().toISOString(),
-   favorites,
-   recent,
+   name:'Asif Security Studio Workspace',schemaVersion:'2.4',version:'2.4',exportedAt:new Date().toISOString(),
+   favorites,recent,
    workflow:JSON.parse(localStorage.getItem('security-studio-workflow')||'[]'),
+   assessment:JSON.parse(localStorage.getItem('security-studio-assessment')||'[]'),
    purpleMap:JSON.parse(localStorage.getItem('security-studio-purple-map')||'[]'),
    purpleTechnique:localStorage.getItem('security-studio-purple-technique')||'',
    purpleCommand:localStorage.getItem('security-studio-purple-command')||'',
    purpleStatus:JSON.parse(localStorage.getItem('security-studio-purple-status')||'{}'),
-   purpleName:localStorage.getItem('security-studio-purple-name')||''
+   purpleName:localStorage.getItem('security-studio-purple-name')||'',
+   context:JSON.parse(localStorage.getItem('security-studio-context')||'{}'),
+   contextProfile:localStorage.getItem('security-studio-context-profile')||'Default'
   };
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='security-studio-workspace.json';
-  a.click();
-  URL.revokeObjectURL(a.href);
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='security-studio-workspace.json';a.click();URL.revokeObjectURL(a.href);studioToast('Workspace exported');
  };
-
- const importWorkspace=e=>{
-  const file=e.target.files?.[0];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=()=>{
-   try{
-    const p=JSON.parse(reader.result);
-    if(!p||!Array.isArray(p.favorites)||!Array.isArray(p.recent))throw new Error('Invalid workspace');
-    if(p.schemaVersion && p.schemaVersion!=='2.0')throw new Error(`Unsupported workspace schema ${p.schemaVersion}`);
-    localStorage.setItem('security-studio-favorites',JSON.stringify(p.favorites));
-    localStorage.setItem('security-studio-recent',JSON.stringify(p.recent));
-    if(Array.isArray(p.workflow))localStorage.setItem('security-studio-workflow',JSON.stringify(p.workflow));
-    if(Array.isArray(p.purpleMap))localStorage.setItem('security-studio-purple-map',JSON.stringify(p.purpleMap));
-    if(typeof p.purpleTechnique==='string')localStorage.setItem('security-studio-purple-technique',p.purpleTechnique);
-    if(typeof p.purpleCommand==='string')localStorage.setItem('security-studio-purple-command',p.purpleCommand);
-    if(p.purpleStatus)localStorage.setItem('security-studio-purple-status',JSON.stringify(p.purpleStatus));
-    if(typeof p.purpleName==='string')localStorage.setItem('security-studio-purple-name',p.purpleName);
-    location.reload();
-   }catch{
-    alert('This file does not contain a valid Security Studio workspace backup.');
-   }
-  };
-  reader.readAsText(file);
-  e.target.value='';
- };
-
  const clearWorkspace=()=>{
-  if(!confirm('Clear favourites, recent commands, workflow and purple-team workspace data from this browser?'))return;
-  [
-   'security-studio-favorites',
-   'security-studio-recent',
-   'security-studio-workflow',
-   'security-studio-purple-map',
-   'security-studio-purple-technique',
-   'security-studio-purple-command',
-   'security-studio-purple-status',
-   'security-studio-purple-name'
-  ].forEach(k=>localStorage.removeItem(k));
+  if(!confirm('Clear favourites, recent commands, workflow, assessment, Purple Team data and local context from this browser?'))return;
+  ['security-studio-favorites','security-studio-recent','security-studio-workflow','security-studio-assessment','security-studio-purple-map','security-studio-purple-technique','security-studio-purple-command','security-studio-purple-status','security-studio-purple-name','security-studio-context','security-studio-context-profile'].forEach(k=>localStorage.removeItem(k));
   location.reload();
  };
-
- const savedList=saved.length?<div className="workspaceList">{saved.map(c=>
-  <div className="workspaceItem" key={c.id}>
-   <div><span>{c.platform} · {c.tool}</span><b>{c.title}</b><code>{c.command}</code></div>
-   <div>
-    <button onClick={()=>toggleFavorite(c.id)} title="Remove favourite"><Star size={15} fill="currentColor"/></button>
-    <a href={c.notes} target="_blank" rel="noopener noreferrer" title="Open Notes"><BookOpen size={15}/></a>
-    <button onClick={()=>openCommand(c)}>Open <ChevronRight size={14}/></button>
-   </div>
-  </div>)}</div>:<div className="empty">No saved commands yet. Use the star button in the Command Library or Command Studio.</div>;
-
- const recentList=viewed.length?<div className="workspaceList">{viewed.map(c=>
-  <div className="workspaceItem" key={c.id}>
-   <div><span>{c.platform} · {c.tool}</span><b>{c.title}</b><code>{c.command}</code></div>
-   <div>
-    <button onClick={()=>toggleFavorite(c.id)} title="Toggle favourite"><Star size={15} fill={favorites.includes(c.id)?'currentColor':'none'}/></button>
-    <a href={c.notes} target="_blank" rel="noopener noreferrer" title="Open Notes"><BookOpen size={15}/></a>
-    <button onClick={()=>openCommand(c)}>Open <ChevronRight size={14}/></button>
-    <button className="recentDelete" onClick={()=>removeRecent(c.id)} title="Remove from recently viewed"><X size={15}/></button>
-   </div>
-  </div>)}</div>:<div className="empty">Open commands in Studio and they will appear here.</div>;
-
- return <>
-  <PageTitle kicker="WORKSPACE" title="Saved Workspace" text="Keep useful commands close, manage recent history and back up your Studio workspace."/>
-  <div className="studioToolbar workspaceToolbar">
-   <div className="toolbarPrimary">
-    <button className="primarySmall" onClick={exportWorkspace}><Download size={15}/> Export workspace</button>
-    <input ref={importRef} type="file" accept=".json,application/json" hidden onChange={importWorkspace}/>
-    <button className="secondarySmall" onClick={()=>importRef.current?.click()}><Upload size={15}/> Import workspace</button>
-   </div>
-   <div className="toolbarSecondary">
-    <button className="secondarySmall dangerOutline" onClick={clearWorkspace}><Trash2 size={15}/> Clear workspace</button>
-   </div>
-  </div>
-
-  <div className="workspaceStats">
-   <div><Star/><b>{saved.length}</b><span>Saved commands</span></div>
-   <div><Clock3/><b>{viewed.length}</b><span>Recent commands</span></div>
-   <div><Library/><b>{commands.length}</b><span>Total catalogue</span></div>
-  </div>
-
-  <div className="workspaceColumns">
-   <Panel title="Favourites">{savedList}</Panel>
-   <div className="panel">
-    <div className="panelTitleActions">
-     <h3>Recently viewed</h3>
-     <button className="secondarySmall dangerOutline compact" disabled={!viewed.length} onClick={clearRecent}><Trash2 size={14}/> Clear recent</button>
-    </div>
-    {recentList}
-   </div>
-  </div>
- </>
+ const savedList=saved.length?<div className="workspaceList">{saved.map(c=><div className="workspaceItem" key={c.id}><div><span>{c.platform} · {c.tool}</span><b>{c.title}</b><code>{c.command}</code></div><div><button onClick={()=>toggleFavorite(c.id)} title="Remove favourite"><Star size={15} fill="currentColor"/></button><a href={c.notes} target="_blank" rel="noopener noreferrer" title="Open Notes"><BookOpen size={15}/></a><button onClick={()=>openCommand(c)}>Open <ChevronRight size={14}/></button></div></div>)}</div>:<div className="empty">No saved commands yet. Use the star button in the Command Library or Command Studio.</div>;
+ const recentList=viewed.length?<div className="workspaceList">{viewed.map(c=><div className="workspaceItem" key={c.id}><div><span>{c.platform} · {c.tool}</span><b>{c.title}</b><code>{c.command}</code></div><div><button onClick={()=>toggleFavorite(c.id)} title="Toggle favourite"><Star size={15} fill={favorites.includes(c.id)?'currentColor':'none'}/></button><a href={c.notes} target="_blank" rel="noopener noreferrer" title="Open Notes"><BookOpen size={15}/></a><button onClick={()=>openCommand(c)}>Open <ChevronRight size={14}/></button><button className="recentDelete" onClick={()=>removeRecent(c.id)} title="Remove from recently viewed"><X size={15}/></button></div></div>)}</div>:<div className="empty">Open commands in Studio and they will appear here.</div>;
+ return <><PageTitle kicker="WORKSPACE" title="Saved Workspace" text="Keep useful commands close, manage recent history and export your local Studio workspace."/><div className="studioToolbar workspaceToolbar"><div className="toolbarPrimary"><button className="primarySmall" onClick={exportWorkspace}><Download size={15}/> Export workspace</button></div><div className="toolbarSecondary"><span className="exportOnlyNote">Export only - Security Studio never asks you to upload a workspace file.</span><button className="secondarySmall dangerOutline" onClick={clearWorkspace}><Trash2 size={15}/> Clear workspace</button></div></div><div className="workspaceStats"><div><Star/><b>{saved.length}</b><span>Saved commands</span></div><div><Clock3/><b>{viewed.length}</b><span>Recent commands</span></div><div><Library/><b>{commands.length}</b><span>Total catalogue</span></div></div><div className="workspaceColumns"><Panel title="Favourites">{savedList}</Panel><div className="panel"><div className="panelTitleActions"><h3>Recently viewed</h3><button className="secondarySmall dangerOutline compact" disabled={!viewed.length} onClick={clearRecent}><Trash2 size={14}/> Clear recent</button></div>{recentList}</div></div></>;
 }
 
 function WorkflowBuilder(){
  const visualRef=useRef(null);
- const fileRef=useRef(null);
  const templates={
   'Assessment':[
    {title:'Define scope',kind:'Planning',commandId:'',notes:''},
@@ -1259,21 +1215,8 @@ function WorkflowBuilder(){
  const reset=()=>setNodes(createNodes(templates['Assessment']));
 
  const exportJson=()=>{
-   const blob=new Blob([JSON.stringify({name:'Security Studio Workflow',schemaVersion:'2.0',version:'2.0',steps:nodes},null,2)],{type:'application/json'});
+   const blob=new Blob([JSON.stringify({name:'Security Studio Workflow',schemaVersion:'2.4',version:'2.4',steps:nodes},null,2)],{type:'application/json'});
    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='security-studio-workflow.json';a.click();URL.revokeObjectURL(a.href);
- };
- const importJson=e=>{
-   const file=e.target.files?.[0]; if(!file)return;
-   const reader=new FileReader();
-   reader.onload=()=>{
-    try{
-     const parsed=JSON.parse(reader.result);
-     const rows=Array.isArray(parsed)?parsed:parsed.steps;
-     if(!Array.isArray(rows))throw new Error('Invalid workflow');
-     setNodes(rows.map((x,i)=>({id:x.id||Date.now()+i,title:x.title||'Imported step',kind:x.kind||'Validation',commandId:x.commandId||'',notes:x.notes||'',yesLabel:x.yesLabel||'Yes',noLabel:x.noLabel||'No'})));
-    }catch{alert('This file does not contain a valid Security Studio workflow.')}
-   };
-   reader.readAsText(file); e.target.value='';
  };
  const exportImage=async type=>{
    if(!visualRef.current)return;
@@ -1293,8 +1236,7 @@ function WorkflowBuilder(){
     <button className="secondarySmall" onClick={loadTemplate}><Workflow size={15}/> Load template</button>
    </div>
    <div className="toolbarSecondary">
-    <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={importJson}/>
-    <button className="secondarySmall" onClick={()=>fileRef.current?.click()}><Upload size={15}/> Import JSON</button>
+    <span className="exportOnlyNote">Export only</span>
     <button className="secondarySmall" onClick={exportJson}><FileJson size={15}/> Export JSON</button>
     <button className="secondarySmall" onClick={()=>exportImage('png')}><Download size={15}/> PNG</button>
     <button className="secondarySmall" onClick={()=>exportImage('svg')}><Download size={15}/> SVG</button>
@@ -1378,7 +1320,7 @@ function Purple(){
   setStatuses({telemetry:'Not tested',detection:'Not tested',response:'Not tested',overall:'Not tested'});
  };
  const payload=()=>({
-  name:exerciseName,schemaVersion:'2.0',version:'2.0',technique,
+  name:exerciseName,schemaVersion:'2.4',version:'2.4',technique,
   command:selectedCommand?{id:selectedCommand.id,title:selectedCommand.title,command:selectedCommand.command}:null,
   statuses,mapping:items
  });

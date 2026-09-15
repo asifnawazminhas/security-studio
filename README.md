@@ -1,75 +1,70 @@
 # Asif's Security Studio
 
-## v2.3 - Runtime Library + Knowledge Graph + Context Profiles
+## v2.4 - Syntax Visualiser + Coverage Intelligence
 
-### Runtime Library
-- PowerShell
-- Bash
-- Python
-- Java
-- PHP
-- Node.js
-- JavaScript
-- Go
-- .NET / C#
-- 168 total catalogue entries
-- runtime, compiler, package and environment references
+### Carbon-style Command Visualiser
+- Select a language independently from the command
+- Auto language detection
+- Syntax colours adapt to the selected visual theme
+- Languages: Shell, PowerShell, Python, Java, JavaScript, TypeScript, PHP, C#, Go, JSON, YAML, SQL, HTML/XML, CSS, HTTP
+- Optional line numbers
+- Optional prompt
+- Syntax highlighting toggle
+- PNG/SVG export
+- Safe React text/span rendering - no HTML injection renderer
 
-### Knowledge Graph
-- command -> tool
-- command -> category
-- command -> ATT&CK
-- command -> telemetry
-- inferred related commands
-- Security Notes relationship
+### Coverage Intelligence
+- Catalogue quality counts
+- ATT&CK coverage
+- Telemetry coverage
+- Notes coverage
+- Platform coverage bars
+- Commands needing improvement
 
-### Context Profiles
-- Default
-- Lab
-- Internal Assessment
-- AD Lab
-- Web Test
-- custom local profiles
-- TARGET
-- DOMAIN
-- USERNAME
-- INTERFACE
-- PORT
-- PATH
+### Assessment Sequences
+- Windows Baseline
+- Linux Baseline
+- Web Quick Review
+- Network Review
+- Status: Not tested / Pass / Review / Fail
+- Expected-output field
+- Notes field
+- Markdown export
+- Local persistence
 
-Context remains local to browser storage.
+### Command Compare
+- Side-by-side comparison
+- Platform, tool, category, risk, ATT&CK, telemetry and quality
 
-### Search
-- weighted search
-- title/tool/platform/category/tags/ATT&CK weighting
-- arrow-key navigation
-- Enter opens result
-- Alt+C copies highlighted command
-- / opens search
-- ? opens shortcut help
+### Knowledge Graph v2
+- Platform filter
+- Tool filter
+- Existing command, ATT&CK, telemetry and Notes relationships retained
 
-### Notes behaviour
-All Security Notes links now open in a new browser tab using:
-`target="_blank" rel="noopener noreferrer"`
+### Quality scoring
+- Quality badge added to Command Library cards
+- Completeness uses description, explanation, tags, telemetry, Notes, parameter metadata and ATT&CK field presence
 
-### Light mode QA
-- fixed Open Security Notes contrast
-- stronger secondary button contrast
-- improved header/search contrast
-- preserved Visualiser theme independence
-
-### Existing features retained
+### Existing platform retained
+- 168-command catalogue
+- Runtime Library
 - Command Studio
-- Command Visualiser
 - Command Packs
+- Context Profiles
+- Saved Workspace
+- Report Builder
+- Notes Link Builder
+- Workflow Builder
+- Purple Team Validation
 - ATT&CK Explorer
 - PrivEsc Explorer
 - Attack Path Explorer
-- Saved Workspace
-- Workflow Builder
-- Purple Team Validation
-- Report Builder
-- Notes Link Builder
-- dark/light mode
+- Dark/light mode
 - PWA/offline support
-- no user file uploads
+- No user file uploads
+
+### Local-only / no-upload policy
+- No file input controls
+- No workspace import
+- No workflow import
+- Studio can export data, images and reports but does not ask users to upload files
